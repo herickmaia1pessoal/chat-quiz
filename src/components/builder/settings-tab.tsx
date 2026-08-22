@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { updateQuizSettings } from '@/app/dashboard/actions'
 
 export function SettingsTab({ quiz }: { quiz: any }) {
@@ -20,6 +21,7 @@ export function SettingsTab({ quiz }: { quiz: any }) {
   const [redirectUrl, setRedirectUrl] = useState(quiz.redirect_url || '')
   const [isPublished, setIsPublished] = useState(quiz.status === 'published')
   const [showBranding, setShowBranding] = useState(quiz.show_branding !== false)
+  const [identityField, setIdentityField] = useState(quiz.identity_field || 'none')
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
   const [savedSuccess, setSavedSuccess] = useState(false)
@@ -47,6 +49,7 @@ export function SettingsTab({ quiz }: { quiz: any }) {
         redirect_url: redirectUrl,
         status: isPublished ? 'published' : 'draft',
         show_branding: showBranding,
+        identity_field: identityField,
       })
       setSavedSuccess(true)
       setTimeout(() => setSavedSuccess(false), 3000)
@@ -139,6 +142,26 @@ export function SettingsTab({ quiz }: { quiz: any }) {
                 </p>
               </div>
             )}
+
+            <Separator className="bg-zinc-800" />
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Tipo de Identidade do Lead</Label>
+              <Select value={identityField} onValueChange={setIdentityField}>
+                <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                  <SelectItem value="none">Nenhuma (cada envio é um lead novo)</SelectItem>
+                  <SelectItem value="phone">Telefone</SelectItem>
+                  <SelectItem value="email">E-mail</SelectItem>
+                  <SelectItem value="name">Nome Completo</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-zinc-500">
+                Se a mesma pessoa responder de novo, a sessão existente é atualizada em vez de virar um lead duplicado — evita inflar as métricas de conversão.
+              </p>
+            </div>
           </CardContent>
         </Card>
 

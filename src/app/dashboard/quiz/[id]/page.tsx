@@ -77,6 +77,7 @@ export default async function QuizBuilderPage({
       utm_term,
       status,
       created_at,
+      tags,
       answers:answers(
         id,
         question_id,

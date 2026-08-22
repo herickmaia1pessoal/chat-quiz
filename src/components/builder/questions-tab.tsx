@@ -60,6 +60,7 @@ interface Option {
   order_num: number
   score_value?: number
   image_url?: string
+  tag?: string
 }
 
 interface ComparisonRow {
@@ -637,6 +638,18 @@ export function QuestionsTab({
     if (blocks[blockIdx].options) {
       const options = [...blocks[blockIdx].options!]
       options[optIdx] = { ...options[optIdx], score_value: scoreValue }
+      blocks[blockIdx] = { ...blocks[blockIdx], options }
+      next[selectedStepIndex] = { ...next[selectedStepIndex], blocks }
+      setSteps(next)
+    }
+  }
+
+  const updateOptionTag = (blockIdx: number, optIdx: number, tag: string) => {
+    const next = [...steps]
+    const blocks = [...next[selectedStepIndex].blocks]
+    if (blocks[blockIdx].options) {
+      const options = [...blocks[blockIdx].options!]
+      options[optIdx] = { ...options[optIdx], tag }
       blocks[blockIdx] = { ...blocks[blockIdx], options }
       next[selectedStepIndex] = { ...next[selectedStepIndex], blocks }
       setSteps(next)
@@ -1694,7 +1707,7 @@ export function QuestionsTab({
                         <div className="flex items-center justify-between">
                           <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">Opções</Label>
                           {scoringEnabled && (
-                            <span className="text-[11px] text-zinc-500">Pontos por opção</span>
+                            <span className="text-[11px] text-zinc-500">Pontos e tag por opção</span>
                           )}
                         </div>
                         {q.options?.map((opt, optIndex) => (
@@ -1710,6 +1723,13 @@ export function QuestionsTab({
                               onChange={(e) => updateOption(blockIdx, optIndex, e.target.value)}
                               placeholder={`Opção ${optIndex + 1}`}
                               className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9" />
+                            <Input
+                              value={opt.tag || ''}
+                              onChange={(e) => updateOptionTag(blockIdx, optIndex, e.target.value)}
+                              placeholder="tag"
+                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 w-20 shrink-0"
+                              title="Marca o lead com esta tag quando ele escolhe esta opção"
+                            />
                             {scoringEnabled && (
                               <Input
                                 type="number"
@@ -1746,6 +1766,13 @@ export function QuestionsTab({
                           {(q.options || []).map((opt, optIndex) => (
                             <div key={optIndex} className="flex items-center gap-2 text-sm text-zinc-300 bg-zinc-950/40 rounded-lg px-3 py-2 border border-zinc-800">
                               <span className="flex-1">{opt.text}</span>
+                              <Input
+                                value={opt.tag || ''}
+                                onChange={(e) => updateOptionTag(blockIdx, optIndex, e.target.value)}
+                                placeholder="tag"
+                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8 w-20 shrink-0"
+                                title="Marca o lead com esta tag quando ele escolhe esta opção"
+                              />
                               {scoringEnabled && (
                                 <Input
                                   type="number"

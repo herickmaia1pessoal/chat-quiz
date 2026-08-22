@@ -26,10 +26,11 @@ interface SubmitPayload {
 export async function submitQuizResponse(payload: SubmitPayload) {
   const supabase = await createClient()
 
-  // 1. Fetch Quiz config (for webhook_url, redirect_url and the scored-result toggle)
+  // 1. Fetch Quiz config (for webhook_url, redirect_url, the scored-result
+  // toggle, and the lead-deduplication key)
   const { data: quiz } = await supabase
     .from('quizzes')
-    .select('webhook_url, redirect_url, title, enable_scored_result')
+    .select('webhook_url, redirect_url, title, enable_scored_result, identity_field')
     .eq('id', payload.quizId)
     .single()
 
@@ -42,9 +43,22 @@ export async function submitQuizResponse(payload: SubmitPayload) {
   let resultLevel: ResultLevel | null = null
   let allLevels: ResultLevel[] = []
 
-  if (quiz?.enable_scored_result) {
-    const optionIds = payload.answers.map((a) => a.optionId).filter((id): id is string => !!id)
+  const optionIds = payload.answers.map((a) => a.optionId).filter((id): id is string => !!id)
 
+  // Tags are collected regardless of whether scoring is enabled — they're
+  // an independent feature (lead segmentation), not tied to the score ruler.
+  let leadTags: string[] = []
+  if (optionIds.length > 0) {
+    const { data: taggedOptions } = await supabase
+      .from('question_options')
+      .select('id, tag')
+      .in('id', optionIds)
+      .not('tag', 'is', null)
+
+    leadTags = [...new Set((taggedOptions || []).map((o) => o.tag).filter((t): t is string => !!t))]
+  }
+
+  if (quiz?.enable_scored_result) {
     if (optionIds.length > 0) {
       const { data: scoredOptions } = await supabase
         .from('question_options')
@@ -66,8 +80,43 @@ export async function submitQuizResponse(payload: SubmitPayload) {
     resultLevel = allLevels.find((l) => totalScore! >= l.min_score && totalScore! <= l.max_score) || null
   }
 
-  // 3. Insert Lead session — the id is generated here rather than read back
-  // via .select()/RETURNING. In Postgres, INSERT ... RETURNING re-checks the
+  // 3. Deduplicate by the quiz's configured identity field — if the same
+  // person answers again (e.g. reopened the link), update their existing
+  // session instead of creating a second lead, so "Leads Gerados" doesn't
+  // get inflated by repeat submissions. Phone is compared digits-only since
+  // formatting varies ("(11) 99999-9999" vs "11999999999"); email/name are
+  // compared trimmed + lowercased. 'none' (the default) keeps the old
+  // behavior — every submission is its own lead.
+  const identityField = quiz?.identity_field || 'none'
+  let existingLeadId: string | null = null
+
+  if (identityField !== 'none') {
+    const normalizedPhone = payload.phone.replace(/\D/g, '')
+    const normalizedEmail = payload.email?.trim().toLowerCase()
+    const normalizedName = payload.name?.trim().toLowerCase()
+
+    let query = supabase.from('leads_responses').select('id').eq('quiz_id', payload.quizId)
+
+    if (identityField === 'phone' && normalizedPhone) {
+      // Compare against the same digits-only normalization applied on write
+      // (see the insert/update payload below) rather than raw stored text.
+      query = query.eq('phone', normalizedPhone)
+    } else if (identityField === 'email' && normalizedEmail) {
+      query = query.eq('email', normalizedEmail)
+    } else if (identityField === 'name' && normalizedName) {
+      query = query.ilike('name', normalizedName)
+    } else {
+      query = null as any // no usable value to match on for this identity field
+    }
+
+    if (query) {
+      const { data: existing } = await query.limit(1).maybeSingle()
+      if (existing) existingLeadId = existing.id
+    }
+  }
+
+  // The id is generated here (for new leads) rather than read back via
+  // .select()/RETURNING. In Postgres, INSERT ... RETURNING re-checks the
   // table's SELECT policies on the new row before handing it back, and the
   // only SELECT policy on leads_responses requires workspace membership —
   // something an anonymous quiz visitor never has. That combination made
@@ -75,34 +124,45 @@ export async function submitQuizResponse(payload: SubmitPayload) {
   // policy" even though the INSERT itself was correctly permitted. Supplying
   // our own id sidesteps the RETURNING requirement entirely, so we don't
   // have to widen SELECT access (and leak every quiz's leads) to fix it.
-  const leadId = crypto.randomUUID()
+  const leadId = existingLeadId || crypto.randomUUID()
   const completedAt = new Date().toISOString()
 
-  const { error: leadError } = await supabase
-    .from('leads_responses')
-    .insert({
-      id: leadId,
-      quiz_id: payload.quizId,
-      name: payload.name,
-      phone: payload.phone,
-      email: payload.email || null,
-      utm_source: payload.utms.utm_source || null,
-      utm_medium: payload.utms.utm_medium || null,
-      utm_campaign: payload.utms.utm_campaign || null,
-      utm_content: payload.utms.utm_content || null,
-      utm_term: payload.utms.utm_term || null,
-      status: 'completed',
-      completed_at: completedAt,
-      total_score: totalScore,
-      result_level_id: resultLevel?.id || null,
-    })
+  const leadRow = {
+    quiz_id: payload.quizId,
+    name: payload.name,
+    // Stored normalized (digits-only) when phone is the identity key, so
+    // the next dedup lookup's .eq('phone', ...) compares like-for-like.
+    phone: identityField === 'phone' ? payload.phone.replace(/\D/g, '') : payload.phone,
+    email: identityField === 'email' ? (payload.email?.trim().toLowerCase() || null) : (payload.email || null),
+    utm_source: payload.utms.utm_source || null,
+    utm_medium: payload.utms.utm_medium || null,
+    utm_campaign: payload.utms.utm_campaign || null,
+    utm_content: payload.utms.utm_content || null,
+    utm_term: payload.utms.utm_term || null,
+    status: 'completed',
+    completed_at: completedAt,
+    total_score: totalScore,
+    result_level_id: resultLevel?.id || null,
+    tags: leadTags,
+  }
+
+  const { error: leadError } = existingLeadId
+    ? await supabase.from('leads_responses').update(leadRow).eq('id', leadId)
+    : await supabase.from('leads_responses').insert({ id: leadId, ...leadRow })
 
   if (leadError) {
     console.error('Error saving lead:', leadError)
     throw new Error('Falha ao registrar lead.')
   }
 
-  // 4. Insert individual answers
+  // 4. Insert individual answers — for a deduplicated resubmission, the
+  // previous answers are replaced wholesale rather than accumulated,
+  // mirroring the delete-then-reinsert pattern already used by
+  // saveQuestions for editing a quiz's own structure.
+  if (existingLeadId) {
+    await supabase.from('answers').delete().eq('response_id', leadId)
+  }
+
   if (payload.answers.length > 0) {
     const answersToInsert = payload.answers.map((ans) => ({
       response_id: leadId,

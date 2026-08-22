@@ -63,6 +63,7 @@ export async function updateQuizSettings(quizId: string, settings: {
   show_branding?: boolean
   enable_scored_result?: boolean
   loading_messages?: string[]
+  identity_field?: 'none' | 'email' | 'phone' | 'name'
 }) {
   const supabase = await createClient()
 
@@ -91,7 +92,7 @@ interface QuestionInput {
   // Legacy field, still accepted for backwards compatibility with callers
   // that haven't migrated to step-level branching yet (see StepInput below).
   branching_rules?: Array<{ option_id: string; go_to_order: number }>
-  options?: Array<{ id?: string; text: string; order_num: number; score_value?: number; image_url?: string }>
+  options?: Array<{ id?: string; text: string; order_num: number; score_value?: number; image_url?: string; tag?: string }>
   settings?: Record<string, any>
 }
 
@@ -158,6 +159,7 @@ export async function saveQuestions(quizId: string, input: StepInput[] | Questio
           order_num: optIndex,
           score_value: opt.score_value || 0,
           image_url: opt.image_url || null,
+          tag: opt.tag || null,
         }))
 
         const { error: optError } = await supabase
@@ -213,7 +215,7 @@ export async function duplicateQuiz(quizId: string) {
 
   const { data: steps } = await supabase
     .from('quiz_steps')
-    .select('id, order_num, title, branching_rules, questions(id, title, description, type, order_num, settings, options:question_options(id, text, order_num, score_value, image_url))')
+    .select('id, order_num, title, branching_rules, questions(id, title, description, type, order_num, settings, options:question_options(id, text, order_num, score_value, image_url, tag))')
     .eq('quiz_id', quizId)
     .order('order_num', { ascending: true })
 
@@ -241,7 +243,7 @@ export async function duplicateQuiz(quizId: string) {
 
     if (stepInsertError || !createdStep) continue
 
-    const blocks = (step as any).questions as Array<{ id: string; title: string; description?: string; type: string; order_num: number; settings?: Record<string, any>; options: Array<{ id: string; text: string; order_num: number; score_value?: number; image_url?: string }> | null }>
+    const blocks = (step as any).questions as Array<{ id: string; title: string; description?: string; type: string; order_num: number; settings?: Record<string, any>; options: Array<{ id: string; text: string; order_num: number; score_value?: number; image_url?: string; tag?: string }> | null }>
 
     for (const block of blocks || []) {
       const { data: createdQuestion } = await supabase
@@ -270,6 +272,7 @@ export async function duplicateQuiz(quizId: string) {
               order_num: opt.order_num,
               score_value: opt.score_value || 0,
               image_url: opt.image_url || null,
+              tag: opt.tag || null,
             })
             .select('id')
             .single()
@@ -393,7 +396,7 @@ interface QuizExport {
       settings: Record<string, any>
       // Local, file-scoped id used only to remap branching_rules'
       // option_id references within this export — never a real DB id.
-      options: Array<{ local_id: string; text: string; order_num: number; score_value: number; image_url: string | null }>
+      options: Array<{ local_id: string; text: string; order_num: number; score_value: number; image_url: string | null; tag: string | null }>
     }>
   }>
   result_levels: Array<{ name: string; description: string | null; min_score: number; max_score: number; color: string; order_num: number }>
@@ -412,7 +415,7 @@ export async function exportQuizAsJson(quizId: string): Promise<QuizExport> {
 
   const { data: steps } = await supabase
     .from('quiz_steps')
-    .select('order_num, title, branching_rules, questions(title, description, type, order_num, settings, options:question_options(id, text, order_num, score_value, image_url))')
+    .select('order_num, title, branching_rules, questions(title, description, type, order_num, settings, options:question_options(id, text, order_num, score_value, image_url, tag))')
     .eq('quiz_id', quizId)
     .order('order_num', { ascending: true })
 
@@ -430,7 +433,7 @@ export async function exportQuizAsJson(quizId: string): Promise<QuizExport> {
   const realToLocalOptionId: Record<string, string> = {}
 
   const exportedSteps = (steps || []).map((step) => {
-    const blocks = ((step as any).questions || []) as Array<{ title: string; description?: string; type: string; order_num: number; settings?: Record<string, any>; options: Array<{ id: string; text: string; order_num: number; score_value?: number; image_url?: string }> | null }>
+    const blocks = ((step as any).questions || []) as Array<{ title: string; description?: string; type: string; order_num: number; settings?: Record<string, any>; options: Array<{ id: string; text: string; order_num: number; score_value?: number; image_url?: string; tag?: string }> | null }>
 
     return {
       order_num: step.order_num,
@@ -448,7 +451,7 @@ export async function exportQuizAsJson(quizId: string): Promise<QuizExport> {
         options: (block.options || []).map((opt) => {
           const localId = `o${localIdCounter++}`
           realToLocalOptionId[opt.id] = localId
-          return { local_id: localId, text: opt.text, order_num: opt.order_num, score_value: opt.score_value || 0, image_url: opt.image_url || null }
+          return { local_id: localId, text: opt.text, order_num: opt.order_num, score_value: opt.score_value || 0, image_url: opt.image_url || null, tag: opt.tag || null }
         }),
       })),
     }
@@ -575,6 +578,7 @@ export async function importQuizFromJson(workspaceId: string, data: unknown) {
             order_num: opt.order_num,
             score_value: opt.score_value || 0,
             image_url: opt.image_url || null,
+            tag: opt.tag || null,
           })
           .select('id')
           .single()

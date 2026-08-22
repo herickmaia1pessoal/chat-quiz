@@ -49,6 +49,7 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
       'Nome',
       'Telefone/WhatsApp',
       'Status',
+      'Tags',
       'UTM Source',
       'UTM Medium',
       'UTM Campaign',
@@ -67,6 +68,7 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
         lead.name || '',
         lead.phone || '',
         lead.status,
+        (lead.tags || []).join('; '),
         lead.utm_source || '',
         lead.utm_medium || '',
         lead.utm_campaign || '',
@@ -154,13 +156,14 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
               <TableHead className="text-zinc-400 font-medium text-xs">Nome</TableHead>
               <TableHead className="text-zinc-400 font-medium text-xs">WhatsApp / Telefone</TableHead>
               <TableHead className="text-zinc-400 font-medium text-xs">Origem (UTM)</TableHead>
+              <TableHead className="text-zinc-400 font-medium text-xs">Tags</TableHead>
               <TableHead className="text-zinc-400 font-medium text-xs">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredLeads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-zinc-500 text-sm">
+                <TableCell colSpan={6} className="text-center py-12 text-zinc-500 text-sm">
                   Nenhum lead capturado ainda. Divulgue o link do seu quiz para começar a receber respostas.
                 </TableCell>
               </TableRow>
@@ -200,6 +203,19 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
                       </Badge>
                     ) : (
                       <span className="text-zinc-600">Direto / Orgânico</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {lead.tags && lead.tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 max-w-[160px]">
+                        {lead.tags.map((tag: string) => (
+                          <Badge key={tag} variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-300">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-zinc-600">—</span>
                     )}
                   </TableCell>
                   <TableCell>
