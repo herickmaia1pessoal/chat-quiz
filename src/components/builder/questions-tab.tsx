@@ -922,7 +922,8 @@ export function QuestionsTab({
                       type="button"
                       disabled={tab !== 'component'}
                       onClick={() => setPropertiesTab(tab)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      title={tab !== 'component' ? 'Em breve' : undefined}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
                         propertiesTab === tab && tab === 'component'
                           ? 'bg-zinc-800 text-white'
                           : tab !== 'component'
@@ -930,8 +931,12 @@ export function QuestionsTab({
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
-                      {tab === 'component' ? 'Componente' : tab === 'style' ? 'Estilo' : 'Exibição'}
-                      {tab !== 'component' && <span className="ml-1 text-[9px] text-zinc-700">em breve</span>}
+                      <span>{tab === 'component' ? 'Componente' : tab === 'style' ? 'Estilo' : 'Exibição'}</span>
+                      {tab !== 'component' && (
+                        <span className="text-[9px] leading-none px-1 py-0.5 rounded bg-zinc-800/80 text-zinc-500">
+                          em breve
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
