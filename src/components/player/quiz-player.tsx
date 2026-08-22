@@ -23,6 +23,9 @@ import { ImageChoiceStep } from '@/components/player/image-choice-step'
 import { LikertStep } from '@/components/player/likert-step'
 import { ContentInterstitial } from '@/components/player/content-interstitial'
 import { ComparisonStep } from '@/components/player/comparison-step'
+import { TimerStep } from '@/components/player/timer-step'
+import { NumericCalcStep, type NumericFormula } from '@/components/player/numeric-calc-step'
+import { interpolateVariables } from '@/lib/interpolate-variables'
 
 interface BranchingRule {
   option_id: string
@@ -50,6 +53,12 @@ interface QuestionSettings {
   left_label?: string
   right_label?: string
   rows?: ComparisonRow[]
+  duration_seconds?: number
+  field_a_label?: string
+  field_a_placeholder?: string
+  field_b_label?: string
+  field_b_placeholder?: string
+  formula?: NumericFormula
 }
 
 interface Question {
@@ -63,10 +72,12 @@ interface Question {
   settings?: QuestionSettings
 }
 
-// content/comparison blocks are narrative, not questions — they don't get
-// answered or scored, so they're excluded from the "Pergunta X de Y" count
-// and from drop-off/progress math the same way the lead-capture gate is.
-const isContentBlock = (type: string) => type === 'content' || type === 'comparison'
+// content/comparison/timer blocks are narrative, not questions — they don't
+// get answered or scored, so they're excluded from the "Pergunta X de Y"
+// count and from drop-off/progress math the same way the lead-capture gate
+// is. numeric_calc *does* produce an answer (the values typed + the
+// computed result), so it's treated as answerable like multiple_choice/text.
+const isContentBlock = (type: string) => type === 'content' || type === 'comparison' || type === 'timer'
 
 export function QuizPlayer({
   quiz,
@@ -127,6 +138,24 @@ export function QuizPlayer({
   const answerableIndex = questions
     .slice(0, currentStepIndex + 1)
     .filter((q) => !isContentBlock(q.type)).length
+
+  // {{resposta_N}} refers to the Nth answerable question (1-indexed, matching
+  // the numbering shown in the builder) — not the raw array index, which
+  // would also count content/comparison blocks that are never "answered".
+  const answersByPosition: Record<number, string> = {}
+  answerableQuestions.forEach((q, idx) => {
+    const ans = answers[q.id]
+    const value = ans?.optionText || ans?.textValue
+    if (value) answersByPosition[idx + 1] = value
+  })
+
+  const interpolate = (text: string | undefined | null) =>
+    interpolateVariables(text, {
+      leadName,
+      leadPhone,
+      leadEmail,
+      answersByPosition,
+    })
 
   // Declared before the effects that call it — `const` functions are not
   // usable prior to their declaration line (temporal dead zone), and this
@@ -217,6 +246,15 @@ export function QuizPlayer({
   const handleTextAnswer = (text: string) => {
     if (!currentQuestion) return
     setAnswers({ ...answers, [currentQuestion.id]: { textValue: text } })
+  }
+
+  const handleNumericCalcSubmit = (values: { a: number; b?: number; result?: number }) => {
+    if (!currentQuestion) return
+    // The stored/displayable answer is the computed result when a formula
+    // produced one, otherwise just the single value typed in.
+    const textValue = values.result !== undefined ? values.result.toFixed(1) : String(values.a)
+    setAnswers({ ...answers, [currentQuestion.id]: { textValue } })
+    handleNext()
   }
 
   const handleNext = () => {
@@ -375,7 +413,12 @@ export function QuizPlayer({
           />
         ) : showScoredResult && scoredResult ? (
           <div className="w-full space-y-4">
-            <ScoredResultScreen result={scoredResult} />
+            <ScoredResultScreen
+              result={{
+                ...scoredResult,
+                levelDescription: interpolate(scoredResult.levelDescription),
+              }}
+            />
             <Button
               onClick={handleFinishFromResult}
               className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold gap-2"
@@ -484,11 +527,11 @@ export function QuizPlayer({
           /* CONTENT INTERSTITIAL — narrative screen, not a question */
           <div key={currentStepIndex} className="w-full">
             <ContentInterstitial
-              title={currentQuestion.title}
-              body={currentQuestion.settings?.body}
-              testimonialText={currentQuestion.settings?.testimonial_text}
-              testimonialAuthor={currentQuestion.settings?.testimonial_author}
-              ctaLabel={currentQuestion.settings?.cta_label}
+              title={interpolate(currentQuestion.title)}
+              body={interpolate(currentQuestion.settings?.body)}
+              testimonialText={interpolate(currentQuestion.settings?.testimonial_text)}
+              testimonialAuthor={interpolate(currentQuestion.settings?.testimonial_author)}
+              ctaLabel={interpolate(currentQuestion.settings?.cta_label)}
               onContinue={handleNext}
             />
           </div>
@@ -496,10 +539,25 @@ export function QuizPlayer({
           /* COMPARISON — two-column before/after table, not a question */
           <div key={currentStepIndex} className="w-full">
             <ComparisonStep
-              title={currentQuestion.title}
-              leftLabel={currentQuestion.settings?.left_label || 'Antes'}
-              rightLabel={currentQuestion.settings?.right_label || 'Depois'}
-              rows={currentQuestion.settings?.rows || []}
+              title={interpolate(currentQuestion.title)}
+              leftLabel={interpolate(currentQuestion.settings?.left_label) || 'Antes'}
+              rightLabel={interpolate(currentQuestion.settings?.right_label) || 'Depois'}
+              rows={(currentQuestion.settings?.rows || []).map((row) => ({
+                label: interpolate(row.label),
+                left_text: interpolate(row.left_text),
+                right_text: interpolate(row.right_text),
+              }))}
+              onContinue={handleNext}
+            />
+          </div>
+        ) : currentQuestion.type === 'timer' ? (
+          /* SCARCITY TIMER — countdown urgency screen, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <TimerStep
+              title={interpolate(currentQuestion.title)}
+              body={interpolate(currentQuestion.settings?.body)}
+              durationSeconds={currentQuestion.settings?.duration_seconds || 300}
+              ctaLabel={interpolate(currentQuestion.settings?.cta_label)}
               onContinue={handleNext}
             />
           </div>
@@ -514,10 +572,10 @@ export function QuizPlayer({
                 Pergunta {answerableIndex} de {answerableQuestions.length}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
-                {currentQuestion.title}
+                {interpolate(currentQuestion.title)}
               </h2>
               {currentQuestion.description && (
-                <p className="text-zinc-400 text-xs sm:text-sm">{currentQuestion.description}</p>
+                <p className="text-zinc-400 text-xs sm:text-sm">{interpolate(currentQuestion.description)}</p>
               )}
             </div>
 
@@ -621,6 +679,26 @@ export function QuizPlayer({
                   <span>5 (Muito Alto)</span>
                 </div>
               </div>
+            )}
+
+            {/* Numeric Calculation */}
+            {currentQuestion.type === 'numeric_calc' && (
+              <NumericCalcStep
+                fieldA={{
+                  label: currentQuestion.settings?.field_a_label || 'Valor',
+                  placeholder: currentQuestion.settings?.field_a_placeholder,
+                }}
+                fieldB={
+                  currentQuestion.settings?.field_b_label
+                    ? {
+                        label: currentQuestion.settings.field_b_label,
+                        placeholder: currentQuestion.settings.field_b_placeholder,
+                      }
+                    : undefined
+                }
+                formula={currentQuestion.settings?.formula || 'none'}
+                onSubmit={handleNumericCalcSubmit}
+              />
             )}
           </div>
         )}

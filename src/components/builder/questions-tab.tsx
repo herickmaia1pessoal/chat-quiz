@@ -17,6 +17,8 @@ import {
   ListTree,
   MessageSquareQuote,
   Columns2,
+  Timer,
+  Calculator,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -55,6 +57,14 @@ interface QuestionSettings {
   left_label?: string
   right_label?: string
   rows?: ComparisonRow[]
+  // timer block
+  duration_seconds?: number
+  // numeric_calc block
+  field_a_label?: string
+  field_a_placeholder?: string
+  field_b_label?: string
+  field_b_placeholder?: string
+  formula?: 'bmi' | 'difference' | 'none'
 }
 
 interface Question {
@@ -110,7 +120,12 @@ export function QuestionsTab({
 
   const addQuestion = (type: string = 'multiple_choice') => {
     const newQ: Question = {
-      title: type === 'content' ? 'Título do interstício' : type === 'comparison' ? 'O que muda com a solução' : 'Nova Pergunta',
+      title:
+        type === 'content' ? 'Título do interstício'
+        : type === 'comparison' ? 'O que muda com a solução'
+        : type === 'timer' ? 'Oferta por tempo limitado'
+        : type === 'numeric_calc' ? 'Calcule seu resultado'
+        : 'Nova Pergunta',
       description: '',
       type,
       order_num: questions.length,
@@ -133,6 +148,10 @@ export function QuestionsTab({
               right_label: 'Com a solução',
               rows: [{ label: 'Resultado', left_text: '', right_text: '' }],
             }
+          : type === 'timer'
+          ? { body: '', duration_seconds: 300, cta_label: 'Continuar' }
+          : type === 'numeric_calc'
+          ? { field_a_label: 'Peso (kg)', field_a_placeholder: '70', field_b_label: 'Altura (m)', field_b_placeholder: '1.75', formula: 'bmi' }
           : {},
     }
     setQuestions([...questions, newQ])
@@ -173,6 +192,20 @@ export function QuestionsTab({
           left_label: 'Sozinho (hoje)',
           right_label: 'Com a solução',
           rows: [{ label: 'Resultado', left_text: '', right_text: '' }],
+        }
+      } else if (value === 'timer' && !next[index].settings?.duration_seconds) {
+        next[index].settings = {
+          ...next[index].settings,
+          duration_seconds: 300,
+          cta_label: next[index].settings?.cta_label || 'Continuar',
+        }
+      } else if (value === 'numeric_calc' && !next[index].settings?.field_a_label) {
+        next[index].settings = {
+          field_a_label: 'Peso (kg)',
+          field_a_placeholder: '70',
+          field_b_label: 'Altura (m)',
+          field_b_placeholder: '1.75',
+          formula: 'bmi',
         }
       }
     }
@@ -317,7 +350,16 @@ export function QuestionsTab({
 
       {/* Questions */}
       <div className="space-y-4">
-        {questions.map((q, qIndex) => (
+        {questions.map((q, qIndex) => {
+          // 1-indexed position among answerable questions only — content,
+          // comparison, and timer blocks don't produce an answer, so they're
+          // skipped here the same way the player skips them when numbering
+          // "Pergunta X de Y" and resolving {{resposta_N}} placeholders.
+          const isNarrativeBlock = (type: string) => type === 'content' || type === 'comparison' || type === 'timer'
+          const answerablePosition = questions.slice(0, qIndex + 1).filter((question) => !isNarrativeBlock(question.type)).length
+          const isAnswerable = !isNarrativeBlock(q.type)
+
+          return (
           <div key={qIndex} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
@@ -333,7 +375,17 @@ export function QuestionsTab({
                   {q.type === 'likert' && 'Escala de Concordância'}
                   {q.type === 'content' && 'Interstício (Conteúdo)'}
                   {q.type === 'comparison' && 'Comparativo'}
+                  {q.type === 'timer' && 'Timer de Escassez'}
+                  {q.type === 'numeric_calc' && 'Cálculo Numérico'}
                 </span>
+                {isAnswerable && (
+                  <span
+                    className="text-[10px] font-mono text-zinc-500 bg-zinc-950/60 border border-zinc-800 rounded px-1.5 py-0.5"
+                    title="Use este código em textos de perguntas ou telas posteriores para repetir a resposta desta pergunta"
+                  >
+                    {`{{resposta_${answerablePosition}}}`}
+                  </span>
+                )}
                 {(q.branching_rules?.length ?? 0) > 0 && (
                   <Badge className="bg-purple-500/10 border-purple-500/20 text-purple-400 text-[11px]">
                     <GitBranch className="h-3 w-3 mr-1" />
@@ -383,12 +435,14 @@ export function QuestionsTab({
                     <SelectItem value="likert">Escala de Concordância</SelectItem>
                     <SelectItem value="content">Interstício (Conteúdo)</SelectItem>
                     <SelectItem value="comparison">Comparativo</SelectItem>
+                    <SelectItem value="timer">Timer de Escassez</SelectItem>
+                    <SelectItem value="numeric_calc">Cálculo Numérico</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {q.type !== 'content' && q.type !== 'comparison' && (
+            {q.type !== 'content' && q.type !== 'comparison' && q.type !== 'timer' && (
               <div className="space-y-1.5">
                 <Label className="text-zinc-400 text-xs">Descrição ou Subtítulo (opcional)</Label>
                 <Input value={q.description || ''}
@@ -574,6 +628,104 @@ export function QuestionsTab({
               </div>
             )}
 
+            {/* Scarcity Timer */}
+            {q.type === 'timer' && (
+              <div className="space-y-3 pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-300 text-xs">Texto de Urgência</Label>
+                  <Textarea
+                    value={q.settings?.body || ''}
+                    onChange={(e) => updateSettings(qIndex, 'body', e.target.value)}
+                    placeholder="Ex: Essa condição especial expira quando o tempo acabar."
+                    className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-20"
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Duração (minutos)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={Math.round((q.settings?.duration_seconds || 300) / 60)}
+                      onChange={(e) => updateSettings(qIndex, 'duration_seconds', Math.max(1, Number(e.target.value)) * 60)}
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Texto do Botão</Label>
+                    <Input
+                      value={q.settings?.cta_label || ''}
+                      onChange={(e) => updateSettings(qIndex, 'cta_label', e.target.value)}
+                      placeholder="Continuar"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-zinc-500">
+                  A contagem recomeça do início toda vez que um visitante chega nesta etapa — não é um prazo fixo compartilhado entre visitantes.
+                </p>
+              </div>
+            )}
+
+            {/* Numeric Calculation */}
+            {q.type === 'numeric_calc' && (
+              <div className="space-y-3 pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-400 text-xs">Fórmula</Label>
+                  <Select
+                    value={q.settings?.formula || 'bmi'}
+                    onValueChange={(val) => updateSettings(qIndex, 'formula', val)}
+                  >
+                    <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                      <SelectItem value="bmi">IMC (peso ÷ altura²)</SelectItem>
+                      <SelectItem value="difference">Diferença entre os dois valores</SelectItem>
+                      <SelectItem value="none">Nenhuma (só coletar o primeiro valor)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
+                    <Label className="text-zinc-300 text-xs font-semibold">Campo 1</Label>
+                    <Input
+                      value={q.settings?.field_a_label || ''}
+                      onChange={(e) => updateSettings(qIndex, 'field_a_label', e.target.value)}
+                      placeholder="Rótulo, ex: Peso (kg)"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8"
+                    />
+                    <Input
+                      value={q.settings?.field_a_placeholder || ''}
+                      onChange={(e) => updateSettings(qIndex, 'field_a_placeholder', e.target.value)}
+                      placeholder="Exemplo, ex: 70"
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-400 text-xs h-8"
+                    />
+                  </div>
+                  <div className="space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
+                    <Label className="text-zinc-300 text-xs font-semibold">
+                      Campo 2 {q.settings?.formula === 'none' && '(deixe vazio para ocultar)'}
+                    </Label>
+                    <Input
+                      value={q.settings?.field_b_label || ''}
+                      onChange={(e) => updateSettings(qIndex, 'field_b_label', e.target.value)}
+                      placeholder="Rótulo, ex: Altura (m)"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8"
+                    />
+                    <Input
+                      value={q.settings?.field_b_placeholder || ''}
+                      onChange={(e) => updateSettings(qIndex, 'field_b_placeholder', e.target.value)}
+                      placeholder="Exemplo, ex: 1.75"
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-400 text-xs h-8"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-zinc-500">
+                  O resultado calculado fica disponível como {`{{resposta_${answerablePosition}}}`} em telas posteriores.
+                </p>
+              </div>
+            )}
+
             {/* ─── Branching Rules Panel ─── */}
             {(q.type === 'multiple_choice' || q.type === 'image_choice') && questions.length > 1 && (
               <div className="border-t border-zinc-800/60 pt-4 mt-2 space-y-3">
@@ -653,7 +805,8 @@ export function QuestionsTab({
               </div>
             )}
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Add Block Bar */}
@@ -701,6 +854,18 @@ export function QuestionsTab({
             className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
             <Columns2 className="h-4 w-4 text-rose-400" />
             Comparativo
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('timer')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <Timer className="h-4 w-4 text-orange-400" />
+            Timer de Escassez
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('numeric_calc')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <Calculator className="h-4 w-4 text-lime-400" />
+            Cálculo Numérico
           </Button>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { HelpCircle, Users, CheckCircle2, ExternalLink, Settings, Sparkles } fro
 import { createClient } from '@/utils/supabase/server'
 import { CreateQuizDialog } from '@/components/dashboard/create-quiz-dialog'
 import { TemplatesDialog } from '@/components/dashboard/templates-dialog'
+import { DuplicateQuizButton } from '@/components/dashboard/duplicate-quiz-button'
 import { QuizStatusBadge } from '@/components/quiz-status-badge'
 
 export default async function DashboardPage({
@@ -202,6 +203,7 @@ export default async function DashboardPage({
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                     )}
+                    <DuplicateQuizButton quizId={quiz.id} />
                   </div>
                 </div>
               )
