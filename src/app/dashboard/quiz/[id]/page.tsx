@@ -30,21 +30,37 @@ export default async function QuizBuilderPage({
 
   if (error || !quiz) notFound()
 
-  // Questions with options and branching rules
-  const { data: questions } = await supabase
-    .from('questions')
+  // Steps with their content blocks (questions), options, and branching —
+  // each step is one screen in the player and can hold several blocks
+  // stacked together (e.g. an Alert + a Multiple Choice on the same screen).
+  const { data: rawSteps } = await supabase
+    .from('quiz_steps')
     .select(`
       id,
-      title,
-      description,
-      type,
       order_num,
+      title,
       branching_rules,
-      settings,
-      options:question_options(id, text, order_num, score_value, image_url)
+      blocks:questions(
+        id,
+        title,
+        description,
+        type,
+        order_num,
+        settings,
+        options:question_options(id, text, order_num, score_value, image_url)
+      )
     `)
     .eq('quiz_id', id)
     .order('order_num', { ascending: true })
+
+  const steps = (rawSteps || []).map((step) => ({
+    ...step,
+    blocks: [...(step.blocks || [])].sort((a, b) => a.order_num - b.order_num),
+  }))
+
+  // Flattened blocks, still used by the Leads and Funnel/Drop-off tabs which
+  // report per-question, not per-step.
+  const questions = steps.flatMap((s) => s.blocks)
 
   // Leads / Responses
   const { data: leads } = await supabase
@@ -162,7 +178,7 @@ export default async function QuizBuilderPage({
           <TabsTrigger value="questions"
             className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400 gap-2 rounded-lg text-xs font-medium">
             <ListOrdered className="h-4 w-4 text-indigo-400" />
-            Perguntas ({questions?.length || 0})
+            Etapas ({steps.length})
           </TabsTrigger>
           <TabsTrigger value="settings"
             className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400 gap-2 rounded-lg text-xs font-medium">
@@ -189,7 +205,7 @@ export default async function QuizBuilderPage({
         <TabsContent value="questions" className="focus-visible:outline-none">
           <QuestionsTab
             quizId={quiz.id}
-            initialQuestions={questions || []}
+            initialSteps={steps}
             scoringEnabled={quiz.enable_scored_result || false}
           />
         </TabsContent>

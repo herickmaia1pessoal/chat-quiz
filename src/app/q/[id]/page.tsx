@@ -47,25 +47,39 @@ export default async function PublicQuizPage({
     notFound()
   }
 
-  // Fetch Questions and their options ordered
-  const { data: questions } = await supabase
-    .from('questions')
+  // Fetch Steps and their content blocks — each step is one screen the
+  // player navigates between, and can hold several blocks stacked together
+  // (e.g. an Alert + a Multiple Choice question on the same screen).
+  const { data: steps } = await supabase
+    .from('quiz_steps')
     .select(`
       id,
-      title,
-      description,
-      type,
       order_num,
+      title,
       branching_rules,
-      settings,
-      options:question_options(id, text, order_num, image_url)
+      blocks:questions(
+        id,
+        title,
+        description,
+        type,
+        order_num,
+        settings,
+        options:question_options(id, text, order_num, image_url)
+      )
     `)
     .eq('quiz_id', id)
     .order('order_num', { ascending: true })
 
+  // Blocks come back unordered relative to each other from the nested
+  // select — sort them by their own order_num within the step.
+  const orderedSteps = (steps || []).map((step) => ({
+    ...step,
+    blocks: [...(step.blocks || [])].sort((a, b) => a.order_num - b.order_num),
+  }))
+
   return (
     <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">Carregando quiz...</div>}>
-      <QuizPlayer quiz={quiz} questions={questions || []} />
+      <QuizPlayer quiz={quiz} steps={orderedSteps} />
     </Suspense>
   )
 }

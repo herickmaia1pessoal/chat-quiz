@@ -82,57 +82,98 @@ export async function updateQuizSettings(quizId: string, settings: {
   revalidatePath('/dashboard')
 }
 
-export async function saveQuestions(quizId: string, questions: Array<{
+interface QuestionInput {
   id?: string
   title: string
   description?: string
   type: string
   order_num: number
+  // Legacy field, still accepted for backwards compatibility with callers
+  // that haven't migrated to step-level branching yet (see StepInput below).
   branching_rules?: Array<{ option_id: string; go_to_order: number }>
   options?: Array<{ id?: string; text: string; order_num: number; score_value?: number; image_url?: string }>
   settings?: Record<string, any>
-}>) {
+}
+
+interface StepInput {
+  id?: string
+  order_num: number
+  title?: string
+  branching_rules?: Array<{ option_id: string; go_to_order: number }>
+  blocks: QuestionInput[]
+}
+
+// Accepts either the new grouped shape (one step = one screen, containing N
+// content blocks) or the legacy flat shape (one question = one screen) for
+// callers not migrated yet. Flat input is wrapped as one block per step so
+// existing behavior — and existing quizzes' saved data — doesn't change.
+export async function saveQuestions(quizId: string, input: StepInput[] | QuestionInput[]) {
   const supabase = await createClient()
 
-  // First delete existing questions (cascade will remove options)
-  await supabase.from('questions').delete().eq('quiz_id', quizId)
+  const steps: StepInput[] = isFlatQuestionInput(input)
+    ? input.map((q, i) => ({ order_num: i, branching_rules: q.branching_rules, blocks: [q] }))
+    : input
 
-  for (let i = 0; i < questions.length; i++) {
-    const q = questions[i]
-    const { data: createdQuestion, error: qError } = await supabase
-      .from('questions')
+  // Delete existing steps — cascades to questions (step_id FK) which cascades
+  // to question_options, same as the old direct questions delete did.
+  await supabase.from('quiz_steps').delete().eq('quiz_id', quizId)
+
+  for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+    const step = steps[stepIndex]
+    const { data: createdStep, error: stepError } = await supabase
+      .from('quiz_steps')
       .insert({
         quiz_id: quizId,
-        title: q.title,
-        description: q.description || '',
-        type: q.type,
-        order_num: i,
-        branching_rules: q.branching_rules || [],
-        settings: q.settings || {},
+        order_num: stepIndex,
+        title: step.title || null,
+        branching_rules: step.branching_rules || [],
       })
       .select()
       .single()
 
-    if (qError) throw new Error(qError.message)
+    if (stepError) throw new Error(stepError.message)
 
-    if (q.options && q.options.length > 0 && createdQuestion) {
-      const optionsToInsert = q.options.map((opt, optIndex) => ({
-        question_id: createdQuestion.id,
-        text: opt.text,
-        order_num: optIndex,
-        score_value: opt.score_value || 0,
-        image_url: opt.image_url || null,
-      }))
+    for (let blockIndex = 0; blockIndex < step.blocks.length; blockIndex++) {
+      const q = step.blocks[blockIndex]
+      const { data: createdQuestion, error: qError } = await supabase
+        .from('questions')
+        .insert({
+          quiz_id: quizId,
+          step_id: createdStep.id,
+          title: q.title,
+          description: q.description || '',
+          type: q.type,
+          order_num: blockIndex,
+          settings: q.settings || {},
+        })
+        .select()
+        .single()
 
-      const { error: optError } = await supabase
-        .from('question_options')
-        .insert(optionsToInsert)
+      if (qError) throw new Error(qError.message)
 
-      if (optError) throw new Error(optError.message)
+      if (q.options && q.options.length > 0 && createdQuestion) {
+        const optionsToInsert = q.options.map((opt, optIndex) => ({
+          question_id: createdQuestion.id,
+          text: opt.text,
+          order_num: optIndex,
+          score_value: opt.score_value || 0,
+          image_url: opt.image_url || null,
+        }))
+
+        const { error: optError } = await supabase
+          .from('question_options')
+          .insert(optionsToInsert)
+
+        if (optError) throw new Error(optError.message)
+      }
     }
   }
 
   revalidatePath(`/dashboard/quiz/${quizId}`)
+}
+
+function isFlatQuestionInput(input: StepInput[] | QuestionInput[]): input is QuestionInput[] {
+  return input.length === 0 || !('blocks' in input[0])
 }
 
 export async function duplicateQuiz(quizId: string) {
@@ -170,9 +211,9 @@ export async function duplicateQuiz(quizId: string) {
 
   if (insertError || !newQuiz) throw new Error('Erro ao duplicar quiz.')
 
-  const { data: questions } = await supabase
-    .from('questions')
-    .select('id, title, description, type, order_num, branching_rules, settings, options:question_options(id, text, order_num, score_value, image_url)')
+  const { data: steps } = await supabase
+    .from('quiz_steps')
+    .select('id, order_num, title, branching_rules, questions(id, title, description, type, order_num, settings, options:question_options(id, text, order_num, score_value, image_url))')
     .eq('quiz_id', quizId)
     .order('order_num', { ascending: true })
 
@@ -181,61 +222,77 @@ export async function duplicateQuiz(quizId: string) {
   // option_id rewritten to the newly-created option's id or it would
   // silently never match once the copy is played. Rules are stashed here
   // and remapped in a second pass, once every option in the quiz has been
-  // copied (a rule can point at an option from earlier in the same quiz).
+  // copied (a rule can point at an option from earlier step in the same quiz).
   const optionIdMap: Record<string, string> = {}
-  const questionBranchingToFix: Array<{ newQuestionId: string; rules: Array<{ option_id: string; go_to_order: number }> }> = []
+  const stepBranchingToFix: Array<{ newStepId: string; rules: Array<{ option_id: string; go_to_order: number }> }> = []
 
-  for (const q of questions || []) {
-    const { data: createdQuestion, error: qInsertError } = await supabase
-      .from('questions')
+  for (const step of steps || []) {
+    const { data: createdStep, error: stepInsertError } = await supabase
+      .from('quiz_steps')
       .insert({
         quiz_id: newQuiz.id,
-        title: q.title,
-        description: q.description || '',
-        type: q.type,
-        order_num: q.order_num,
-        settings: q.settings || {},
+        order_num: step.order_num,
+        title: step.title,
         // Rewritten in a second pass below, once all option ids exist.
         branching_rules: [],
       })
       .select()
       .single()
 
-    if (qInsertError || !createdQuestion) continue
+    if (stepInsertError || !createdStep) continue
 
-    const options = (q as any).options as Array<{ id: string; text: string; order_num: number; score_value?: number; image_url?: string }> | null
-    if (options && options.length > 0) {
-      for (const opt of options) {
-        const { data: createdOption } = await supabase
-          .from('question_options')
-          .insert({
-            question_id: createdQuestion.id,
-            text: opt.text,
-            order_num: opt.order_num,
-            score_value: opt.score_value || 0,
-            image_url: opt.image_url || null,
-          })
-          .select('id')
-          .single()
+    const blocks = (step as any).questions as Array<{ id: string; title: string; description?: string; type: string; order_num: number; settings?: Record<string, any>; options: Array<{ id: string; text: string; order_num: number; score_value?: number; image_url?: string }> | null }>
 
-        if (createdOption) optionIdMap[opt.id] = createdOption.id
+    for (const block of blocks || []) {
+      const { data: createdQuestion } = await supabase
+        .from('questions')
+        .insert({
+          quiz_id: newQuiz.id,
+          step_id: createdStep.id,
+          title: block.title,
+          description: block.description || '',
+          type: block.type,
+          order_num: block.order_num,
+          settings: block.settings || {},
+        })
+        .select()
+        .single()
+
+      if (!createdQuestion) continue
+
+      if (block.options && block.options.length > 0) {
+        for (const opt of block.options) {
+          const { data: createdOption } = await supabase
+            .from('question_options')
+            .insert({
+              question_id: createdQuestion.id,
+              text: opt.text,
+              order_num: opt.order_num,
+              score_value: opt.score_value || 0,
+              image_url: opt.image_url || null,
+            })
+            .select('id')
+            .single()
+
+          if (createdOption) optionIdMap[opt.id] = createdOption.id
+        }
       }
     }
 
-    // Stash the original branching rules alongside the new question id so
-    // they can be remapped once every option in the quiz has been copied
-    // (a rule can reference an option from earlier in the same quiz).
-    if (q.branching_rules && q.branching_rules.length > 0) {
-      questionBranchingToFix.push({ newQuestionId: createdQuestion.id, rules: q.branching_rules })
+    // Stash the original step's branching rules alongside the new step id
+    // so they can be remapped once every option in the quiz has been copied
+    // (a rule can reference an option from an earlier step in the same quiz).
+    if (step.branching_rules && step.branching_rules.length > 0) {
+      stepBranchingToFix.push({ newStepId: createdStep.id, rules: step.branching_rules })
     }
   }
 
-  for (const { newQuestionId, rules } of questionBranchingToFix) {
+  for (const { newStepId, rules } of stepBranchingToFix) {
     const remapped = rules
       .filter((r) => optionIdMap[r.option_id] !== undefined)
       .map((r) => ({ option_id: optionIdMap[r.option_id], go_to_order: r.go_to_order }))
 
-    await supabase.from('questions').update({ branching_rules: remapped }).eq('id', newQuestionId)
+    await supabase.from('quiz_steps').update({ branching_rules: remapped }).eq('id', newStepId)
   }
 
   const { data: levels } = await supabase

@@ -103,8 +103,15 @@ interface Question {
   type: string
   order_num: number
   options?: Option[]
-  branching_rules?: BranchingRule[]
   settings?: QuestionSettings
+}
+
+interface Step {
+  id: string
+  order_num: number
+  title?: string | null
+  branching_rules?: BranchingRule[]
+  blocks: Question[]
 }
 
 // Narrative blocks are not questions — they don't get answered or scored,
@@ -120,10 +127,10 @@ const isContentBlock = (type: string) => NARRATIVE_TYPES.includes(type)
 
 export function QuizPlayer({
   quiz,
-  questions,
+  steps,
 }: {
   quiz: any
-  questions: Question[]
+  steps: Step[]
 }) {
   const searchParams = useSearchParams()
   const viewTracked = useRef(false)
@@ -136,7 +143,7 @@ export function QuizPlayer({
     utm_term: searchParams.get('utm_term') || undefined,
   }
 
-  // Navigation history stack for "back" support
+  // Navigation history stack for "back" support — indexes into `steps`.
   const [history, setHistory] = useState<number[]>([0])
   const currentStepIndex = history[history.length - 1]
 
@@ -164,18 +171,31 @@ export function QuizPlayer({
   } | null>(null)
   const [showScoredResult, setShowScoredResult] = useState(false)
 
-  // Total steps = questions + 1 (lead capture gate)
-  const totalSteps = questions.length + 1
-  const isLeadCaptureStep = currentStepIndex === questions.length
+  // Total steps = quiz steps + 1 (lead capture gate)
+  const totalSteps = steps.length + 1
+  const isLeadCaptureStep = currentStepIndex === steps.length
   const progressPercentage = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
-  const currentQuestion = questions[currentStepIndex]
+  const currentStep = steps[currentStepIndex] as Step | undefined
+  // Every block in the step renders at once (stacked), so there's no single
+  // "current" block — but a representative one is still useful for drop-off
+  // tracking and history-back positioning: prefer the first answerable
+  // block (the one the visitor is actually meant to act on), falling back
+  // to the step's first block for purely narrative steps.
+  const currentQuestion =
+    currentStep?.blocks.find((b) => !isContentBlock(b.type)) || currentStep?.blocks[0]
+
+  // Flattened list of every block across every step, in play order — the
+  // basis for both "Pergunta X de Y" numbering and {{resposta_N}} lookup,
+  // since both need a single linear position regardless of step grouping.
+  const allBlocks = steps.flatMap((s) => s.blocks)
 
   // Content/comparison blocks aren't "questions" the visitor answers — count
   // only actual answerable questions up to and including the current step so
   // "Pergunta X de Y" doesn't include narrative interstitials in either number.
-  const answerableQuestions = questions.filter((q) => !isContentBlock(q.type))
-  const answerableIndex = questions
-    .slice(0, currentStepIndex + 1)
+  const answerableQuestions = allBlocks.filter((q) => !isContentBlock(q.type))
+  const currentBlockGlobalIndex = currentQuestion ? allBlocks.findIndex((b) => b.id === currentQuestion.id) : -1
+  const answerableIndex = allBlocks
+    .slice(0, currentBlockGlobalIndex + 1)
     .filter((q) => !isContentBlock(q.type)).length
 
   // {{resposta_N}} refers to the Nth answerable question (1-indexed, matching
@@ -241,24 +261,26 @@ export function QuizPlayer({
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (!isCompleted && currentQuestion) {
-        trackQuizDropoff(quiz.id, currentQuestion.id, currentQuestion.order_num)
+        trackQuizDropoff(quiz.id, currentQuestion.id, currentBlockGlobalIndex)
       }
     }
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isCompleted, currentQuestion, quiz.id])
+  }, [isCompleted, currentQuestion, currentBlockGlobalIndex, quiz.id])
 
-  // Determine next question index with branching logic
-  const getNextIndex = (question: Question, selectedOptionId?: string): number => {
-    const rules = question.branching_rules || []
+  // Determine next step index with branching logic — branching is a
+  // per-step decision (which step to go to next), evaluated once the step's
+  // blocks have all been walked through.
+  const getNextStepIndex = (step: Step | undefined, selectedOptionId?: string): number => {
+    const rules = step?.branching_rules || []
     if (selectedOptionId && rules.length > 0) {
       const matchingRule = rules.find((r) => r.option_id === selectedOptionId)
       if (matchingRule) {
-        const targetIndex = questions.findIndex((q) => q.order_num === matchingRule.go_to_order)
+        const targetIndex = steps.findIndex((s) => s.order_num === matchingRule.go_to_order)
         if (targetIndex !== -1) return targetIndex
       }
     }
-    // No rule → go to next in sequence
+    // No rule → go to next step in sequence
     return currentStepIndex + 1
   }
 
@@ -268,38 +290,44 @@ export function QuizPlayer({
     }
   }
 
-  const handleSelectOption = (option: Option) => {
-    if (!currentQuestion) return
+  // Advances to the next step, applying the current step's branching rule
+  // (if any) keyed off the option just selected. All blocks in a step
+  // render together, so any interactive block finishing (an option picked,
+  // a CTA clicked, a value submitted) moves straight to the next step.
+  const advance = (selectedOptionId?: string) => {
+    const nextIndex = getNextStepIndex(currentStep, selectedOptionId)
+    setHistory((prev) => [...prev, nextIndex])
+  }
 
+  // Every handler takes the block it belongs to explicitly rather than
+  // relying on a single "current question" — a step can stack more than one
+  // answerable block, so each one needs to record its answer under its own
+  // id, not whichever block happens to be `currentQuestion`.
+  const handleSelectOption = (block: Question, option: Option) => {
     setAnswers({
       ...answers,
-      [currentQuestion.id]: { optionId: option.id, optionText: option.text },
+      [block.id]: { optionId: option.id, optionText: option.text },
     })
 
     setTimeout(() => {
-      const nextIndex = getNextIndex(currentQuestion, option.id)
-      setHistory((prev) => [...prev, nextIndex])
+      advance(option.id)
     }, 200)
   }
 
-  const handleTextAnswer = (text: string) => {
-    if (!currentQuestion) return
-    setAnswers({ ...answers, [currentQuestion.id]: { textValue: text } })
+  const handleTextAnswer = (block: Question, text: string) => {
+    setAnswers({ ...answers, [block.id]: { textValue: text } })
   }
 
-  const handleNumericCalcSubmit = (values: { a: number; b?: number; result?: number }) => {
-    if (!currentQuestion) return
+  const handleNumericCalcSubmit = (block: Question, values: { a: number; b?: number; result?: number }) => {
     // The stored/displayable answer is the computed result when a formula
     // produced one, otherwise just the single value typed in.
     const textValue = values.result !== undefined ? values.result.toFixed(1) : String(values.a)
-    setAnswers({ ...answers, [currentQuestion.id]: { textValue } })
-    handleNext()
+    setAnswers({ ...answers, [block.id]: { textValue } })
+    advance()
   }
 
   const handleNext = () => {
-    if (!currentQuestion) return
-    const nextIndex = getNextIndex(currentQuestion)
-    setHistory((prev) => [...prev, nextIndex])
+    advance()
   }
 
   const formatPhone = (val: string) => {
@@ -318,7 +346,7 @@ export function QuizPlayer({
     try {
       triggerPixelEvent('Lead', { content_name: quiz.title, status: 'completed' })
 
-      const formattedAnswers = questions.map((q) => ({
+      const formattedAnswers = allBlocks.map((q) => ({
         questionId: q.id,
         questionTitle: q.title,
         optionId: answers[q.id]?.optionId,
@@ -562,283 +590,263 @@ export function QuizPlayer({
               </div>
             </form>
           </div>
-        ) : currentQuestion.type === 'content' ? (
-          /* CONTENT INTERSTITIAL — narrative screen, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <ContentInterstitial
-              title={interpolate(currentQuestion.title)}
-              body={interpolate(currentQuestion.settings?.body)}
-              testimonialText={interpolate(currentQuestion.settings?.testimonial_text)}
-              testimonialAuthor={interpolate(currentQuestion.settings?.testimonial_author)}
-              ctaLabel={interpolate(currentQuestion.settings?.cta_label)}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : currentQuestion.type === 'comparison' ? (
-          /* COMPARISON — two-column before/after table, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <ComparisonStep
-              title={interpolate(currentQuestion.title)}
-              leftLabel={interpolate(currentQuestion.settings?.left_label) || 'Antes'}
-              rightLabel={interpolate(currentQuestion.settings?.right_label) || 'Depois'}
-              rows={(currentQuestion.settings?.rows || []).map((row) => ({
-                label: interpolate(row.label),
-                left_text: interpolate(row.left_text),
-                right_text: interpolate(row.right_text),
-              }))}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : currentQuestion.type === 'timer' ? (
-          /* SCARCITY TIMER — countdown urgency screen, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <TimerStep
-              title={interpolate(currentQuestion.title)}
-              body={interpolate(currentQuestion.settings?.body)}
-              durationSeconds={currentQuestion.settings?.duration_seconds || 300}
-              ctaLabel={interpolate(currentQuestion.settings?.cta_label)}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : currentQuestion.type === 'alert' ? (
-          /* ALERT — highlighted warning/info banner, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <AlertStep
-              title={interpolate(currentQuestion.title)}
-              body={interpolate(currentQuestion.settings?.body)}
-              variant={currentQuestion.settings?.alert_variant}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : currentQuestion.type === 'testimonial' ? (
-          /* TESTIMONIAL — standalone social-proof card, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <TestimonialStep
-              title={interpolate(currentQuestion.title)}
-              text={interpolate(currentQuestion.settings?.testimonial_text)}
-              author={interpolate(currentQuestion.settings?.testimonial_author)}
-              authorRole={interpolate(currentQuestion.settings?.author_role)}
-              rating={currentQuestion.settings?.rating}
-              avatarUrl={currentQuestion.settings?.avatar_url}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : currentQuestion.type === 'social_proof' ? (
-          /* SOCIAL PROOF — floating toast; the step has no main-stage
-             content of its own, it just shows the toast (rendered as a
-             fixed overlay below, outside this stage) and holds long enough
-             for it to be noticed before auto-advancing. */
-          <SpacerStep key={currentStepIndex} heightPx={260} onContinue={handleNext} />
-        ) : currentQuestion.type === 'button' ? (
-          /* STANDALONE BUTTON — CTA screen, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <ButtonStep
-              title={interpolate(currentQuestion.title)}
-              body={interpolate(currentQuestion.settings?.body)}
-              ctaLabel={interpolate(currentQuestion.settings?.cta_label)}
-              url={currentQuestion.settings?.button_url}
-              openNewTab={currentQuestion.settings?.button_open_new_tab}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : currentQuestion.type === 'spacer' ? (
-          /* SPACER — pure pacing gap, auto-advances */
-          <SpacerStep
-            key={currentStepIndex}
-            heightPx={currentQuestion.settings?.duration_seconds || 24}
-            onContinue={handleNext}
-          />
-        ) : currentQuestion.type === 'chart' ? (
-          /* CHART — bar chart backing a statistic, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <ChartStep
-              title={interpolate(currentQuestion.title)}
-              body={interpolate(currentQuestion.settings?.body)}
-              bars={(currentQuestion.settings?.chart_bars || []).map((bar) => ({
-                label: interpolate(bar.label) || '',
-                value: bar.value,
-              }))}
-              unit={currentQuestion.settings?.chart_unit}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : currentQuestion.type === 'quadrant' ? (
-          /* QUADRANT — cartesian X/Y plot, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <QuadrantStep
-              title={interpolate(currentQuestion.title)}
-              body={interpolate(currentQuestion.settings?.body)}
-              xLabel={interpolate(currentQuestion.settings?.quadrant_x_label)}
-              yLabel={interpolate(currentQuestion.settings?.quadrant_y_label)}
-              points={(currentQuestion.settings?.quadrant_points || []).map((p) => ({
-                ...p,
-                label: interpolate(p.label) || '',
-              }))}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : currentQuestion.type === 'audio' ? (
-          /* AUDIO — embedded player, not a question */
-          <div key={currentStepIndex} className="w-full">
-            <AudioStep
-              title={interpolate(currentQuestion.title)}
-              body={interpolate(currentQuestion.settings?.body)}
-              audioUrl={currentQuestion.settings?.audio_url}
-              onContinue={handleNext}
-            />
-          </div>
-        ) : (
-          /* QUESTION STEP */
-          <div
-            key={currentStepIndex}
-            className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6 animate-in fade-in slide-in-from-right-4 duration-300"
-          >
-            <div className="space-y-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
-                Pergunta {answerableIndex} de {answerableQuestions.length}
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
-                {interpolate(currentQuestion.title)}
-              </h2>
-              {currentQuestion.description && (
-                <p className="text-zinc-400 text-xs sm:text-sm">{interpolate(currentQuestion.description)}</p>
-              )}
-            </div>
-
-            {/* Multiple Choice */}
-            {currentQuestion.type === 'multiple_choice' && (
-              <div className="space-y-3 pt-2">
-                {currentQuestion.options?.map((opt, optIdx) => {
-                  const isSelected = answers[currentQuestion.id]?.optionId === opt.id
-                  return (
-                    <button
-                      key={opt.id || optIdx}
-                      type="button"
-                      onClick={() => handleSelectOption(opt)}
-                      className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
-                        isSelected
-                          ? 'border-indigo-500 bg-indigo-600/15 text-white shadow-md shadow-indigo-500/10'
-                          : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/80'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`h-7 w-7 rounded-lg text-xs font-semibold flex items-center justify-center transition ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-200'
-                        }`}>
-                          {String.fromCharCode(65 + optIdx)}
+        ) : currentStep ? (
+          /* STEP — every block belonging to this step renders stacked
+             together on one screen, matching the Inlead-style "combine
+             several elements into one step" model. Any interactive block
+             (a question, a CTA) advances straight to the next step. */
+          <div key={currentStepIndex} className="w-full space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+            {currentStep.blocks.map((block) => (
+              <div key={block.id}>
+                {block.type === 'content' ? (
+                  <ContentInterstitial
+                    title={interpolate(block.title)}
+                    body={interpolate(block.settings?.body)}
+                    testimonialText={interpolate(block.settings?.testimonial_text)}
+                    testimonialAuthor={interpolate(block.settings?.testimonial_author)}
+                    ctaLabel={interpolate(block.settings?.cta_label)}
+                    onContinue={() => advance()}
+                  />
+                ) : block.type === 'comparison' ? (
+                  <ComparisonStep
+                    title={interpolate(block.title)}
+                    leftLabel={interpolate(block.settings?.left_label) || 'Antes'}
+                    rightLabel={interpolate(block.settings?.right_label) || 'Depois'}
+                    rows={(block.settings?.rows || []).map((row) => ({
+                      label: interpolate(row.label),
+                      left_text: interpolate(row.left_text),
+                      right_text: interpolate(row.right_text),
+                    }))}
+                    onContinue={() => advance()}
+                  />
+                ) : block.type === 'timer' ? (
+                  <TimerStep
+                    title={interpolate(block.title)}
+                    body={interpolate(block.settings?.body)}
+                    durationSeconds={block.settings?.duration_seconds || 300}
+                    ctaLabel={interpolate(block.settings?.cta_label)}
+                    onContinue={() => advance()}
+                  />
+                ) : block.type === 'alert' ? (
+                  <AlertStep
+                    title={interpolate(block.title)}
+                    body={interpolate(block.settings?.body)}
+                    variant={block.settings?.alert_variant}
+                    onContinue={() => advance()}
+                  />
+                ) : block.type === 'testimonial' ? (
+                  <TestimonialStep
+                    title={interpolate(block.title)}
+                    text={interpolate(block.settings?.testimonial_text)}
+                    author={interpolate(block.settings?.testimonial_author)}
+                    authorRole={interpolate(block.settings?.author_role)}
+                    rating={block.settings?.rating}
+                    avatarUrl={block.settings?.avatar_url}
+                    onContinue={() => advance()}
+                  />
+                ) : block.type === 'social_proof' ? (
+                  // Purely decorative — rendered as a floating toast outside
+                  // the stage (see below), nothing to stack inline here.
+                  null
+                ) : block.type === 'button' ? (
+                  <ButtonStep
+                    title={interpolate(block.title)}
+                    body={interpolate(block.settings?.body)}
+                    ctaLabel={interpolate(block.settings?.cta_label)}
+                    url={block.settings?.button_url}
+                    openNewTab={block.settings?.button_open_new_tab}
+                    onContinue={() => advance()}
+                  />
+                ) : block.type === 'spacer' ? (
+                  <div style={{ height: block.settings?.duration_seconds || 24 }} aria-hidden="true" />
+                ) : block.type === 'chart' ? (
+                  <ChartStep
+                    title={interpolate(block.title)}
+                    body={interpolate(block.settings?.body)}
+                    bars={(block.settings?.chart_bars || []).map((bar) => ({
+                      label: interpolate(bar.label) || '',
+                      value: bar.value,
+                    }))}
+                    unit={block.settings?.chart_unit}
+                    onContinue={() => advance()}
+                  />
+                ) : block.type === 'quadrant' ? (
+                  <QuadrantStep
+                    title={interpolate(block.title)}
+                    body={interpolate(block.settings?.body)}
+                    xLabel={interpolate(block.settings?.quadrant_x_label)}
+                    yLabel={interpolate(block.settings?.quadrant_y_label)}
+                    points={(block.settings?.quadrant_points || []).map((p) => ({
+                      ...p,
+                      label: interpolate(p.label) || '',
+                    }))}
+                    onContinue={() => advance()}
+                  />
+                ) : block.type === 'audio' ? (
+                  <AudioStep
+                    title={interpolate(block.title)}
+                    body={interpolate(block.settings?.body)}
+                    audioUrl={block.settings?.audio_url}
+                    onContinue={() => advance()}
+                  />
+                ) : (
+                  /* QUESTION BLOCK — multiple_choice, image_choice, likert,
+                     text, scale, numeric_calc */
+                  <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6">
+                    <div className="space-y-2">
+                      {!isContentBlock(block.type) && (
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
+                          Pergunta {allBlocks.filter((b) => !isContentBlock(b.type)).indexOf(block) + 1} de {answerableQuestions.length}
                         </span>
-                        <span className="text-sm font-medium">{opt.text}</span>
+                      )}
+                      <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                        {interpolate(block.title)}
+                      </h2>
+                      {block.description && (
+                        <p className="text-zinc-400 text-xs sm:text-sm">{interpolate(block.description)}</p>
+                      )}
+                    </div>
+
+                    {/* Multiple Choice */}
+                    {block.type === 'multiple_choice' && (
+                      <div className="space-y-3 pt-2">
+                        {block.options?.map((opt, optIdx) => {
+                          const isSelected = answers[block.id]?.optionId === opt.id
+                          return (
+                            <button
+                              key={opt.id || optIdx}
+                              type="button"
+                              onClick={() => handleSelectOption(block, opt)}
+                              className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
+                                isSelected
+                                  ? 'border-indigo-500 bg-indigo-600/15 text-white shadow-md shadow-indigo-500/10'
+                                  : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/80'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className={`h-7 w-7 rounded-lg text-xs font-semibold flex items-center justify-center transition ${
+                                  isSelected
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-200'
+                                }`}>
+                                  {String.fromCharCode(65 + optIdx)}
+                                </span>
+                                <span className="text-sm font-medium">{opt.text}</span>
+                              </div>
+                              <ChevronRight className={`h-4 w-4 transition ${isSelected ? 'text-indigo-400 translate-x-1' : 'text-zinc-600 group-hover:text-zinc-400'}`} />
+                            </button>
+                          )
+                        })}
                       </div>
-                      <ChevronRight className={`h-4 w-4 transition ${isSelected ? 'text-indigo-400 translate-x-1' : 'text-zinc-600 group-hover:text-zinc-400'}`} />
-                    </button>
-                  )
-                })}
-              </div>
-            )}
+                    )}
 
-            {/* Image Choice */}
-            {currentQuestion.type === 'image_choice' && (
-              <ImageChoiceStep
-                options={currentQuestion.options || []}
-                selectedOptionId={answers[currentQuestion.id]?.optionId}
-                onSelect={handleSelectOption}
-              />
-            )}
+                    {/* Image Choice */}
+                    {block.type === 'image_choice' && (
+                      <ImageChoiceStep
+                        options={block.options || []}
+                        selectedOptionId={answers[block.id]?.optionId}
+                        onSelect={(opt) => handleSelectOption(block, opt)}
+                      />
+                    )}
 
-            {/* Likert Agreement Scale */}
-            {currentQuestion.type === 'likert' && (
-              <LikertStep
-                options={currentQuestion.options || []}
-                selectedOptionId={answers[currentQuestion.id]?.optionId}
-                onSelect={handleSelectOption}
-              />
-            )}
+                    {/* Likert Agreement Scale */}
+                    {block.type === 'likert' && (
+                      <LikertStep
+                        options={block.options || []}
+                        selectedOptionId={answers[block.id]?.optionId}
+                        onSelect={(opt) => handleSelectOption(block, opt)}
+                      />
+                    )}
 
-            {/* Text Input */}
-            {currentQuestion.type === 'text' && (
-              <div className="space-y-4 pt-2">
-                <Input
-                  value={answers[currentQuestion.id]?.textValue || ''}
-                  onChange={(e) => handleTextAnswer(e.target.value)}
-                  placeholder="Digite sua resposta aqui..."
-                  className="h-12 border-zinc-700 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-600"
-                />
-                <Button
-                  onClick={handleNext}
-                  disabled={!answers[currentQuestion.id]?.textValue?.trim()}
-                  className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
-                >
-                  Continuar <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+                    {/* Text Input */}
+                    {block.type === 'text' && (
+                      <div className="space-y-4 pt-2">
+                        <Input
+                          value={answers[block.id]?.textValue || ''}
+                          onChange={(e) => handleTextAnswer(block, e.target.value)}
+                          placeholder="Digite sua resposta aqui..."
+                          className="h-12 border-zinc-700 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-600"
+                        />
+                        <Button
+                          onClick={handleNext}
+                          disabled={!answers[block.id]?.textValue?.trim()}
+                          className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
+                        >
+                          Continuar <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
 
-            {/* Scale 1-5 */}
-            {currentQuestion.type === 'scale' && (
-              <div className="space-y-4 pt-2">
-                <div className="grid grid-cols-5 gap-2">
-                  {[1, 2, 3, 4, 5].map((num) => {
-                    const isSelected = answers[currentQuestion.id]?.textValue === String(num)
-                    return (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => {
-                          handleTextAnswer(String(num))
-                          setTimeout(() => handleNext(), 200)
+                    {/* Scale 1-5 */}
+                    {block.type === 'scale' && (
+                      <div className="space-y-4 pt-2">
+                        <div className="grid grid-cols-5 gap-2">
+                          {[1, 2, 3, 4, 5].map((num) => {
+                            const isSelected = answers[block.id]?.textValue === String(num)
+                            return (
+                              <button
+                                key={num}
+                                type="button"
+                                onClick={() => {
+                                  handleTextAnswer(block, String(num))
+                                  setTimeout(() => handleNext(), 200)
+                                }}
+                                className={`h-14 rounded-xl border font-bold text-lg transition flex items-center justify-center ${
+                                  isSelected
+                                    ? 'border-indigo-500 bg-indigo-600 text-white'
+                                    : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800'
+                                }`}
+                              >
+                                {num}
+                              </button>
+                            )
+                          })}
+                        </div>
+                        <div className="flex justify-between text-[11px] text-zinc-500 px-1 font-medium">
+                          <span>1 (Muito Baixo)</span>
+                          <span>5 (Muito Alto)</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Numeric Calculation */}
+                    {block.type === 'numeric_calc' && (
+                      <NumericCalcStep
+                        fieldA={{
+                          label: block.settings?.field_a_label || 'Valor',
+                          placeholder: block.settings?.field_a_placeholder,
                         }}
-                        className={`h-14 rounded-xl border font-bold text-lg transition flex items-center justify-center ${
-                          isSelected
-                            ? 'border-indigo-500 bg-indigo-600 text-white'
-                            : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800'
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    )
-                  })}
-                </div>
-                <div className="flex justify-between text-[11px] text-zinc-500 px-1 font-medium">
-                  <span>1 (Muito Baixo)</span>
-                  <span>5 (Muito Alto)</span>
-                </div>
+                        fieldB={
+                          block.settings?.field_b_label
+                            ? {
+                                label: block.settings.field_b_label,
+                                placeholder: block.settings.field_b_placeholder,
+                              }
+                            : undefined
+                        }
+                        formula={block.settings?.formula || 'none'}
+                        onSubmit={(values) => handleNumericCalcSubmit(block, values)}
+                      />
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Numeric Calculation */}
-            {currentQuestion.type === 'numeric_calc' && (
-              <NumericCalcStep
-                fieldA={{
-                  label: currentQuestion.settings?.field_a_label || 'Valor',
-                  placeholder: currentQuestion.settings?.field_a_placeholder,
-                }}
-                fieldB={
-                  currentQuestion.settings?.field_b_label
-                    ? {
-                        label: currentQuestion.settings.field_b_label,
-                        placeholder: currentQuestion.settings.field_b_placeholder,
-                      }
-                    : undefined
-                }
-                formula={currentQuestion.settings?.formula || 'none'}
-                onSubmit={handleNumericCalcSubmit}
-              />
-            )}
+            ))}
           </div>
-        )}
+        ) : null}
       </main>
 
-      {/* Social proof toast — floats over whichever step is active */}
-      {currentQuestion?.type === 'social_proof' && (
-        <SocialProofToast
-          key={currentStepIndex}
-          name={interpolate(currentQuestion.settings?.notification_name)}
-          action={interpolate(currentQuestion.settings?.notification_action)}
-          timeLabel={interpolate(currentQuestion.settings?.notification_time_label)}
-        />
-      )}
+      {/* Social proof toast(s) — float over whichever step is active */}
+      {currentStep?.blocks
+        .filter((b) => b.type === 'social_proof')
+        .map((b) => (
+          <SocialProofToast
+            key={b.id}
+            name={interpolate(b.settings?.notification_name)}
+            action={interpolate(b.settings?.notification_action)}
+            timeLabel={interpolate(b.settings?.notification_time_label)}
+          />
+        ))}
 
       {/* Footer — White-label aware */}
       {quiz.show_branding !== false && (

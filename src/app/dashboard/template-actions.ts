@@ -47,20 +47,41 @@ export async function createQuizFromTemplate(workspaceId: string, templateId: st
 
   const failedQuestions: string[] = []
 
-  for (const q of templateQuestions) {
-    const { data: createdQ, error: qInsertError } = await supabase
-      .from('questions')
+  // Every template question still becomes its own step (1 block per step) —
+  // templates authored so far predate the multi-block-per-step model, so
+  // this keeps their behavior identical to before this migration.
+  for (let i = 0; i < templateQuestions.length; i++) {
+    const q = templateQuestions[i]
+
+    const { data: createdStep, error: stepInsertError } = await supabase
+      .from('quiz_steps')
       .insert({
         quiz_id: quiz.id,
-        title: q.title,
-        description: q.description || '',
-        type: q.type,
-        order_num: q.order_num,
+        order_num: q.order_num ?? i,
         // Branching rules reference option_id values from the template's own
         // structure, which don't exist as real rows yet — they're dropped
         // here rather than copied verbatim, since a rule pointing at a
         // nonexistent option would silently never match in the player.
         branching_rules: [],
+      })
+      .select()
+      .single()
+
+    if (stepInsertError || !createdStep) {
+      console.error(`Failed to insert step for template question "${q.title}":`, stepInsertError)
+      failedQuestions.push(`${q.title} (${q.type})`)
+      continue
+    }
+
+    const { data: createdQ, error: qInsertError } = await supabase
+      .from('questions')
+      .insert({
+        quiz_id: quiz.id,
+        step_id: createdStep.id,
+        title: q.title,
+        description: q.description || '',
+        type: q.type,
+        order_num: 0,
         settings: q.settings || {},
       })
       .select()
