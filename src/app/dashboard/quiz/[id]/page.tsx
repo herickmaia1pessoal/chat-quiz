@@ -261,6 +261,7 @@ export default async function QuizBuilderPage({
             quizId={quiz.id}
             initialSteps={steps}
             scoringEnabled={quiz.enable_scored_result || false}
+            quizStatus={quiz.status}
           />
         </TabsContent>
 

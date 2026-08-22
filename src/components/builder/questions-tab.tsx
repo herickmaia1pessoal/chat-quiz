@@ -330,10 +330,12 @@ export function QuestionsTab({
   quizId,
   initialSteps,
   scoringEnabled = false,
+  quizStatus,
 }: {
   quizId: string
   initialSteps: Step[]
   scoringEnabled?: boolean
+  quizStatus?: string
 }) {
   const [steps, setSteps] = useState<Step[]>(
     initialSteps.length > 0
@@ -810,19 +812,28 @@ export function QuestionsTab({
           <DialogHeader className="p-4 pb-0">
             <DialogTitle className="text-white">Pré-visualização</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              {isDirty
+              {quizStatus !== 'published'
+                ? 'Este quiz está como rascunho — o link público só fica acessível depois de publicar.'
+                : isDirty
                 ? 'Mostrando a última versão salva — salve suas alterações para vê-las aqui.'
                 : 'Exatamente como o quiz aparece para quem acessa o link público.'}
             </DialogDescription>
           </DialogHeader>
           <div className="h-[70vh] w-full bg-zinc-900">
-            {showPreview && (
+            {showPreview && quizStatus !== 'published' ? (
+              <div className="h-full w-full flex flex-col items-center justify-center gap-3 text-center px-8">
+                <EyeOff className="h-8 w-8 text-zinc-600" />
+                <p className="text-sm text-zinc-400 max-w-xs">
+                  Publique o quiz na aba <strong className="text-zinc-200">Configurações</strong> para poder pré-visualizar como ele aparece pros visitantes.
+                </p>
+              </div>
+            ) : showPreview ? (
               <iframe
                 src={`/q/${quizId}`}
                 className="h-full w-full border-0"
                 title="Pré-visualização do quiz"
               />
-            )}
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>
