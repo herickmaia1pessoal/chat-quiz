@@ -47,6 +47,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { VersionHistoryDialog } from '@/components/builder/version-history-dialog'
 import { saveQuestions } from '@/app/dashboard/actions'
 
 interface BranchingRule {
@@ -790,6 +791,8 @@ export function QuestionsTab({
             <PlayCircle className="h-4 w-4 text-indigo-400" />
             Preview
           </Button>
+
+          <VersionHistoryDialog quizId={quizId} />
 
           <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
             <Save className="h-4 w-4" />

@@ -172,6 +172,11 @@ export async function saveQuestions(quizId: string, input: StepInput[] | Questio
   }
 
   revalidatePath(`/dashboard/quiz/${quizId}`)
+
+  // Snapshot the just-saved state into the version history — fire-and-forget
+  // (a version-history failure shouldn't fail the save itself, since the
+  // quiz's actual content was already persisted above).
+  saveQuizVersion(quizId).catch((err) => console.error('Failed to save quiz version snapshot:', err))
 }
 
 function isFlatQuestionInput(input: StepInput[] | QuestionInput[]): input is QuestionInput[] {
@@ -608,4 +613,139 @@ export async function importQuizFromJson(workspaceId: string, data: unknown) {
 
   revalidatePath('/dashboard')
   return newQuiz
+}
+
+// Snapshots the quiz's current state (same shape as exportQuizAsJson) into
+// quiz_versions, then prunes older versions beyond the last 20 so history
+// doesn't grow unbounded. Called from saveQuestions after every successful
+// save — not exported for direct use elsewhere.
+async function saveQuizVersion(quizId: string) {
+  const supabase = await createClient()
+  const snapshot = await exportQuizAsJson(quizId)
+
+  await supabase.from('quiz_versions').insert({ quiz_id: quizId, snapshot })
+
+  const { data: old } = await supabase
+    .from('quiz_versions')
+    .select('id')
+    .eq('quiz_id', quizId)
+    .order('created_at', { ascending: false })
+    .range(20, 999)
+
+  if (old && old.length > 0) {
+    await supabase.from('quiz_versions').delete().in('id', old.map((v) => v.id))
+  }
+}
+
+export async function listQuizVersions(quizId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('quiz_versions')
+    .select('id, created_at, label')
+    .eq('quiz_id', quizId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return data || []
+}
+
+// Restores a past snapshot onto the CURRENT quiz row — unlike
+// importQuizFromJson (which always creates a brand-new quiz), this
+// overwrites the existing quiz's steps/blocks/options/result levels in
+// place, reusing the exact same two-pass insert-then-remap-branching
+// approach used everywhere else a snapshot is applied.
+export async function restoreQuizVersion(quizId: string, versionId: string) {
+  const supabase = await createClient()
+
+  const { data: version, error: vError } = await supabase
+    .from('quiz_versions')
+    .select('snapshot')
+    .eq('id', versionId)
+    .eq('quiz_id', quizId) // defense in depth: a version can only restore its own quiz
+    .single()
+
+  if (vError || !version) throw new Error('Versão não encontrada.')
+
+  const parsed = version.snapshot as QuizExport
+
+  await supabase.from('quiz_steps').delete().eq('quiz_id', quizId)
+  await supabase.from('quiz_result_levels').delete().eq('quiz_id', quizId)
+
+  const localToRealOptionId: Record<string, string> = {}
+  const stepBranchingToFix: Array<{ newStepId: string; rules: Array<{ option_id: string; go_to_order: number }> }> = []
+
+  for (const step of parsed.steps || []) {
+    const { data: createdStep, error: stepInsertError } = await supabase
+      .from('quiz_steps')
+      .insert({
+        quiz_id: quizId,
+        order_num: step.order_num,
+        title: step.title,
+        branching_rules: [],
+      })
+      .select()
+      .single()
+
+    if (stepInsertError || !createdStep) continue
+
+    for (const block of step.blocks || []) {
+      const { data: createdQuestion } = await supabase
+        .from('questions')
+        .insert({
+          quiz_id: quizId,
+          step_id: createdStep.id,
+          title: block.title,
+          description: block.description || '',
+          type: block.type,
+          order_num: block.order_num,
+          settings: block.settings || {},
+        })
+        .select()
+        .single()
+
+      if (!createdQuestion) continue
+
+      for (const opt of block.options || []) {
+        const { data: createdOption } = await supabase
+          .from('question_options')
+          .insert({
+            question_id: createdQuestion.id,
+            text: opt.text,
+            order_num: opt.order_num,
+            score_value: opt.score_value || 0,
+            image_url: opt.image_url || null,
+            tag: opt.tag || null,
+          })
+          .select('id')
+          .single()
+
+        if (createdOption) localToRealOptionId[opt.local_id] = createdOption.id
+      }
+    }
+
+    if (step.branching_rules && step.branching_rules.length > 0) {
+      stepBranchingToFix.push({ newStepId: createdStep.id, rules: step.branching_rules })
+    }
+  }
+
+  for (const { newStepId, rules } of stepBranchingToFix) {
+    const remapped = rules
+      .filter((r) => localToRealOptionId[r.option_id] !== undefined)
+      .map((r) => ({ option_id: localToRealOptionId[r.option_id], go_to_order: r.go_to_order }))
+
+    await supabase.from('quiz_steps').update({ branching_rules: remapped }).eq('id', newStepId)
+  }
+
+  if (parsed.result_levels && parsed.result_levels.length > 0) {
+    await supabase.from('quiz_result_levels').insert(
+      parsed.result_levels.map((l) => ({ ...l, quiz_id: quizId }))
+    )
+  }
+
+  revalidatePath(`/dashboard/quiz/${quizId}`)
+
+  // The restore itself becomes a new version too — so restoring never loses
+  // whatever state existed right before the restore, and "restore" reads
+  // consistently as "just another save" in the history list.
+  saveQuizVersion(quizId).catch((err) => console.error('Failed to save quiz version snapshot:', err))
 }
