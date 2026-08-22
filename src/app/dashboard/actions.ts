@@ -360,3 +360,248 @@ export async function saveResultLevels(quizId: string, levels: Array<{
 
   revalidatePath(`/dashboard/quiz/${quizId}`)
 }
+
+// The shape both exportQuizAsJson produces and importQuizFromJson expects —
+// a self-contained snapshot of a quiz's steps/blocks/options/result levels.
+// Deliberately excludes anything workspace/tenant-specific (workspace_id,
+// analytics counters, lead data) so a file can be safely imported into a
+// different workspace or account than it came from.
+interface QuizExport {
+  format: 'quizflow-quiz-export'
+  version: 1
+  exported_at: string
+  quiz: {
+    title: string
+    description: string | null
+    meta_pixel_id: string | null
+    ga4_measurement_id: string | null
+    webhook_url: string | null
+    redirect_url: string | null
+    show_branding: boolean
+    enable_scored_result: boolean
+    loading_messages: string[]
+  }
+  steps: Array<{
+    order_num: number
+    title: string | null
+    branching_rules: Array<{ option_id: string; go_to_order: number }>
+    blocks: Array<{
+      title: string
+      description: string | null
+      type: string
+      order_num: number
+      settings: Record<string, any>
+      // Local, file-scoped id used only to remap branching_rules'
+      // option_id references within this export — never a real DB id.
+      options: Array<{ local_id: string; text: string; order_num: number; score_value: number; image_url: string | null }>
+    }>
+  }>
+  result_levels: Array<{ name: string; description: string | null; min_score: number; max_score: number; color: string; order_num: number }>
+}
+
+export async function exportQuizAsJson(quizId: string): Promise<QuizExport> {
+  const supabase = await createClient()
+
+  const { data: quiz, error: qError } = await supabase
+    .from('quizzes')
+    .select('title, description, meta_pixel_id, ga4_measurement_id, webhook_url, redirect_url, show_branding, enable_scored_result, loading_messages')
+    .eq('id', quizId)
+    .single()
+
+  if (qError || !quiz) throw new Error('Quiz não encontrado.')
+
+  const { data: steps } = await supabase
+    .from('quiz_steps')
+    .select('order_num, title, branching_rules, questions(title, description, type, order_num, settings, options:question_options(id, text, order_num, score_value, image_url))')
+    .eq('quiz_id', quizId)
+    .order('order_num', { ascending: true })
+
+  const { data: levels } = await supabase
+    .from('quiz_result_levels')
+    .select('name, description, min_score, max_score, color, order_num')
+    .eq('quiz_id', quizId)
+    .order('order_num', { ascending: true })
+
+  // Real option ids are replaced with export-local ids (o0, o1, ...) so the
+  // file never leaks internal database identifiers and so branching_rules
+  // can be remapped consistently on import regardless of what the original
+  // option ids were.
+  let localIdCounter = 0
+  const realToLocalOptionId: Record<string, string> = {}
+
+  const exportedSteps = (steps || []).map((step) => {
+    const blocks = ((step as any).questions || []) as Array<{ title: string; description?: string; type: string; order_num: number; settings?: Record<string, any>; options: Array<{ id: string; text: string; order_num: number; score_value?: number; image_url?: string }> | null }>
+
+    return {
+      order_num: step.order_num,
+      title: step.title,
+      branching_rules: (step.branching_rules || []).map((r: { option_id: string; go_to_order: number }) => ({
+        option_id: realToLocalOptionId[r.option_id] || r.option_id,
+        go_to_order: r.go_to_order,
+      })),
+      blocks: blocks.map((block) => ({
+        title: block.title,
+        description: block.description || null,
+        type: block.type,
+        order_num: block.order_num,
+        settings: block.settings || {},
+        options: (block.options || []).map((opt) => {
+          const localId = `o${localIdCounter++}`
+          realToLocalOptionId[opt.id] = localId
+          return { local_id: localId, text: opt.text, order_num: opt.order_num, score_value: opt.score_value || 0, image_url: opt.image_url || null }
+        }),
+      })),
+    }
+  })
+
+  // branching_rules were mapped using realToLocalOptionId as it was being
+  // built above — options belonging to a later step in the loop weren't in
+  // the map yet when an earlier step's rules were read, so re-map now that
+  // every option in the quiz has a local id assigned.
+  const remappedSteps = exportedSteps.map((step) => ({
+    ...step,
+    branching_rules: step.branching_rules.map((r: { option_id: string; go_to_order: number }) => ({
+      option_id: realToLocalOptionId[r.option_id] || r.option_id,
+      go_to_order: r.go_to_order,
+    })),
+  }))
+
+  return {
+    format: 'quizflow-quiz-export',
+    version: 1,
+    exported_at: new Date().toISOString(),
+    quiz: {
+      title: quiz.title,
+      description: quiz.description,
+      meta_pixel_id: quiz.meta_pixel_id,
+      ga4_measurement_id: quiz.ga4_measurement_id,
+      webhook_url: quiz.webhook_url,
+      redirect_url: quiz.redirect_url,
+      show_branding: quiz.show_branding ?? true,
+      enable_scored_result: quiz.enable_scored_result ?? false,
+      loading_messages: quiz.loading_messages || [],
+    },
+    steps: remappedSteps,
+    result_levels: (levels || []).map((l) => ({
+      name: l.name,
+      description: l.description,
+      min_score: l.min_score,
+      max_score: l.max_score,
+      color: l.color,
+      order_num: l.order_num,
+    })),
+  }
+}
+
+export async function importQuizFromJson(workspaceId: string, data: unknown) {
+  const supabase = await createClient()
+
+  // Minimal shape validation — enough to fail with a clear message instead
+  // of a confusing insert error partway through, without trying to be a
+  // full schema validator for a file the user could hand-edit.
+  if (
+    !data || typeof data !== 'object' ||
+    (data as any).format !== 'quizflow-quiz-export' ||
+    !Array.isArray((data as any).steps)
+  ) {
+    throw new Error('Arquivo inválido: não parece ser uma exportação de quiz do QuizFlow.')
+  }
+
+  const parsed = data as QuizExport
+
+  const { data: newQuiz, error: insertError } = await supabase
+    .from('quizzes')
+    .insert({
+      workspace_id: workspaceId,
+      title: parsed.quiz?.title ? `${parsed.quiz.title} (importado)` : 'Quiz importado',
+      description: parsed.quiz?.description ?? null,
+      status: 'draft',
+      meta_pixel_id: parsed.quiz?.meta_pixel_id ?? null,
+      ga4_measurement_id: parsed.quiz?.ga4_measurement_id ?? null,
+      webhook_url: parsed.quiz?.webhook_url ?? null,
+      redirect_url: parsed.quiz?.redirect_url ?? null,
+      show_branding: parsed.quiz?.show_branding ?? true,
+      enable_scored_result: parsed.quiz?.enable_scored_result ?? false,
+      loading_messages: parsed.quiz?.loading_messages || [],
+    })
+    .select()
+    .single()
+
+  if (insertError || !newQuiz) throw new Error('Erro ao criar quiz a partir do arquivo.')
+
+  // Same two-pass approach as duplicateQuiz: insert everything first
+  // (mapping each export-local option id to the newly-created option's real
+  // id), then rewrite branching_rules using that map once it's complete.
+  const localToRealOptionId: Record<string, string> = {}
+  const stepBranchingToFix: Array<{ newStepId: string; rules: Array<{ option_id: string; go_to_order: number }> }> = []
+
+  for (const step of parsed.steps || []) {
+    const { data: createdStep, error: stepInsertError } = await supabase
+      .from('quiz_steps')
+      .insert({
+        quiz_id: newQuiz.id,
+        order_num: step.order_num,
+        title: step.title,
+        branching_rules: [],
+      })
+      .select()
+      .single()
+
+    if (stepInsertError || !createdStep) continue
+
+    for (const block of step.blocks || []) {
+      const { data: createdQuestion } = await supabase
+        .from('questions')
+        .insert({
+          quiz_id: newQuiz.id,
+          step_id: createdStep.id,
+          title: block.title,
+          description: block.description || '',
+          type: block.type,
+          order_num: block.order_num,
+          settings: block.settings || {},
+        })
+        .select()
+        .single()
+
+      if (!createdQuestion) continue
+
+      for (const opt of block.options || []) {
+        const { data: createdOption } = await supabase
+          .from('question_options')
+          .insert({
+            question_id: createdQuestion.id,
+            text: opt.text,
+            order_num: opt.order_num,
+            score_value: opt.score_value || 0,
+            image_url: opt.image_url || null,
+          })
+          .select('id')
+          .single()
+
+        if (createdOption) localToRealOptionId[opt.local_id] = createdOption.id
+      }
+    }
+
+    if (step.branching_rules && step.branching_rules.length > 0) {
+      stepBranchingToFix.push({ newStepId: createdStep.id, rules: step.branching_rules })
+    }
+  }
+
+  for (const { newStepId, rules } of stepBranchingToFix) {
+    const remapped = rules
+      .filter((r) => localToRealOptionId[r.option_id] !== undefined)
+      .map((r) => ({ option_id: localToRealOptionId[r.option_id], go_to_order: r.go_to_order }))
+
+    await supabase.from('quiz_steps').update({ branching_rules: remapped }).eq('id', newStepId)
+  }
+
+  if (parsed.result_levels && parsed.result_levels.length > 0) {
+    await supabase.from('quiz_result_levels').insert(
+      parsed.result_levels.map((l) => ({ ...l, quiz_id: newQuiz.id }))
+    )
+  }
+
+  revalidatePath('/dashboard')
+  return newQuiz
+}
