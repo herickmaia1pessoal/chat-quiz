@@ -25,6 +25,14 @@ import { ContentInterstitial } from '@/components/player/content-interstitial'
 import { ComparisonStep } from '@/components/player/comparison-step'
 import { TimerStep } from '@/components/player/timer-step'
 import { NumericCalcStep, type NumericFormula } from '@/components/player/numeric-calc-step'
+import { AlertStep, type AlertVariant } from '@/components/player/alert-step'
+import { TestimonialStep } from '@/components/player/testimonial-step'
+import { SocialProofToast } from '@/components/player/social-proof-toast'
+import { ButtonStep } from '@/components/player/button-step'
+import { SpacerStep } from '@/components/player/spacer-step'
+import { ChartStep } from '@/components/player/chart-step'
+import { QuadrantStep } from '@/components/player/quadrant-step'
+import { AudioStep } from '@/components/player/audio-step'
 import { interpolateVariables } from '@/lib/interpolate-variables'
 
 interface BranchingRule {
@@ -45,6 +53,18 @@ interface ComparisonRow {
   right_text: string
 }
 
+interface ChartBar {
+  label: string
+  value: number
+}
+
+interface QuadrantPoint {
+  label: string
+  x: number
+  y: number
+  highlighted?: boolean
+}
+
 interface QuestionSettings {
   body?: string
   testimonial_text?: string
@@ -59,6 +79,21 @@ interface QuestionSettings {
   field_b_label?: string
   field_b_placeholder?: string
   formula?: NumericFormula
+  alert_variant?: AlertVariant
+  author_role?: string
+  rating?: number
+  avatar_url?: string
+  notification_name?: string
+  notification_action?: string
+  notification_time_label?: string
+  button_url?: string
+  button_open_new_tab?: boolean
+  chart_bars?: ChartBar[]
+  chart_unit?: string
+  quadrant_x_label?: string
+  quadrant_y_label?: string
+  quadrant_points?: QuadrantPoint[]
+  audio_url?: string
 }
 
 interface Question {
@@ -72,12 +107,16 @@ interface Question {
   settings?: QuestionSettings
 }
 
-// content/comparison/timer blocks are narrative, not questions — they don't
-// get answered or scored, so they're excluded from the "Pergunta X de Y"
-// count and from drop-off/progress math the same way the lead-capture gate
-// is. numeric_calc *does* produce an answer (the values typed + the
-// computed result), so it's treated as answerable like multiple_choice/text.
-const isContentBlock = (type: string) => type === 'content' || type === 'comparison' || type === 'timer'
+// Narrative blocks are not questions — they don't get answered or scored,
+// so they're excluded from the "Pergunta X de Y" count and from
+// drop-off/progress math the same way the lead-capture gate is.
+// numeric_calc *does* produce an answer (the values typed + the computed
+// result), so it's treated as answerable like multiple_choice/text.
+const NARRATIVE_TYPES = [
+  'content', 'comparison', 'timer',
+  'alert', 'testimonial', 'social_proof', 'button', 'spacer', 'chart', 'quadrant', 'audio',
+]
+const isContentBlock = (type: string) => NARRATIVE_TYPES.includes(type)
 
 export function QuizPlayer({
   quiz,
@@ -561,6 +600,93 @@ export function QuizPlayer({
               onContinue={handleNext}
             />
           </div>
+        ) : currentQuestion.type === 'alert' ? (
+          /* ALERT — highlighted warning/info banner, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <AlertStep
+              title={interpolate(currentQuestion.title)}
+              body={interpolate(currentQuestion.settings?.body)}
+              variant={currentQuestion.settings?.alert_variant}
+              onContinue={handleNext}
+            />
+          </div>
+        ) : currentQuestion.type === 'testimonial' ? (
+          /* TESTIMONIAL — standalone social-proof card, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <TestimonialStep
+              title={interpolate(currentQuestion.title)}
+              text={interpolate(currentQuestion.settings?.testimonial_text)}
+              author={interpolate(currentQuestion.settings?.testimonial_author)}
+              authorRole={interpolate(currentQuestion.settings?.author_role)}
+              rating={currentQuestion.settings?.rating}
+              avatarUrl={currentQuestion.settings?.avatar_url}
+              onContinue={handleNext}
+            />
+          </div>
+        ) : currentQuestion.type === 'social_proof' ? (
+          /* SOCIAL PROOF — floating toast; the step has no main-stage
+             content of its own, it just shows the toast (rendered as a
+             fixed overlay below, outside this stage) and holds long enough
+             for it to be noticed before auto-advancing. */
+          <SpacerStep key={currentStepIndex} heightPx={260} onContinue={handleNext} />
+        ) : currentQuestion.type === 'button' ? (
+          /* STANDALONE BUTTON — CTA screen, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <ButtonStep
+              title={interpolate(currentQuestion.title)}
+              body={interpolate(currentQuestion.settings?.body)}
+              ctaLabel={interpolate(currentQuestion.settings?.cta_label)}
+              url={currentQuestion.settings?.button_url}
+              openNewTab={currentQuestion.settings?.button_open_new_tab}
+              onContinue={handleNext}
+            />
+          </div>
+        ) : currentQuestion.type === 'spacer' ? (
+          /* SPACER — pure pacing gap, auto-advances */
+          <SpacerStep
+            key={currentStepIndex}
+            heightPx={currentQuestion.settings?.duration_seconds || 24}
+            onContinue={handleNext}
+          />
+        ) : currentQuestion.type === 'chart' ? (
+          /* CHART — bar chart backing a statistic, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <ChartStep
+              title={interpolate(currentQuestion.title)}
+              body={interpolate(currentQuestion.settings?.body)}
+              bars={(currentQuestion.settings?.chart_bars || []).map((bar) => ({
+                label: interpolate(bar.label) || '',
+                value: bar.value,
+              }))}
+              unit={currentQuestion.settings?.chart_unit}
+              onContinue={handleNext}
+            />
+          </div>
+        ) : currentQuestion.type === 'quadrant' ? (
+          /* QUADRANT — cartesian X/Y plot, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <QuadrantStep
+              title={interpolate(currentQuestion.title)}
+              body={interpolate(currentQuestion.settings?.body)}
+              xLabel={interpolate(currentQuestion.settings?.quadrant_x_label)}
+              yLabel={interpolate(currentQuestion.settings?.quadrant_y_label)}
+              points={(currentQuestion.settings?.quadrant_points || []).map((p) => ({
+                ...p,
+                label: interpolate(p.label) || '',
+              }))}
+              onContinue={handleNext}
+            />
+          </div>
+        ) : currentQuestion.type === 'audio' ? (
+          /* AUDIO — embedded player, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <AudioStep
+              title={interpolate(currentQuestion.title)}
+              body={interpolate(currentQuestion.settings?.body)}
+              audioUrl={currentQuestion.settings?.audio_url}
+              onContinue={handleNext}
+            />
+          </div>
         ) : (
           /* QUESTION STEP */
           <div
@@ -703,6 +829,16 @@ export function QuizPlayer({
           </div>
         )}
       </main>
+
+      {/* Social proof toast — floats over whichever step is active */}
+      {currentQuestion?.type === 'social_proof' && (
+        <SocialProofToast
+          key={currentStepIndex}
+          name={interpolate(currentQuestion.settings?.notification_name)}
+          action={interpolate(currentQuestion.settings?.notification_action)}
+          timeLabel={interpolate(currentQuestion.settings?.notification_time_label)}
+        />
+      )}
 
       {/* Footer — White-label aware */}
       {quiz.show_branding !== false && (

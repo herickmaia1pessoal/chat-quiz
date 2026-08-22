@@ -19,6 +19,14 @@ import {
   Columns2,
   Timer,
   Calculator,
+  AlertTriangle,
+  Quote,
+  BellRing,
+  MousePointerClick,
+  MoveVertical,
+  BarChart3,
+  Move,
+  Music,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -47,6 +55,18 @@ interface ComparisonRow {
   right_text: string
 }
 
+interface ChartBar {
+  label: string
+  value: number
+}
+
+interface QuadrantPoint {
+  label: string
+  x: number
+  y: number
+  highlighted?: boolean
+}
+
 interface QuestionSettings {
   // content block
   body?: string
@@ -65,6 +85,28 @@ interface QuestionSettings {
   field_b_label?: string
   field_b_placeholder?: string
   formula?: 'bmi' | 'difference' | 'none'
+  // alert block
+  alert_variant?: 'info' | 'warning' | 'success' | 'danger'
+  // testimonial block (standalone, can repeat multiple per quiz)
+  author_role?: string
+  rating?: number
+  avatar_url?: string
+  // social_proof block (floating "fulano acabou de comprar" notification)
+  notification_name?: string
+  notification_action?: string
+  notification_time_label?: string
+  // button block (standalone CTA, doesn't capture an answer)
+  button_url?: string
+  button_open_new_tab?: boolean
+  // chart block
+  chart_bars?: ChartBar[]
+  chart_unit?: string
+  // quadrant block (cartesian X/Y plot)
+  quadrant_x_label?: string
+  quadrant_y_label?: string
+  quadrant_points?: QuadrantPoint[]
+  // audio block
+  audio_url?: string
 }
 
 interface Question {
@@ -85,6 +127,85 @@ const LIKERT_OPTIONS = [
   'Discordo parcialmente',
   'Discordo totalmente',
 ]
+
+// Blocks that are purely narrative/decorative — they never capture an
+// answer, so they're excluded from "Pergunta X de Y" numbering and from
+// {{resposta_N}} resolution, same treatment content/comparison/timer always
+// had. chart/quadrant can still *reference* earlier answers in their text
+// via interpolation, they just don't produce one of their own.
+const NARRATIVE_TYPES = [
+  'content', 'comparison', 'timer',
+  'alert', 'testimonial', 'social_proof', 'button', 'spacer', 'chart', 'quadrant', 'audio',
+]
+
+const TYPE_LABELS: Record<string, string> = {
+  multiple_choice: 'Múltipla Escolha',
+  text: 'Resposta Aberta',
+  scale: 'Escala (1 a 5)',
+  image_choice: 'Opções com Imagem',
+  likert: 'Escala de Concordância',
+  content: 'Interstício (Conteúdo)',
+  comparison: 'Comparativo',
+  timer: 'Timer de Escassez',
+  numeric_calc: 'Cálculo Numérico',
+  alert: 'Alerta',
+  testimonial: 'Depoimento',
+  social_proof: 'Notificação de Prova Social',
+  button: 'Botão (CTA)',
+  spacer: 'Espaçador',
+  chart: 'Gráfico',
+  quadrant: 'Cartesiano (Perfil)',
+  audio: 'Áudio',
+}
+
+// Shared between addQuestion (new block) and updateQuestion (type switch) so
+// picking a type always seeds sensible defaults, never an empty settings
+// object the editor UI would render as a wall of blank fields.
+function defaultSettingsFor(type: string): QuestionSettings {
+  switch (type) {
+    case 'content':
+      return { body: '', testimonial_text: '', testimonial_author: '', cta_label: 'Continuar' }
+    case 'comparison':
+      return {
+        left_label: 'Sozinho (hoje)',
+        right_label: 'Com a solução',
+        rows: [{ label: 'Resultado', left_text: '', right_text: '' }],
+      }
+    case 'timer':
+      return { body: '', duration_seconds: 300, cta_label: 'Continuar' }
+    case 'numeric_calc':
+      return { field_a_label: 'Peso (kg)', field_a_placeholder: '70', field_b_label: 'Altura (m)', field_b_placeholder: '1.75', formula: 'bmi' }
+    case 'alert':
+      return { body: 'Atenção: essa condição pode piorar com o tempo.', alert_variant: 'warning' }
+    case 'testimonial':
+      return { testimonial_text: '', testimonial_author: '', author_role: '', rating: 5, avatar_url: '' }
+    case 'social_proof':
+      return { notification_name: 'Maria S.', notification_action: 'acabou de garantir sua vaga', notification_time_label: 'há 2 minutos' }
+    case 'button':
+      return { body: '', cta_label: 'Continuar', button_url: '', button_open_new_tab: false }
+    case 'spacer':
+      return { duration_seconds: 24 } // reused as "height in px" for spacer
+    case 'chart':
+      return {
+        body: '',
+        chart_unit: '%',
+        chart_bars: [
+          { label: 'Pessoas como você', value: 68 },
+          { label: 'Média geral', value: 34 },
+        ],
+      }
+    case 'quadrant':
+      return {
+        quadrant_x_label: 'Eixo X',
+        quadrant_y_label: 'Eixo Y',
+        quadrant_points: [{ label: 'Você', x: 60, y: 70, highlighted: true }],
+      }
+    case 'audio':
+      return { body: '', audio_url: '' }
+    default:
+      return {}
+  }
+}
 
 export function QuestionsTab({
   quizId,
@@ -125,6 +246,14 @@ export function QuestionsTab({
         : type === 'comparison' ? 'O que muda com a solução'
         : type === 'timer' ? 'Oferta por tempo limitado'
         : type === 'numeric_calc' ? 'Calcule seu resultado'
+        : type === 'alert' ? 'Atenção'
+        : type === 'testimonial' ? 'O que dizem sobre nós'
+        : type === 'social_proof' ? 'Notificação de prova social'
+        : type === 'button' ? 'Continue de onde parou'
+        : type === 'spacer' ? 'Espaçador'
+        : type === 'chart' ? 'Veja o que os dados mostram'
+        : type === 'quadrant' ? 'Seu posicionamento'
+        : type === 'audio' ? 'Ouça esta mensagem'
         : 'Nova Pergunta',
       description: '',
       type,
@@ -139,20 +268,7 @@ export function QuestionsTab({
           ? LIKERT_OPTIONS.map((text, order_num) => ({ text, order_num }))
           : [],
       branching_rules: [],
-      settings:
-        type === 'content'
-          ? { body: '', testimonial_text: '', testimonial_author: '', cta_label: 'Continuar' }
-          : type === 'comparison'
-          ? {
-              left_label: 'Sozinho (hoje)',
-              right_label: 'Com a solução',
-              rows: [{ label: 'Resultado', left_text: '', right_text: '' }],
-            }
-          : type === 'timer'
-          ? { body: '', duration_seconds: 300, cta_label: 'Continuar' }
-          : type === 'numeric_calc'
-          ? { field_a_label: 'Peso (kg)', field_a_placeholder: '70', field_b_label: 'Altura (m)', field_b_placeholder: '1.75', formula: 'bmi' }
-          : {},
+      settings: defaultSettingsFor(type),
     }
     setQuestions([...questions, newQ])
   }
@@ -181,32 +297,14 @@ export function QuestionsTab({
         ]
       } else if (value === 'likert' && !next[index].options?.length) {
         next[index].options = LIKERT_OPTIONS.map((text, order_num) => ({ text, order_num }))
-      } else if (value === 'content' && !next[index].settings?.body) {
-        next[index].settings = {
-          ...next[index].settings,
-          body: next[index].settings?.body || '',
-          cta_label: next[index].settings?.cta_label || 'Continuar',
-        }
-      } else if (value === 'comparison' && !next[index].settings?.rows?.length) {
-        next[index].settings = {
-          left_label: 'Sozinho (hoje)',
-          right_label: 'Com a solução',
-          rows: [{ label: 'Resultado', left_text: '', right_text: '' }],
-        }
-      } else if (value === 'timer' && !next[index].settings?.duration_seconds) {
-        next[index].settings = {
-          ...next[index].settings,
-          duration_seconds: 300,
-          cta_label: next[index].settings?.cta_label || 'Continuar',
-        }
-      } else if (value === 'numeric_calc' && !next[index].settings?.field_a_label) {
-        next[index].settings = {
-          field_a_label: 'Peso (kg)',
-          field_a_placeholder: '70',
-          field_b_label: 'Altura (m)',
-          field_b_placeholder: '1.75',
-          formula: 'bmi',
-        }
+      } else if (
+        // Only seed defaults the first time a narrative/composite type is
+        // picked — switching back and forth shouldn't clobber content the
+        // user already typed in.
+        [...NARRATIVE_TYPES, 'numeric_calc'].includes(value) &&
+        !Object.keys(next[index].settings || {}).length
+      ) {
+        next[index].settings = defaultSettingsFor(value)
       }
     }
     setQuestions(next)
@@ -240,6 +338,52 @@ export function QuestionsTab({
     const next = [...questions]
     const rows = (next[qIdx].settings?.rows || []).filter((_, i) => i !== rowIdx)
     next[qIdx].settings = { ...next[qIdx].settings, rows }
+    setQuestions(next)
+  }
+
+  // Chart bars (used by the 'chart' block type)
+  const addChartBar = (qIdx: number) => {
+    const next = [...questions]
+    const bars = next[qIdx].settings?.chart_bars || []
+    next[qIdx].settings = { ...next[qIdx].settings, chart_bars: [...bars, { label: '', value: 50 }] }
+    setQuestions(next)
+  }
+
+  const updateChartBar = (qIdx: number, barIdx: number, field: keyof ChartBar, value: string | number) => {
+    const next = [...questions]
+    const bars = [...(next[qIdx].settings?.chart_bars || [])]
+    bars[barIdx] = { ...bars[barIdx], [field]: field === 'value' ? Number(value) : value }
+    next[qIdx].settings = { ...next[qIdx].settings, chart_bars: bars }
+    setQuestions(next)
+  }
+
+  const removeChartBar = (qIdx: number, barIdx: number) => {
+    const next = [...questions]
+    const bars = (next[qIdx].settings?.chart_bars || []).filter((_, i) => i !== barIdx)
+    next[qIdx].settings = { ...next[qIdx].settings, chart_bars: bars }
+    setQuestions(next)
+  }
+
+  // Quadrant points (used by the 'quadrant' block type)
+  const addQuadrantPoint = (qIdx: number) => {
+    const next = [...questions]
+    const points = next[qIdx].settings?.quadrant_points || []
+    next[qIdx].settings = { ...next[qIdx].settings, quadrant_points: [...points, { label: '', x: 50, y: 50 }] }
+    setQuestions(next)
+  }
+
+  const updateQuadrantPoint = (qIdx: number, pointIdx: number, field: keyof QuadrantPoint, value: string | number | boolean) => {
+    const next = [...questions]
+    const points = [...(next[qIdx].settings?.quadrant_points || [])]
+    points[pointIdx] = { ...points[pointIdx], [field]: value }
+    next[qIdx].settings = { ...next[qIdx].settings, quadrant_points: points }
+    setQuestions(next)
+  }
+
+  const removeQuadrantPoint = (qIdx: number, pointIdx: number) => {
+    const next = [...questions]
+    const points = (next[qIdx].settings?.quadrant_points || []).filter((_, i) => i !== pointIdx)
+    next[qIdx].settings = { ...next[qIdx].settings, quadrant_points: points }
     setQuestions(next)
   }
 
@@ -351,11 +495,12 @@ export function QuestionsTab({
       {/* Questions */}
       <div className="space-y-4">
         {questions.map((q, qIndex) => {
-          // 1-indexed position among answerable questions only — content,
-          // comparison, and timer blocks don't produce an answer, so they're
-          // skipped here the same way the player skips them when numbering
-          // "Pergunta X de Y" and resolving {{resposta_N}} placeholders.
-          const isNarrativeBlock = (type: string) => type === 'content' || type === 'comparison' || type === 'timer'
+          // 1-indexed position among answerable questions only — narrative
+          // blocks (content, comparison, timer, alert, testimonial, etc.)
+          // don't produce an answer, so they're skipped here the same way
+          // the player skips them when numbering "Pergunta X de Y" and
+          // resolving {{resposta_N}} placeholders.
+          const isNarrativeBlock = (type: string) => NARRATIVE_TYPES.includes(type)
           const answerablePosition = questions.slice(0, qIndex + 1).filter((question) => !isNarrativeBlock(question.type)).length
           const isAnswerable = !isNarrativeBlock(q.type)
 
@@ -368,15 +513,7 @@ export function QuestionsTab({
                   {qIndex + 1}
                 </span>
                 <span className="text-sm font-semibold text-zinc-300">
-                  {q.type === 'multiple_choice' && 'Múltipla Escolha'}
-                  {q.type === 'text' && 'Resposta Aberta'}
-                  {q.type === 'scale' && 'Escala (1 a 5)'}
-                  {q.type === 'image_choice' && 'Opções com Imagem'}
-                  {q.type === 'likert' && 'Escala de Concordância'}
-                  {q.type === 'content' && 'Interstício (Conteúdo)'}
-                  {q.type === 'comparison' && 'Comparativo'}
-                  {q.type === 'timer' && 'Timer de Escassez'}
-                  {q.type === 'numeric_calc' && 'Cálculo Numérico'}
+                  {TYPE_LABELS[q.type] || q.type}
                 </span>
                 {isAnswerable && (
                   <span
@@ -437,12 +574,20 @@ export function QuestionsTab({
                     <SelectItem value="comparison">Comparativo</SelectItem>
                     <SelectItem value="timer">Timer de Escassez</SelectItem>
                     <SelectItem value="numeric_calc">Cálculo Numérico</SelectItem>
+                    <SelectItem value="alert">Alerta</SelectItem>
+                    <SelectItem value="testimonial">Depoimento</SelectItem>
+                    <SelectItem value="social_proof">Notificação de Prova Social</SelectItem>
+                    <SelectItem value="button">Botão (CTA)</SelectItem>
+                    <SelectItem value="spacer">Espaçador</SelectItem>
+                    <SelectItem value="chart">Gráfico</SelectItem>
+                    <SelectItem value="quadrant">Cartesiano (Perfil)</SelectItem>
+                    <SelectItem value="audio">Áudio</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {q.type !== 'content' && q.type !== 'comparison' && q.type !== 'timer' && (
+            {!NARRATIVE_TYPES.includes(q.type) && (
               <div className="space-y-1.5">
                 <Label className="text-zinc-400 text-xs">Descrição ou Subtítulo (opcional)</Label>
                 <Input value={q.description || ''}
@@ -726,6 +871,335 @@ export function QuestionsTab({
               </div>
             )}
 
+            {/* Alert — highlighted warning/info/success banner */}
+            {q.type === 'alert' && (
+              <div className="space-y-3 pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-400 text-xs">Variante</Label>
+                  <Select
+                    value={q.settings?.alert_variant || 'warning'}
+                    onValueChange={(val) => updateSettings(qIndex, 'alert_variant', val)}
+                  >
+                    <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                      <SelectItem value="info">Informativo (azul)</SelectItem>
+                      <SelectItem value="warning">Atenção (âmbar)</SelectItem>
+                      <SelectItem value="success">Positivo (verde)</SelectItem>
+                      <SelectItem value="danger">Crítico (vermelho)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-300 text-xs">Texto do Alerta</Label>
+                  <Textarea
+                    value={q.settings?.body || ''}
+                    onChange={(e) => updateSettings(qIndex, 'body', e.target.value)}
+                    placeholder="Ex: Esse padrão de sono pode estar afetando seu metabolismo."
+                    className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-20"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Testimonial — standalone social-proof card, can be repeated */}
+            {q.type === 'testimonial' && (
+              <div className="space-y-3 pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-300 text-xs">Depoimento</Label>
+                  <Textarea
+                    value={q.settings?.testimonial_text || ''}
+                    onChange={(e) => updateSettings(qIndex, 'testimonial_text', e.target.value)}
+                    placeholder='"Frase de um cliente real ou fictício..."'
+                    className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-20"
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Autor</Label>
+                    <Input
+                      value={q.settings?.testimonial_author || ''}
+                      onChange={(e) => updateSettings(qIndex, 'testimonial_author', e.target.value)}
+                      placeholder="Ex: Fernanda M."
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Cargo/Contexto</Label>
+                    <Input
+                      value={q.settings?.author_role || ''}
+                      onChange={(e) => updateSettings(qIndex, 'author_role', e.target.value)}
+                      placeholder="Ex: Aluna há 3 meses"
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Nota (1 a 5)</Label>
+                    <Input
+                      type="number" min={1} max={5}
+                      value={q.settings?.rating ?? 5}
+                      onChange={(e) => updateSettings(qIndex, 'rating', Number(e.target.value))}
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-400 text-xs">URL do Avatar (opcional)</Label>
+                  <Input
+                    value={q.settings?.avatar_url || ''}
+                    onChange={(e) => updateSettings(qIndex, 'avatar_url', e.target.value)}
+                    placeholder="https://..."
+                    className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs font-mono"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Social Proof — floating "fulano acabou de comprar" notification */}
+            {q.type === 'social_proof' && (
+              <div className="space-y-3 pt-1">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Nome</Label>
+                    <Input
+                      value={q.settings?.notification_name || ''}
+                      onChange={(e) => updateSettings(qIndex, 'notification_name', e.target.value)}
+                      placeholder="Ex: Maria S."
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Ação</Label>
+                    <Input
+                      value={q.settings?.notification_action || ''}
+                      onChange={(e) => updateSettings(qIndex, 'notification_action', e.target.value)}
+                      placeholder="Ex: acabou de garantir sua vaga"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Tempo</Label>
+                    <Input
+                      value={q.settings?.notification_time_label || ''}
+                      onChange={(e) => updateSettings(qIndex, 'notification_time_label', e.target.value)}
+                      placeholder="Ex: há 2 minutos"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-zinc-500">
+                  Aparece como um popup flutuante no canto da tela enquanto esta etapa estiver visível, simulando atividade recente de outros usuários.
+                </p>
+              </div>
+            )}
+
+            {/* Button — standalone CTA, doesn't capture an answer */}
+            {q.type === 'button' && (
+              <div className="space-y-3 pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-300 text-xs">Texto de Apoio (opcional)</Label>
+                  <Textarea
+                    value={q.settings?.body || ''}
+                    onChange={(e) => updateSettings(qIndex, 'body', e.target.value)}
+                    placeholder="Texto acima do botão, se necessário."
+                    className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-16"
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Texto do Botão</Label>
+                    <Input
+                      value={q.settings?.cta_label || ''}
+                      onChange={(e) => updateSettings(qIndex, 'cta_label', e.target.value)}
+                      placeholder="Continuar"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Link Externo (opcional)</Label>
+                    <Input
+                      value={q.settings?.button_url || ''}
+                      onChange={(e) => updateSettings(qIndex, 'button_url', e.target.value)}
+                      placeholder="Deixe vazio para ir à próxima etapa"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9 font-mono"
+                    />
+                  </div>
+                </div>
+                {q.settings?.button_url && (
+                  <label className="flex items-center gap-2 text-xs text-zinc-400">
+                    <input
+                      type="checkbox"
+                      checked={q.settings?.button_open_new_tab ?? false}
+                      onChange={(e) => updateSettings(qIndex, 'button_open_new_tab', e.target.checked)}
+                      className="rounded border-zinc-700 bg-zinc-950"
+                    />
+                    Abrir em nova aba
+                  </label>
+                )}
+              </div>
+            )}
+
+            {/* Spacer — pure layout gap, no visible content */}
+            {q.type === 'spacer' && (
+              <div className="space-y-1.5 pt-1">
+                <Label className="text-zinc-400 text-xs">Altura (px)</Label>
+                <Input
+                  type="number" min={4} max={200}
+                  value={q.settings?.duration_seconds ?? 24}
+                  onChange={(e) => updateSettings(qIndex, 'duration_seconds', Number(e.target.value))}
+                  className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9 w-32"
+                />
+                <p className="text-[11px] text-zinc-500">
+                  Este bloco não avança automaticamente — normalmente é combinado com outro bloco de conteúdo antes/depois. Considere usar um Interstício se precisar de um botão "Continuar".
+                </p>
+              </div>
+            )}
+
+            {/* Chart — simple bar chart to display a statistic */}
+            {q.type === 'chart' && (
+              <div className="space-y-3 pt-1">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Texto de Apoio (opcional)</Label>
+                    <Input
+                      value={q.settings?.body || ''}
+                      onChange={(e) => updateSettings(qIndex, 'body', e.target.value)}
+                      placeholder="Ex: Baseado em 12.000 respostas"
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Unidade</Label>
+                    <Input
+                      value={q.settings?.chart_unit || ''}
+                      onChange={(e) => updateSettings(qIndex, 'chart_unit', e.target.value)}
+                      placeholder="%"
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs h-9"
+                    />
+                  </div>
+                </div>
+                <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">Barras</Label>
+                <div className="space-y-2">
+                  {(q.settings?.chart_bars || []).map((bar, barIdx) => (
+                    <div key={barIdx} className="grid grid-cols-[1fr_100px_auto] gap-2 items-center">
+                      <Input value={bar.label}
+                        onChange={(e) => updateChartBar(qIndex, barIdx, 'label', e.target.value)}
+                        placeholder="Ex: Pessoas como você"
+                        className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9" />
+                      <Input type="number" value={bar.value}
+                        onChange={(e) => updateChartBar(qIndex, barIdx, 'value', e.target.value)}
+                        className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 text-center" />
+                      <Button type="button" variant="ghost" size="icon"
+                        disabled={(q.settings?.chart_bars?.length ?? 0) <= 1}
+                        onClick={() => removeChartBar(qIndex, barIdx)}
+                        className="h-8 w-8 text-zinc-500 hover:text-red-400 shrink-0">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" size="sm"
+                  onClick={() => addChartBar(qIndex)}
+                  className="border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-800 text-xs">
+                  <Plus className="h-3.5 w-3.5 mr-1 text-indigo-400" />
+                  Adicionar Barra
+                </Button>
+              </div>
+            )}
+
+            {/* Quadrant — cartesian X/Y plot to position the user in a profile */}
+            {q.type === 'quadrant' && (
+              <div className="space-y-3 pt-1">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Rótulo do Eixo X</Label>
+                    <Input
+                      value={q.settings?.quadrant_x_label || ''}
+                      onChange={(e) => updateSettings(qIndex, 'quadrant_x_label', e.target.value)}
+                      placeholder="Ex: Introvertido → Extrovertido"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Rótulo do Eixo Y</Label>
+                    <Input
+                      value={q.settings?.quadrant_y_label || ''}
+                      onChange={(e) => updateSettings(qIndex, 'quadrant_y_label', e.target.value)}
+                      placeholder="Ex: Reativo → Estratégico"
+                      className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                    />
+                  </div>
+                </div>
+                <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">Pontos no Plano</Label>
+                <div className="space-y-2">
+                  {(q.settings?.quadrant_points || []).map((point, pointIdx) => (
+                    <div key={pointIdx} className="grid grid-cols-[1fr_70px_70px_auto_auto] gap-2 items-center">
+                      <Input value={point.label}
+                        onChange={(e) => updateQuadrantPoint(qIndex, pointIdx, 'label', e.target.value)}
+                        placeholder="Ex: Você"
+                        className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9" />
+                      <Input type="number" min={0} max={100} value={point.x}
+                        onChange={(e) => updateQuadrantPoint(qIndex, pointIdx, 'x', Number(e.target.value))}
+                        title="Posição X (0-100)"
+                        className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 text-center" />
+                      <Input type="number" min={0} max={100} value={point.y}
+                        onChange={(e) => updateQuadrantPoint(qIndex, pointIdx, 'y', Number(e.target.value))}
+                        title="Posição Y (0-100)"
+                        className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 text-center" />
+                      <label className="flex items-center justify-center" title="Destacar este ponto">
+                        <input
+                          type="checkbox"
+                          checked={point.highlighted ?? false}
+                          onChange={(e) => updateQuadrantPoint(qIndex, pointIdx, 'highlighted', e.target.checked)}
+                          className="rounded border-zinc-700 bg-zinc-950"
+                        />
+                      </label>
+                      <Button type="button" variant="ghost" size="icon"
+                        disabled={(q.settings?.quadrant_points?.length ?? 0) <= 1}
+                        onClick={() => removeQuadrantPoint(qIndex, pointIdx)}
+                        className="h-8 w-8 text-zinc-500 hover:text-red-400 shrink-0">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" size="sm"
+                  onClick={() => addQuadrantPoint(qIndex)}
+                  className="border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-800 text-xs">
+                  <Plus className="h-3.5 w-3.5 mr-1 text-indigo-400" />
+                  Adicionar Ponto
+                </Button>
+                <p className="text-[11px] text-zinc-500">
+                  Posições vão de 0 a 100 nos dois eixos. Marque a caixa para destacar o ponto que representa o usuário atual.
+                </p>
+              </div>
+            )}
+
+            {/* Audio — embedded audio player */}
+            {q.type === 'audio' && (
+              <div className="space-y-3 pt-1">
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-400 text-xs">URL do Áudio (mp3)</Label>
+                  <Input
+                    value={q.settings?.audio_url || ''}
+                    onChange={(e) => updateSettings(qIndex, 'audio_url', e.target.value)}
+                    placeholder="https://..."
+                    className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9 font-mono"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-zinc-400 text-xs">Texto de Apoio (opcional)</Label>
+                  <Textarea
+                    value={q.settings?.body || ''}
+                    onChange={(e) => updateSettings(qIndex, 'body', e.target.value)}
+                    placeholder="Ex: Ouça o recado da nossa especialista sobre o seu resultado."
+                    className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-16"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* ─── Branching Rules Panel ─── */}
             {(q.type === 'multiple_choice' || q.type === 'image_choice') && questions.length > 1 && (
               <div className="border-t border-zinc-800/60 pt-4 mt-2 space-y-3">
@@ -866,6 +1340,54 @@ export function QuestionsTab({
             className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
             <Calculator className="h-4 w-4 text-lime-400" />
             Cálculo Numérico
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('alert')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-400" />
+            Alerta
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('testimonial')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <Quote className="h-4 w-4 text-fuchsia-400" />
+            Depoimento
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('social_proof')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <BellRing className="h-4 w-4 text-sky-400" />
+            Notificação
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('button')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <MousePointerClick className="h-4 w-4 text-indigo-300" />
+            Botão
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('spacer')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <MoveVertical className="h-4 w-4 text-zinc-400" />
+            Espaço
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('chart')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <BarChart3 className="h-4 w-4 text-emerald-400" />
+            Gráfico
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('quadrant')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <Move className="h-4 w-4 text-cyan-300" />
+            Cartesiano
+          </Button>
+          <Button type="button" variant="outline"
+            onClick={() => addQuestion('audio')}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
+            <Music className="h-4 w-4 text-purple-400" />
+            Áudio
           </Button>
         </div>
       </div>
