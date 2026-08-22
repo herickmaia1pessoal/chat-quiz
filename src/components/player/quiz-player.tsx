@@ -1,0 +1,588 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Script from 'next/script'
+import {
+  ArrowRight,
+  CheckCircle2,
+  Lock,
+  ChevronRight,
+  ShieldCheck,
+  Loader2,
+  ArrowLeft,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { submitQuizResponse } from '@/app/q/[id]/actions'
+import { trackQuizView, trackQuizDropoff } from '@/app/q/[id]/tracking-actions'
+import { ProcessingScreen } from '@/components/player/processing-screen'
+import { ScoredResultScreen } from '@/components/player/scored-result-screen'
+import { ImageChoiceStep } from '@/components/player/image-choice-step'
+import { LikertStep } from '@/components/player/likert-step'
+import { ContentInterstitial } from '@/components/player/content-interstitial'
+import { ComparisonStep } from '@/components/player/comparison-step'
+
+interface BranchingRule {
+  option_id: string
+  go_to_order: number
+}
+
+interface Option {
+  id: string
+  text: string
+  order_num: number
+  image_url?: string
+}
+
+interface ComparisonRow {
+  label: string
+  left_text: string
+  right_text: string
+}
+
+interface QuestionSettings {
+  body?: string
+  testimonial_text?: string
+  testimonial_author?: string
+  cta_label?: string
+  left_label?: string
+  right_label?: string
+  rows?: ComparisonRow[]
+}
+
+interface Question {
+  id: string
+  title: string
+  description?: string
+  type: string
+  order_num: number
+  options?: Option[]
+  branching_rules?: BranchingRule[]
+  settings?: QuestionSettings
+}
+
+// content/comparison blocks are narrative, not questions — they don't get
+// answered or scored, so they're excluded from the "Pergunta X de Y" count
+// and from drop-off/progress math the same way the lead-capture gate is.
+const isContentBlock = (type: string) => type === 'content' || type === 'comparison'
+
+export function QuizPlayer({
+  quiz,
+  questions,
+}: {
+  quiz: any
+  questions: Question[]
+}) {
+  const searchParams = useSearchParams()
+  const viewTracked = useRef(false)
+
+  const utms = {
+    utm_source: searchParams.get('utm_source') || undefined,
+    utm_medium: searchParams.get('utm_medium') || undefined,
+    utm_campaign: searchParams.get('utm_campaign') || undefined,
+    utm_content: searchParams.get('utm_content') || undefined,
+    utm_term: searchParams.get('utm_term') || undefined,
+  }
+
+  // Navigation history stack for "back" support
+  const [history, setHistory] = useState<number[]>([0])
+  const currentStepIndex = history[history.length - 1]
+
+  const [answers, setAnswers] = useState<{
+    [qId: string]: { optionId?: string; optionText?: string; textValue?: string }
+  }>({})
+  const [leadName, setLeadName] = useState('')
+  const [leadPhone, setLeadPhone] = useState('')
+  const [leadEmail, setLeadEmail] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCompleted, setIsCompleted] = useState(false)
+  const [redirectingUrl, setRedirectingUrl] = useState<string | null>(null)
+
+  // When the quiz has scoring enabled and produced a level, the flow is:
+  // lead capture submit → fake "processing" sequence → ruler result screen
+  // → then the normal completed/thank-you screen. Quizzes without scoring
+  // configured skip straight to `isCompleted`, unchanged from before.
+  const [showProcessing, setShowProcessing] = useState(false)
+  const [scoredResult, setScoredResult] = useState<{
+    score: number
+    levelName: string
+    levelDescription: string | null
+    levelColor: string
+    allLevels: Array<{ name: string; minScore: number; maxScore: number; color: string }>
+  } | null>(null)
+  const [showScoredResult, setShowScoredResult] = useState(false)
+
+  // Total steps = questions + 1 (lead capture gate)
+  const totalSteps = questions.length + 1
+  const isLeadCaptureStep = currentStepIndex === questions.length
+  const progressPercentage = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
+  const currentQuestion = questions[currentStepIndex]
+
+  // Declared before the effects that call it — `const` functions are not
+  // usable prior to their declaration line (temporal dead zone), and this
+  // one used to sit after the mount effect that calls it, throwing a
+  // ReferenceError on every load of the public quiz page.
+  const triggerPixelEvent = (eventName: string, params?: Record<string, any>) => {
+    // Meta Pixel
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      if (eventName.startsWith('Custom:')) {
+        ;(window as any).fbq('trackCustom', eventName.replace('Custom:', ''), params)
+      } else {
+        ;(window as any).fbq('track', eventName, params)
+      }
+    }
+    // GA4
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      const ga4EventMap: Record<string, string> = {
+        'PageView': 'page_view',
+        'Lead': 'generate_lead',
+        'Custom:QuizStart': 'quiz_start',
+      }
+      const ga4Event = ga4EventMap[eventName]
+      if (ga4Event) {
+        ;(window as any).gtag('event', ga4Event, params)
+      }
+    }
+  }
+
+  // Track view once on mount
+  useEffect(() => {
+    if (!viewTracked.current) {
+      viewTracked.current = true
+      trackQuizView(quiz.id, {
+        utm_source: utms.utm_source,
+        utm_medium: utms.utm_medium,
+        utm_campaign: utms.utm_campaign,
+      })
+      triggerPixelEvent('Custom:QuizStart', { quiz_title: quiz.title })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Track drop-off when leaving the page mid-quiz
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!isCompleted && currentQuestion) {
+        trackQuizDropoff(quiz.id, currentQuestion.id, currentQuestion.order_num)
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isCompleted, currentQuestion, quiz.id])
+
+  // Determine next question index with branching logic
+  const getNextIndex = (question: Question, selectedOptionId?: string): number => {
+    const rules = question.branching_rules || []
+    if (selectedOptionId && rules.length > 0) {
+      const matchingRule = rules.find((r) => r.option_id === selectedOptionId)
+      if (matchingRule) {
+        const targetIndex = questions.findIndex((q) => q.order_num === matchingRule.go_to_order)
+        if (targetIndex !== -1) return targetIndex
+      }
+    }
+    // No rule → go to next in sequence
+    return currentStepIndex + 1
+  }
+
+  const goBack = () => {
+    if (history.length > 1) {
+      setHistory((prev) => prev.slice(0, -1))
+    }
+  }
+
+  const handleSelectOption = (option: Option) => {
+    if (!currentQuestion) return
+
+    setAnswers({
+      ...answers,
+      [currentQuestion.id]: { optionId: option.id, optionText: option.text },
+    })
+
+    setTimeout(() => {
+      const nextIndex = getNextIndex(currentQuestion, option.id)
+      setHistory((prev) => [...prev, nextIndex])
+    }, 200)
+  }
+
+  const handleTextAnswer = (text: string) => {
+    if (!currentQuestion) return
+    setAnswers({ ...answers, [currentQuestion.id]: { textValue: text } })
+  }
+
+  const handleNext = () => {
+    if (!currentQuestion) return
+    const nextIndex = getNextIndex(currentQuestion)
+    setHistory((prev) => [...prev, nextIndex])
+  }
+
+  const formatPhone = (val: string) => {
+    const raw = val.replace(/\D/g, '')
+    if (raw.length <= 10) {
+      return raw.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').trim()
+    }
+    return raw.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').trim()
+  }
+
+  const handleSubmitLead = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!leadName.trim() || !leadPhone.trim()) return
+
+    setIsSubmitting(true)
+    try {
+      triggerPixelEvent('Lead', { content_name: quiz.title, status: 'completed' })
+
+      const formattedAnswers = questions.map((q) => ({
+        questionId: q.id,
+        questionTitle: q.title,
+        optionId: answers[q.id]?.optionId,
+        optionText: answers[q.id]?.optionText,
+        textValue: answers[q.id]?.textValue,
+      }))
+
+      const result = await submitQuizResponse({
+        quizId: quiz.id,
+        name: leadName,
+        phone: leadPhone,
+        email: leadEmail,
+        utms,
+        answers: formattedAnswers,
+      })
+
+      if (result.result) {
+        // Scored quiz: stash the redirect for after the result is shown
+        // (rather than firing it immediately) so the visitor actually sees
+        // the ruler they just answered questions for.
+        setScoredResult(result.result)
+        if (result.redirectUrl) setRedirectingUrl(result.redirectUrl)
+        setShowProcessing(true)
+      } else {
+        setIsCompleted(true)
+        if (result.redirectUrl) {
+          setRedirectingUrl(result.redirectUrl)
+          setTimeout(() => {
+            window.location.href = result.redirectUrl!
+          }, 1800)
+        }
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Erro ao enviar dados. Tente novamente.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleProcessingComplete = () => {
+    setShowProcessing(false)
+    setShowScoredResult(true)
+  }
+
+  const handleFinishFromResult = () => {
+    if (redirectingUrl) {
+      window.location.href = redirectingUrl
+    } else {
+      setShowScoredResult(false)
+      setIsCompleted(true)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between relative selection:bg-indigo-500 selection:text-white">
+      {/* Meta Pixel Script */}
+      {quiz.meta_pixel_id && (
+        <Script id="meta-pixel" strategy="afterInteractive">
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '${quiz.meta_pixel_id}');
+            fbq('track', 'PageView');
+          `}
+        </Script>
+      )}
+
+      {/* GA4 Script Injection */}
+      {quiz.ga4_measurement_id && (
+        <>
+          <Script
+            id="ga4-script"
+            strategy="afterInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=${quiz.ga4_measurement_id}`}
+          />
+          <Script id="ga4-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${quiz.ga4_measurement_id}', { send_page_view: true });
+            `}
+          </Script>
+        </>
+      )}
+
+      {/* Background Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-72 bg-gradient-to-b from-indigo-600/15 via-transparent to-transparent pointer-events-none blur-3xl" />
+
+      {/* Top Header & Progress — hidden once the scored-result sequence starts,
+          since "back" and "% through the questions" no longer apply */}
+      {!showProcessing && !showScoredResult && (
+        <header className="w-full max-w-xl mx-auto px-6 pt-6 z-10">
+          <div className="flex items-center justify-between text-xs text-zinc-400 mb-2.5 font-medium">
+            <div className="flex items-center gap-2">
+              {history.length > 1 && !isCompleted && (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="text-zinc-500 hover:text-zinc-200 transition"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </button>
+              )}
+              <span className="truncate max-w-[200px]">{quiz.title}</span>
+            </div>
+            <span className="font-mono text-indigo-400">{progressPercentage}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+            <div
+              className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500 rounded-full"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+        </header>
+      )}
+
+      {/* Main Stage */}
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 z-10 w-full max-w-xl mx-auto">
+        {showProcessing ? (
+          <ProcessingScreen
+            messages={quiz.loading_messages || []}
+            onComplete={handleProcessingComplete}
+          />
+        ) : showScoredResult && scoredResult ? (
+          <div className="w-full space-y-4">
+            <ScoredResultScreen result={scoredResult} />
+            <Button
+              onClick={handleFinishFromResult}
+              className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold gap-2"
+            >
+              Continuar <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : isCompleted ? (
+          /* COMPLETED SCREEN */
+          <div className="w-full text-center space-y-6 animate-in fade-in zoom-in-95 duration-500 py-10">
+            <div className="h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/10">
+              <CheckCircle2 className="h-8 w-8" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                Avaliação Concluída!
+              </h2>
+              <p className="text-zinc-400 text-sm max-w-sm mx-auto">
+                Obrigado, <span className="text-zinc-200 font-semibold">{leadName}</span>! Suas respostas foram computadas.
+              </p>
+            </div>
+            {redirectingUrl ? (
+              <div className="flex items-center justify-center gap-2 text-xs text-indigo-400 pt-4 animate-pulse">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Redirecionando para o seu resultado...
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl max-w-md mx-auto text-left space-y-2">
+                <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Próximo Passo:</p>
+                <p className="text-sm text-zinc-300">
+                  Nossa equipe entrará em contato pelo WhatsApp informado ({leadPhone}).
+                </p>
+              </div>
+            )}
+          </div>
+        ) : isLeadCaptureStep ? (
+          /* LEAD CAPTURE GATE */
+          <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="space-y-2 text-center">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
+                <Lock className="h-3.5 w-3.5" /> Quase pronto!
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                Onde devemos enviar seu resultado personalizado?
+              </h2>
+              <p className="text-zinc-400 text-xs sm:text-sm">
+                Informe seus dados para liberar a sua avaliação imediatamente.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmitLead} className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="leadName" className="text-zinc-300 text-xs">Seu Nome Completo</Label>
+                <Input
+                  id="leadName"
+                  value={leadName}
+                  onChange={(e) => setLeadName(e.target.value)}
+                  placeholder="Ex: João da Silva"
+                  className="h-11 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="leadPhone" className="text-zinc-300 text-xs">WhatsApp com DDD</Label>
+                <Input
+                  id="leadPhone"
+                  value={leadPhone}
+                  onChange={(e) => setLeadPhone(formatPhone(e.target.value))}
+                  placeholder="(11) 99999-9999"
+                  maxLength={15}
+                  className="h-11 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 font-mono"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="leadEmail" className="text-zinc-300 text-xs">E-mail (opcional)</Label>
+                <Input
+                  id="leadEmail"
+                  type="email"
+                  value={leadEmail}
+                  onChange={(e) => setLeadEmail(e.target.value)}
+                  placeholder="joao@gmail.com"
+                  className="h-11 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500"
+                />
+              </div>
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full h-12 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold shadow-lg shadow-indigo-500/25 transition gap-2"
+                >
+                  {isSubmitting ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Calculando seu resultado...</>
+                  ) : (
+                    <>Ver Meu Resultado Agora <ArrowRight className="h-4 w-4" /></>
+                  )}
+                </Button>
+              </div>
+              <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 pt-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Seus dados estão protegidos. Não enviamos spam.</span>
+              </div>
+            </form>
+          </div>
+        ) : (
+          /* QUESTION STEP */
+          <div
+            key={currentStepIndex}
+            className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6 animate-in fade-in slide-in-from-right-4 duration-300"
+          >
+            <div className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
+                Pergunta {history.length} de {questions.length}
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                {currentQuestion.title}
+              </h2>
+              {currentQuestion.description && (
+                <p className="text-zinc-400 text-xs sm:text-sm">{currentQuestion.description}</p>
+              )}
+            </div>
+
+            {/* Multiple Choice */}
+            {currentQuestion.type === 'multiple_choice' && (
+              <div className="space-y-3 pt-2">
+                {currentQuestion.options?.map((opt, optIdx) => {
+                  const isSelected = answers[currentQuestion.id]?.optionId === opt.id
+                  return (
+                    <button
+                      key={opt.id || optIdx}
+                      type="button"
+                      onClick={() => handleSelectOption(opt)}
+                      className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
+                        isSelected
+                          ? 'border-indigo-500 bg-indigo-600/15 text-white shadow-md shadow-indigo-500/10'
+                          : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/80'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`h-7 w-7 rounded-lg text-xs font-semibold flex items-center justify-center transition ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-200'
+                        }`}>
+                          {String.fromCharCode(65 + optIdx)}
+                        </span>
+                        <span className="text-sm font-medium">{opt.text}</span>
+                      </div>
+                      <ChevronRight className={`h-4 w-4 transition ${isSelected ? 'text-indigo-400 translate-x-1' : 'text-zinc-600 group-hover:text-zinc-400'}`} />
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Text Input */}
+            {currentQuestion.type === 'text' && (
+              <div className="space-y-4 pt-2">
+                <Input
+                  value={answers[currentQuestion.id]?.textValue || ''}
+                  onChange={(e) => handleTextAnswer(e.target.value)}
+                  placeholder="Digite sua resposta aqui..."
+                  className="h-12 border-zinc-700 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-600"
+                />
+                <Button
+                  onClick={handleNext}
+                  disabled={!answers[currentQuestion.id]?.textValue?.trim()}
+                  className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
+                >
+                  Continuar <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Scale 1-5 */}
+            {currentQuestion.type === 'scale' && (
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 3, 4, 5].map((num) => {
+                    const isSelected = answers[currentQuestion.id]?.textValue === String(num)
+                    return (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => {
+                          handleTextAnswer(String(num))
+                          setTimeout(() => handleNext(), 200)
+                        }}
+                        className={`h-14 rounded-xl border font-bold text-lg transition flex items-center justify-center ${
+                          isSelected
+                            ? 'border-indigo-500 bg-indigo-600 text-white'
+                            : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className="flex justify-between text-[11px] text-zinc-500 px-1 font-medium">
+                  <span>1 (Muito Baixo)</span>
+                  <span>5 (Muito Alto)</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Footer — White-label aware */}
+      {quiz.show_branding !== false && (
+        <footer className="w-full py-4 text-center text-zinc-600 text-[11px] z-10">
+          Criado com <span className="text-zinc-400 font-semibold">QuizFlow</span>
+        </footer>
+      )}
+    </div>
+  )
+}
