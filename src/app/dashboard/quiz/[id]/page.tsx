@@ -129,6 +129,59 @@ export default async function QuizBuilderPage({
     count: d.count,
   }))
 
+  // Origem (UTM source) breakdown — counted from quiz_views, same source as
+  // the top-of-funnel "Visualizações" number, grouped in JS following the
+  // same small-scale pattern as dropoffMap above rather than a SQL GROUP BY.
+  const { data: rawViews } = await supabase
+    .from('quiz_views')
+    .select('utm_source, device')
+    .eq('quiz_id', id)
+
+  const utmMap: Record<string, number> = {}
+  const deviceMap: Record<string, number> = {}
+  ;(rawViews || []).forEach((v) => {
+    const source = v.utm_source || 'Direto / Desconhecido'
+    utmMap[source] = (utmMap[source] || 0) + 1
+    if (v.device) deviceMap[v.device] = (deviceMap[v.device] || 0) + 1
+  })
+  const utmBreakdown = Object.entries(utmMap)
+    .map(([source, count]) => ({ source, count }))
+    .sort((a, b) => b.count - a.count)
+  const deviceBreakdown = Object.entries(deviceMap)
+    .map(([device, count]) => ({ device, count }))
+    .sort((a, b) => b.count - a.count)
+
+  // Respostas por pergunta — for every answerable block, how many times
+  // each of its options was picked. Joined through answers→question_options
+  // rather than a raw count so image_choice/likert/multiple_choice all read
+  // the same way; free-text blocks (text/numeric_calc) have no options to
+  // group by and are skipped here — their volume is already visible via
+  // dropoffByQuestion/leads.
+  const optionBlockIds = questions.filter((q) => (q.options?.length ?? 0) > 0).map((q) => q.id)
+  const { data: rawAnswers } = optionBlockIds.length > 0
+    ? await supabase
+        .from('answers')
+        .select('question_id, option_id, option:question_options(text)')
+        .in('question_id', optionBlockIds)
+    : { data: [] as Array<{ question_id: string; option_id: string | null; option: { text: string } | null }> }
+
+  const answersByQuestion: Record<string, Record<string, number>> = {}
+  ;(rawAnswers || []).forEach((a) => {
+    const optionText = (a as any).option?.text
+    if (!a.question_id || !optionText) return
+    if (!answersByQuestion[a.question_id]) answersByQuestion[a.question_id] = {}
+    answersByQuestion[a.question_id][optionText] = (answersByQuestion[a.question_id][optionText] || 0) + 1
+  })
+
+  const responsesByQuestion = questions
+    .filter((q) => answersByQuestion[q.id])
+    .map((q) => ({
+      question_title: q.title,
+      options: Object.entries(answersByQuestion[q.id])
+        .map(([option_text, count]) => ({ option_text, count }))
+        .sort((a, b) => b.count - a.count),
+    }))
+
   // Scored-result levels (the "ruler"), only relevant when configured
   const { data: resultLevels } = await supabase
     .from('quiz_result_levels')
@@ -230,6 +283,9 @@ export default async function QuizBuilderPage({
             completions={completionCount ?? 0}
             leads={completionCount ?? 0}
             dropoffByQuestion={dropoffByQuestion}
+            utmBreakdown={utmBreakdown}
+            deviceBreakdown={deviceBreakdown}
+            responsesByQuestion={responsesByQuestion}
           />
         </TabsContent>
 

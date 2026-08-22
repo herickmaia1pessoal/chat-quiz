@@ -6,13 +6,14 @@ export async function trackQuizView(quizId: string, utms: {
   utm_source?: string
   utm_medium?: string
   utm_campaign?: string
-}) {
+}, device?: 'mobile' | 'tablet' | 'desktop') {
   const supabase = await createClient()
   await supabase.from('quiz_views').insert({
     quiz_id: quizId,
     utm_source: utms.utm_source || null,
     utm_medium: utms.utm_medium || null,
     utm_campaign: utms.utm_campaign || null,
+    device: device || null,
   })
 }
 

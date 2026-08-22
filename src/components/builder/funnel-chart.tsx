@@ -1,11 +1,31 @@
 'use client'
 
-import { Users, Eye, Play, CheckCircle2, TrendingDown, ArrowDownRight } from 'lucide-react'
+import { Users, Eye, Play, CheckCircle2, TrendingDown, ArrowDownRight, Globe2, Smartphone, Tablet, Monitor, ListChecks } from 'lucide-react'
 
 interface DropoffData {
   question_order: number
   question_title: string
   count: number
+}
+
+interface UtmData {
+  source: string
+  count: number
+}
+
+interface DeviceData {
+  device: string
+  count: number
+}
+
+interface ResponseOption {
+  option_text: string
+  count: number
+}
+
+interface QuestionResponses {
+  question_title: string
+  options: ResponseOption[]
 }
 
 interface FunnelProps {
@@ -14,9 +34,27 @@ interface FunnelProps {
   completions: number
   leads: number
   dropoffByQuestion: DropoffData[]
+  utmBreakdown?: UtmData[]
+  deviceBreakdown?: DeviceData[]
+  responsesByQuestion?: QuestionResponses[]
 }
 
-export function FunnelChart({ views, starts, completions, leads, dropoffByQuestion }: FunnelProps) {
+const DEVICE_ICONS: Record<string, typeof Smartphone> = {
+  mobile: Smartphone,
+  tablet: Tablet,
+  desktop: Monitor,
+}
+
+const DEVICE_LABELS: Record<string, string> = {
+  mobile: 'Celular',
+  tablet: 'Tablet',
+  desktop: 'Desktop',
+}
+
+export function FunnelChart({
+  views, starts, completions, leads, dropoffByQuestion,
+  utmBreakdown = [], deviceBreakdown = [], responsesByQuestion = [],
+}: FunnelProps) {
   const max = Math.max(views, 1)
 
   const stages = [
@@ -158,6 +196,112 @@ export function FunnelChart({ views, starts, completions, leads, dropoffByQuesti
           <p className="text-sm text-zinc-500">
             Dados de drop-off aparecerão aqui assim que o quiz receber os primeiros visitantes.
           </p>
+        </div>
+      )}
+
+      {/* Origens (UTM) e Dispositivos, lado a lado */}
+      {(utmBreakdown.length > 0 || deviceBreakdown.length > 0) && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {utmBreakdown.length > 0 && (
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-3">
+              <div className="flex items-center gap-2">
+                <Globe2 className="h-4 w-4 text-indigo-400" />
+                <h3 className="text-base font-semibold text-zinc-200">Origens (UTM)</h3>
+              </div>
+              <div className="space-y-2.5">
+                {(() => {
+                  const maxUtm = Math.max(...utmBreakdown.map((u) => u.count), 1)
+                  return utmBreakdown.map((u) => (
+                    <div key={u.source} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-300 truncate max-w-[70%]">{u.source}</span>
+                        <span className="font-bold text-zinc-200 tabular-nums">{u.count}</span>
+                      </div>
+                      <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-all duration-500"
+                          style={{ width: `${Math.max(Math.round((u.count / maxUtm) * 100), 4)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                })()}
+              </div>
+            </div>
+          )}
+
+          {deviceBreakdown.length > 0 && (
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-3">
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-cyan-400" />
+                <h3 className="text-base font-semibold text-zinc-200">Dispositivos</h3>
+              </div>
+              <div className="space-y-2.5">
+                {(() => {
+                  const maxDevice = Math.max(...deviceBreakdown.map((d) => d.count), 1)
+                  return deviceBreakdown.map((d) => {
+                    const Icon = DEVICE_ICONS[d.device] || Monitor
+                    return (
+                      <div key={d.device} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-300 flex items-center gap-1.5">
+                            <Icon className="h-3.5 w-3.5 text-zinc-500" />
+                            {DEVICE_LABELS[d.device] || d.device}
+                          </span>
+                          <span className="font-bold text-zinc-200 tabular-nums">{d.count}</span>
+                        </div>
+                        <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all duration-500"
+                            style={{ width: `${Math.max(Math.round((d.count / maxDevice) * 100), 4)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Respostas por Pergunta */}
+      {responsesByQuestion.length > 0 && (
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-4">
+          <div className="flex items-center gap-2">
+            <ListChecks className="h-4 w-4 text-emerald-400" />
+            <h3 className="text-base font-semibold text-zinc-200">Respostas por Pergunta</h3>
+          </div>
+          <div className="space-y-5">
+            {responsesByQuestion.map((q) => {
+              const totalAnswers = q.options.reduce((sum, o) => sum + o.count, 0)
+              return (
+                <div key={q.question_title} className="space-y-2">
+                  <p className="text-xs font-semibold text-zinc-300">{q.question_title}</p>
+                  <div className="space-y-1.5">
+                    {q.options.map((opt) => {
+                      const pct = totalAnswers > 0 ? Math.round((opt.count / totalAnswers) * 100) : 0
+                      return (
+                        <div key={opt.option_text} className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-zinc-400 truncate max-w-[70%]">{opt.option_text}</span>
+                            <span className="text-zinc-500 tabular-nums">{opt.count} ({pct}%)</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500"
+                              style={{ width: `${Math.max(pct, 2)}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

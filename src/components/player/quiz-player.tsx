@@ -281,11 +281,15 @@ export function QuizPlayer({
   useEffect(() => {
     if (!viewTracked.current) {
       viewTracked.current = true
+      // Screen-width heuristic, not full user-agent sniffing — just enough
+      // to bucket views for the Analytics "Dispositivos" breakdown.
+      const width = typeof window !== 'undefined' ? window.innerWidth : 0
+      const device: 'mobile' | 'tablet' | 'desktop' = width < 640 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'
       trackQuizView(quiz.id, {
         utm_source: utms.utm_source,
         utm_medium: utms.utm_medium,
         utm_campaign: utms.utm_campaign,
-      })
+      }, device)
       triggerPixelEvent('Custom:QuizStart', { quiz_title: quiz.title })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
