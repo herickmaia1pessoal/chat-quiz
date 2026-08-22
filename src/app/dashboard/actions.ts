@@ -253,6 +253,25 @@ export async function duplicateQuiz(quizId: string) {
   return newQuiz
 }
 
+export async function deleteQuiz(quizId: string) {
+  const supabase = await createClient()
+
+  // RLS already scopes deletes to quizzes in workspaces the caller belongs
+  // to, but an explicit not-found/denied check gives a clearer error than a
+  // silent no-op delete would (Supabase doesn't error when RLS filters a
+  // delete down to zero matched rows).
+  const { data, error } = await supabase
+    .from('quizzes')
+    .delete()
+    .eq('id', quizId)
+    .select('id')
+
+  if (error) throw new Error(error.message)
+  if (!data || data.length === 0) throw new Error('Quiz não encontrado ou sem permissão para excluir.')
+
+  revalidatePath('/dashboard')
+}
+
 export async function saveResultLevels(quizId: string, levels: Array<{
   id?: string
   name: string

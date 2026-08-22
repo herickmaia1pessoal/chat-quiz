@@ -66,10 +66,22 @@ export async function submitQuizResponse(payload: SubmitPayload) {
     resultLevel = allLevels.find((l) => totalScore! >= l.min_score && totalScore! <= l.max_score) || null
   }
 
-  // 3. Insert Lead session
-  const { data: leadResponse, error: leadError } = await supabase
+  // 3. Insert Lead session — the id is generated here rather than read back
+  // via .select()/RETURNING. In Postgres, INSERT ... RETURNING re-checks the
+  // table's SELECT policies on the new row before handing it back, and the
+  // only SELECT policy on leads_responses requires workspace membership —
+  // something an anonymous quiz visitor never has. That combination made
+  // every public submission fail with "new row violates row-level security
+  // policy" even though the INSERT itself was correctly permitted. Supplying
+  // our own id sidesteps the RETURNING requirement entirely, so we don't
+  // have to widen SELECT access (and leak every quiz's leads) to fix it.
+  const leadId = crypto.randomUUID()
+  const completedAt = new Date().toISOString()
+
+  const { error: leadError } = await supabase
     .from('leads_responses')
     .insert({
+      id: leadId,
       quiz_id: payload.quizId,
       name: payload.name,
       phone: payload.phone,
@@ -80,14 +92,12 @@ export async function submitQuizResponse(payload: SubmitPayload) {
       utm_content: payload.utms.utm_content || null,
       utm_term: payload.utms.utm_term || null,
       status: 'completed',
-      completed_at: new Date().toISOString(),
+      completed_at: completedAt,
       total_score: totalScore,
       result_level_id: resultLevel?.id || null,
     })
-    .select()
-    .single()
 
-  if (leadError || !leadResponse) {
+  if (leadError) {
     console.error('Error saving lead:', leadError)
     throw new Error('Falha ao registrar lead.')
   }
@@ -95,7 +105,7 @@ export async function submitQuizResponse(payload: SubmitPayload) {
   // 4. Insert individual answers
   if (payload.answers.length > 0) {
     const answersToInsert = payload.answers.map((ans) => ({
-      response_id: leadResponse.id,
+      response_id: leadId,
       question_id: ans.questionId,
       option_id: ans.optionId || null,
       text_value: ans.optionText || ans.textValue || null,
@@ -112,11 +122,11 @@ export async function submitQuizResponse(payload: SubmitPayload) {
         quiz_id: payload.quizId,
         quiz_title: quiz.title,
         lead: {
-          id: leadResponse.id,
+          id: leadId,
           name: payload.name,
           phone: payload.phone,
           email: payload.email || null,
-          created_at: leadResponse.created_at,
+          created_at: completedAt,
         },
         utms: payload.utms,
         answers: payload.answers.map((a) => ({

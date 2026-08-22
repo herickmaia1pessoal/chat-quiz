@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { CreateQuizDialog } from '@/components/dashboard/create-quiz-dialog'
 import { TemplatesDialog } from '@/components/dashboard/templates-dialog'
 import { DuplicateQuizButton } from '@/components/dashboard/duplicate-quiz-button'
+import { DeleteQuizButton } from '@/components/dashboard/delete-quiz-button'
 import { QuizStatusBadge } from '@/components/quiz-status-badge'
 
 export default async function DashboardPage({
@@ -204,6 +205,7 @@ export default async function DashboardPage({
                       </Link>
                     )}
                     <DuplicateQuizButton quizId={quiz.id} />
+                    <DeleteQuizButton quizId={quiz.id} quizTitle={quiz.title} />
                   </div>
                 </div>
               )

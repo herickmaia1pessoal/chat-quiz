@@ -45,6 +45,8 @@ export async function createQuizFromTemplate(workspaceId: string, templateId: st
     options?: Array<{ text: string; order_num: number; score_value?: number; image_url?: string }>
   }>
 
+  const failedQuestions: string[] = []
+
   for (const q of templateQuestions) {
     const { data: createdQ, error: qInsertError } = await supabase
       .from('questions')
@@ -64,7 +66,18 @@ export async function createQuizFromTemplate(workspaceId: string, templateId: st
       .select()
       .single()
 
-    if (qInsertError || !createdQ) continue
+    // Previously this failure was swallowed silently (`continue` with no
+    // record kept) — a template using a block type the DB's CHECK
+    // constraint didn't accept yet (e.g. 'timer'/'numeric_calc' before
+    // their migration ran) would insert zero questions and hand back a
+    // seemingly successful, but completely empty, quiz. The player then
+    // has no questions to show and jumps straight to lead capture with no
+    // indication anything went wrong.
+    if (qInsertError || !createdQ) {
+      console.error(`Failed to insert template question "${q.title}" (type: ${q.type}):`, qInsertError)
+      failedQuestions.push(`${q.title} (${q.type})`)
+      continue
+    }
 
     if (q.options && q.options.length > 0) {
       await supabase.from('question_options').insert(
@@ -77,6 +90,13 @@ export async function createQuizFromTemplate(workspaceId: string, templateId: st
         }))
       )
     }
+  }
+
+  if (failedQuestions.length > 0) {
+    throw new Error(
+      `O quiz foi criado, mas ${failedQuestions.length} pergunta(s) do template não puderam ser adicionadas: ${failedQuestions.join(', ')}. ` +
+      `Isso costuma acontecer quando uma migração do banco ainda não foi aplicada. Delete o quiz "${quiz.title}" e tente novamente após aplicar as migrações pendentes.`
+    )
   }
 
   revalidatePath('/dashboard')
