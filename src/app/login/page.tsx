@@ -13,52 +13,87 @@ export default async function LoginPage({
   const { error } = await searchParams
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 p-4">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-zinc-950"></div>
-      <Card className="z-10 w-full max-w-md border-zinc-800 bg-zinc-900/50 backdrop-blur-xl">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight text-zinc-100">
-            Acessar Plataforma
-          </CardTitle>
-          <CardDescription className="text-zinc-400">
-            Entre com seu email para acessar seus quizzes
-          </CardDescription>
-        </CardHeader>
-        {error && (
-          <div className="mx-4 mb-2 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{error}</span>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 p-4">
+      {/* Background Orbs */}
+      <div className="absolute left-1/2 top-1/2 -z-10 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/20 blur-[120px]"></div>
+      <div className="absolute left-1/4 top-1/4 -z-10 h-[400px] w-[400px] rounded-full bg-blue-500/10 blur-[100px]"></div>
+
+      <div className="z-10 w-full max-w-md">
+        {/* Logo/Brand Area */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/25">
+            <svg 
+              className="h-7 w-7 text-white" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor" 
+              strokeWidth="2.5"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
           </div>
-        )}
-        <form>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-300">Email</Label>
-              <Input 
-                id="email" 
-                name="email" 
-                type="email" 
-                placeholder="nome@empresa.com" 
-                required 
-                className="border-zinc-800 bg-zinc-950/50 text-zinc-100 placeholder:text-zinc-600"
-              />
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">
+            QuizFlow
+          </h1>
+          <p className="mt-2 text-sm text-zinc-400">
+            Acesse seu painel para gerenciar seus quizzes
+          </p>
+        </div>
+
+        {/* Login Card */}
+        <Card className="border border-white/10 bg-zinc-900/60 shadow-2xl shadow-black/40 backdrop-blur-xl sm:rounded-3xl">
+          <CardHeader className="pb-4 pt-8 text-center">
+            <CardTitle className="text-xl font-semibold text-zinc-100">
+              Bem-vindo de volta
+            </CardTitle>
+          </CardHeader>
+
+          {error && (
+            <div className="mx-6 mb-2 flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-400" />
+              <span>{error}</span>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-300">Senha</Label>
-              <Input 
-                id="password" 
-                name="password" 
-                type="password" 
-                required 
-                className="border-zinc-800 bg-zinc-950/50 text-zinc-100"
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <LoginButtons loginAction={login} signupAction={signup} />
-          </CardFooter>
-        </form>
-      </Card>
+          )}
+
+          <form>
+            <CardContent className="space-y-5 px-6 pb-6">
+              <div className="space-y-2.5">
+                <Label htmlFor="email" className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                  Email
+                </Label>
+                <Input 
+                  id="email" 
+                  name="email" 
+                  type="email" 
+                  placeholder="nome@empresa.com" 
+                  required 
+                  className="h-11 rounded-xl border-zinc-800 bg-zinc-950/50 px-4 text-sm text-zinc-100 transition-colors hover:bg-zinc-950/80 focus:border-indigo-500/50 focus:bg-zinc-950/80 focus:ring-1 focus:ring-indigo-500/50 placeholder:text-zinc-600"
+                />
+              </div>
+              <div className="space-y-2.5">
+                <Label htmlFor="password" className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                  Senha
+                </Label>
+                <Input 
+                  id="password" 
+                  name="password" 
+                  type="password" 
+                  required 
+                  className="h-11 rounded-xl border-zinc-800 bg-zinc-950/50 px-4 text-sm text-zinc-100 transition-colors hover:bg-zinc-950/80 focus:border-indigo-500/50 focus:bg-zinc-950/80 focus:ring-1 focus:ring-indigo-500/50"
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3 px-6 pb-8">
+              <LoginButtons loginAction={login} signupAction={signup} />
+            </CardFooter>
+          </form>
+        </Card>
+        
+        {/* Footer Link */}
+        <p className="mt-8 text-center text-xs text-zinc-500">
+          Problemas para acessar? <a href="#" className="text-indigo-400 hover:text-indigo-300 hover:underline">Fale com o suporte</a>
+        </p>
+      </div>
     </div>
   )
 }
