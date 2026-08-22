@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { Plus, Sparkles, Copy, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,14 +16,27 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { createQuiz } from '@/app/dashboard/actions'
+import { createQuiz, duplicateQuiz } from '@/app/dashboard/actions'
 
-export function CreateQuizDialog({ workspaceId }: { workspaceId: string }) {
+interface ExistingQuiz {
+  id: string
+  title: string
+}
+
+export function CreateQuizDialog({
+  workspaceId,
+  existingQuizzes = [],
+}: {
+  workspaceId: string
+  existingQuizzes?: ExistingQuiz[]
+}) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<'scratch' | 'clone'>('scratch')
   const [loading, setLoading] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [cloneSourceId, setCloneSourceId] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -32,16 +45,29 @@ export function CreateQuizDialog({ workspaceId }: { workspaceId: string }) {
       setError(null)
       setTitle('')
       setDescription('')
+      setMode('scratch')
+      setCloneSourceId('')
     }
   }
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim() || !workspaceId) return
-
     setLoading(true)
     setError(null)
     try {
+      if (mode === 'clone') {
+        if (!cloneSourceId) {
+          setError('Escolha um quiz para clonar.')
+          setLoading(false)
+          return
+        }
+        const copy = await duplicateQuiz(cloneSourceId)
+        setOpen(false)
+        router.push(`/dashboard/quiz/${copy.id}`)
+        return
+      }
+
+      if (!title.trim() || !workspaceId) return
       const formData = new FormData()
       formData.append('workspace_id', workspaceId)
       formData.append('title', title)
@@ -54,7 +80,7 @@ export function CreateQuizDialog({ workspaceId }: { workspaceId: string }) {
       router.push(`/dashboard/quiz/${quiz.id}`)
     } catch (err) {
       console.error(err)
-      setError('Erro ao criar quiz. Tente novamente.')
+      setError(mode === 'clone' ? 'Erro ao clonar quiz. Tente novamente.' : 'Erro ao criar quiz. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -75,38 +101,92 @@ export function CreateQuizDialog({ workspaceId }: { workspaceId: string }) {
           <DialogHeader>
             <DialogTitle>Criar Novo Quiz</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Configure as informações básicas do seu quiz interativo de alta conversão.
+              Comece do zero ou clone um quiz já existente como ponto de partida.
             </DialogDescription>
           </DialogHeader>
+
           <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="quizTitle" className="text-zinc-300">
-                Título do Quiz
-              </Label>
-              <Input
-                id="quizTitle"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Descubra o tratamento ideal para sua pele"
-                className="border-zinc-700 bg-zinc-950 text-zinc-100"
-                required
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quizDesc" className="text-zinc-300">
-                Descrição ou Objetivo (opcional)
-              </Label>
-              <Textarea
-                id="quizDesc"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Ex: Funil focado em campanha de Meta Ads com foco em CPL reduzido."
-                className="border-zinc-700 bg-zinc-950 text-zinc-100 resize-none h-20"
-              />
-            </div>
+            {/* Mode toggle — only shown when there's actually something to clone */}
+            {existingQuizzes.length > 0 && (
+              <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-950/60 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setMode('scratch')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition ${
+                    mode === 'scratch' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> Do zero
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('clone')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition ${
+                    mode === 'clone' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <Copy className="h-3.5 w-3.5" /> Clonar existente
+                </button>
+              </div>
+            )}
+
+            {mode === 'scratch' ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="quizTitle" className="text-zinc-300">
+                    Título do Quiz
+                  </Label>
+                  <Input
+                    id="quizTitle"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Ex: Descubra o tratamento ideal para sua pele"
+                    className="border-zinc-700 bg-zinc-950 text-zinc-100"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="quizDesc" className="text-zinc-300">
+                    Descrição ou Objetivo (opcional)
+                  </Label>
+                  <Textarea
+                    id="quizDesc"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Ex: Funil focado em campanha de Meta Ads com foco em CPL reduzido."
+                    className="border-zinc-700 bg-zinc-950 text-zinc-100 resize-none h-20"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Escolha o quiz para clonar</Label>
+                <div className="max-h-64 overflow-y-auto space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-950/40 p-1.5">
+                  {existingQuizzes.map((q) => (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => setCloneSourceId(q.id)}
+                      className={`w-full text-left px-3 py-2 rounded-md text-sm transition ${
+                        cloneSourceId === q.id
+                          ? 'bg-indigo-600/15 border border-indigo-500/30 text-white'
+                          : 'border border-transparent text-zinc-300 hover:bg-zinc-800/60'
+                      }`}
+                    >
+                      {q.title}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-zinc-500">
+                  Cria uma cópia completa (etapas, blocos, ramificação e níveis de resultado) como rascunho novo.
+                </p>
+              </div>
+            )}
+
             {error && <p className="text-xs text-red-400">{error}</p>}
           </div>
+
           <DialogFooter>
             <Button
               type="button"
@@ -116,8 +196,9 @@ export function CreateQuizDialog({ workspaceId }: { workspaceId: string }) {
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-              {loading ? 'Criando...' : 'Continuar para o Builder'}
+            <Button type="submit" disabled={loading || (mode === 'clone' && !cloneSourceId)} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
+              {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {loading ? (mode === 'clone' ? 'Clonando...' : 'Criando...') : 'Continuar para o Builder'}
             </Button>
           </DialogFooter>
         </form>

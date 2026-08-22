@@ -93,7 +93,12 @@ export default async function DashboardPage({
             <TemplatesDialog workspaceId={activeWsId} templates={templates} />
           )}
           {activeWsId && <ImportQuizButton workspaceId={activeWsId} />}
-          {activeWsId && <CreateQuizDialog workspaceId={activeWsId} />}
+          {activeWsId && (
+            <CreateQuizDialog
+              workspaceId={activeWsId}
+              existingQuizzes={(quizzes || []).map((q: any) => ({ id: q.id, title: q.title }))}
+            />
+          )}
         </div>
       </div>
 

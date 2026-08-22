@@ -368,6 +368,7 @@ export function QuestionsTab({
   const [propertiesTab, setPropertiesTab] = useState<'component' | 'style' | 'display'>('component')
   const [viewMode, setViewMode] = useState<'design' | 'flow'>('design')
   const [showPreview, setShowPreview] = useState(false)
+  const [confirmingStepDelete, setConfirmingStepDelete] = useState(false)
 
   // Dirty-state tracking: a snapshot of `steps` taken right after the last
   // successful load/save. Comparing the current `steps` against it via
@@ -380,6 +381,7 @@ export function QuestionsTab({
   const selectStep = (stepIdx: number) => {
     setSelectedStepIndex(stepIdx)
     setSelectedBlockIndex(0)
+    setConfirmingStepDelete(false)
   }
 
   const selectedStep = steps[selectedStepIndex] as Step | undefined
@@ -971,13 +973,44 @@ export function QuestionsTab({
                       className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs mt-1.5"
                     />
                   </div>
-                  <Button type="button" variant="outline" size="sm"
-                    onClick={() => duplicateStep(selectedStepIndex)}
-                    title="Duplicar esta etapa"
-                    className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 gap-1.5 shrink-0 mt-4">
-                    <Copy className="h-3.5 w-3.5 text-indigo-400" />
-                    Duplicar Etapa
-                  </Button>
+                  <div className="flex items-center gap-1.5 shrink-0 mt-4">
+                    <Button type="button" variant="outline" size="sm"
+                      onClick={() => duplicateStep(selectedStepIndex)}
+                      title="Duplicar esta etapa"
+                      className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 gap-1.5">
+                      <Copy className="h-3.5 w-3.5 text-indigo-400" />
+                      Duplicar Etapa
+                    </Button>
+                    {confirmingStepDelete ? (
+                      <>
+                        <Button type="button" size="sm"
+                          disabled={steps.length <= 1}
+                          onClick={() => {
+                            const next = steps.filter((_, i) => i !== selectedStepIndex)
+                            setSteps(next)
+                            setConfirmingStepDelete(false)
+                            selectStep(Math.min(selectedStepIndex, next.length - 1))
+                          }}
+                          title={steps.length <= 1 ? 'O quiz precisa ter ao menos uma etapa' : 'Confirmar exclusão'}
+                          className="bg-red-600 hover:bg-red-700 text-white gap-1.5 disabled:opacity-50">
+                          <Check className="h-3.5 w-3.5" />
+                          Confirmar
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm"
+                          onClick={() => setConfirmingStepDelete(false)}
+                          className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800">
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button type="button" variant="outline" size="sm"
+                        onClick={() => setConfirmingStepDelete(true)}
+                        title="Excluir esta etapa"
+                        className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400 gap-1.5">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
