@@ -3,6 +3,7 @@
 interface Option {
   id: string
   text: string
+  order_num?: number
   image_url?: string
 }
 

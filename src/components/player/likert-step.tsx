@@ -3,6 +3,7 @@
 interface Option {
   id: string
   text: string
+  order_num?: number
 }
 
 // Five-point agreement scale (Concordo totalmente → Discordo totalmente).

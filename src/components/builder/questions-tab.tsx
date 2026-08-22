@@ -575,7 +575,7 @@ export function QuestionsTab({
             )}
 
             {/* ─── Branching Rules Panel ─── */}
-            {q.type === 'multiple_choice' && questions.length > 1 && (
+            {(q.type === 'multiple_choice' || q.type === 'image_choice') && questions.length > 1 && (
               <div className="border-t border-zinc-800/60 pt-4 mt-2 space-y-3">
                 <button
                   type="button"

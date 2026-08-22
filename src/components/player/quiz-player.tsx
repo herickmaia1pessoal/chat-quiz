@@ -32,7 +32,7 @@ interface BranchingRule {
 interface Option {
   id: string
   text: string
-  order_num: number
+  order_num?: number
   image_url?: string
 }
 
@@ -119,6 +119,14 @@ export function QuizPlayer({
   const isLeadCaptureStep = currentStepIndex === questions.length
   const progressPercentage = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
   const currentQuestion = questions[currentStepIndex]
+
+  // Content/comparison blocks aren't "questions" the visitor answers — count
+  // only actual answerable questions up to and including the current step so
+  // "Pergunta X de Y" doesn't include narrative interstitials in either number.
+  const answerableQuestions = questions.filter((q) => !isContentBlock(q.type))
+  const answerableIndex = questions
+    .slice(0, currentStepIndex + 1)
+    .filter((q) => !isContentBlock(q.type)).length
 
   // Declared before the effects that call it — `const` functions are not
   // usable prior to their declaration line (temporal dead zone), and this
@@ -472,6 +480,29 @@ export function QuizPlayer({
               </div>
             </form>
           </div>
+        ) : currentQuestion.type === 'content' ? (
+          /* CONTENT INTERSTITIAL — narrative screen, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <ContentInterstitial
+              title={currentQuestion.title}
+              body={currentQuestion.settings?.body}
+              testimonialText={currentQuestion.settings?.testimonial_text}
+              testimonialAuthor={currentQuestion.settings?.testimonial_author}
+              ctaLabel={currentQuestion.settings?.cta_label}
+              onContinue={handleNext}
+            />
+          </div>
+        ) : currentQuestion.type === 'comparison' ? (
+          /* COMPARISON — two-column before/after table, not a question */
+          <div key={currentStepIndex} className="w-full">
+            <ComparisonStep
+              title={currentQuestion.title}
+              leftLabel={currentQuestion.settings?.left_label || 'Antes'}
+              rightLabel={currentQuestion.settings?.right_label || 'Depois'}
+              rows={currentQuestion.settings?.rows || []}
+              onContinue={handleNext}
+            />
+          </div>
         ) : (
           /* QUESTION STEP */
           <div
@@ -480,7 +511,7 @@ export function QuizPlayer({
           >
             <div className="space-y-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
-                Pergunta {history.length} de {questions.length}
+                Pergunta {answerableIndex} de {answerableQuestions.length}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
                 {currentQuestion.title}
@@ -521,6 +552,24 @@ export function QuizPlayer({
                   )
                 })}
               </div>
+            )}
+
+            {/* Image Choice */}
+            {currentQuestion.type === 'image_choice' && (
+              <ImageChoiceStep
+                options={currentQuestion.options || []}
+                selectedOptionId={answers[currentQuestion.id]?.optionId}
+                onSelect={handleSelectOption}
+              />
+            )}
+
+            {/* Likert Agreement Scale */}
+            {currentQuestion.type === 'likert' && (
+              <LikertStep
+                options={currentQuestion.options || []}
+                selectedOptionId={answers[currentQuestion.id]?.optionId}
+                onSelect={handleSelectOption}
+              />
             )}
 
             {/* Text Input */}
