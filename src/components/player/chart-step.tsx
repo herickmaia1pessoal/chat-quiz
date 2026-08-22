@@ -19,6 +19,7 @@ export function ChartStep({
   unit = '',
   onContinue,
   accentColor,
+  barStyle = 'gradient',
 }: {
   title: string
   body?: string
@@ -26,8 +27,10 @@ export function ChartStep({
   unit?: string
   onContinue: () => void
   accentColor?: string
+  barStyle?: 'gradient' | 'solid'
 }) {
   const maxValue = Math.max(1, ...bars.map((b) => b.value))
+  const isSolid = barStyle === 'solid' || !!accentColor
 
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -49,8 +52,8 @@ export function ChartStep({
               </div>
               <div className="h-2.5 w-full rounded-full bg-zinc-950 border border-zinc-800 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-700"
-                  style={{ width: `${widthPct}%`, ...(accentColor ? { background: accentColor } : {}) }}
+                  className={`h-full rounded-full transition-all duration-700 ${isSolid ? '' : 'bg-gradient-to-r from-indigo-500 to-cyan-400'}`}
+                  style={{ width: `${widthPct}%`, ...(isSolid ? { background: accentColor || '#6366f1' } : {}) }}
                 />
               </div>
             </div>

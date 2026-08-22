@@ -14,10 +14,12 @@ export function SocialProofToast({
   name,
   action,
   timeLabel,
+  position = 'bottom-left',
 }: {
   name?: string
   action?: string
   timeLabel?: string
+  position?: 'bottom-left' | 'bottom-right'
 }) {
   const [visible, setVisible] = useState(false)
 
@@ -32,9 +34,13 @@ export function SocialProofToast({
 
   if (!name && !action) return null
 
+  const sideClasses = position === 'bottom-right'
+    ? 'bottom-5 left-1/2 -translate-x-1/2 sm:left-auto sm:right-5 sm:translate-x-0'
+    : 'bottom-5 left-1/2 -translate-x-1/2 sm:left-5 sm:translate-x-0'
+
   return (
     <div
-      className={`fixed bottom-5 left-1/2 -translate-x-1/2 sm:left-5 sm:translate-x-0 z-50 transition-all duration-500 ${
+      className={`fixed ${sideClasses} z-50 transition-all duration-500 ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'
       }`}
     >

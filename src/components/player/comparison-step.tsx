@@ -23,6 +23,8 @@ export function ComparisonStep({
   rows,
   onContinue,
   accentColor,
+  leftColor,
+  rightColor,
 }: {
   title: string
   leftLabel: string
@@ -30,6 +32,8 @@ export function ComparisonStep({
   rows: ComparisonRow[]
   onContinue: () => void
   accentColor?: string
+  leftColor?: string
+  rightColor?: string
 }) {
   const [calculating, setCalculating] = useState(true)
 
@@ -44,8 +48,8 @@ export function ComparisonStep({
 
       <div className="rounded-2xl border border-zinc-800 overflow-hidden">
         <div className="grid grid-cols-2 text-center text-xs font-semibold py-2.5">
-          <div className="text-red-400 bg-red-500/5 border-r border-zinc-800">{leftLabel}</div>
-          <div className="text-emerald-400 bg-emerald-500/5">{rightLabel}</div>
+          <div className="text-red-400 bg-red-500/5 border-r border-zinc-800" style={leftColor ? { color: leftColor, backgroundColor: `${leftColor}0d` } : undefined}>{leftLabel}</div>
+          <div className="text-emerald-400 bg-emerald-500/5" style={rightColor ? { color: rightColor, backgroundColor: `${rightColor}0d` } : undefined}>{rightLabel}</div>
         </div>
         <div className="divide-y divide-zinc-800">
           {rows.map((row, i) => (
@@ -54,10 +58,10 @@ export function ComparisonStep({
                 {row.label}
               </p>
               <div className="grid grid-cols-2 text-sm">
-                <div className="px-3 pb-2.5 pt-1 text-red-300/90 border-r border-zinc-800 text-center">
+                <div className="px-3 pb-2.5 pt-1 text-red-300/90 border-r border-zinc-800 text-center" style={leftColor ? { color: leftColor } : undefined}>
                   {row.left_text}
                 </div>
-                <div className="px-3 pb-2.5 pt-1 text-emerald-300/90 text-center">
+                <div className="px-3 pb-2.5 pt-1 text-emerald-300/90 text-center" style={rightColor ? { color: rightColor } : undefined}>
                   {row.right_text}
                 </div>
               </div>

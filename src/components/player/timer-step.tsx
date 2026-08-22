@@ -17,6 +17,7 @@ export function TimerStep({
   ctaLabel,
   onContinue,
   accentColor,
+  urgencyColor,
 }: {
   title: string
   body?: string
@@ -24,6 +25,7 @@ export function TimerStep({
   ctaLabel?: string
   onContinue: () => void
   accentColor?: string
+  urgencyColor?: string
 }) {
   const [remaining, setRemaining] = useState(durationSeconds)
 
@@ -38,14 +40,18 @@ export function TimerStep({
   const minutes = Math.floor(remaining / 60)
   const seconds = remaining % 60
   const isUrgent = remaining <= 60
+  const urgentStyle = isUrgent && urgencyColor ? { color: urgencyColor } : undefined
 
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300 text-center">
-      <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-        isUrgent
-          ? 'bg-red-500/10 border-red-500/20 text-red-400'
-          : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-      }`}>
+      <div
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+          isUrgent
+            ? 'bg-red-500/10 border-red-500/20 text-red-400'
+            : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+        }`}
+        style={urgentStyle}
+      >
         <Flame className="h-3.5 w-3.5" /> Oferta por tempo limitado
       </div>
 
@@ -57,6 +63,7 @@ export function TimerStep({
         className={`font-mono text-4xl sm:text-5xl font-bold tabular-nums tracking-tight ${
           isUrgent ? 'text-red-400' : 'text-white'
         }`}
+        style={urgentStyle}
       >
         {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
       </div>

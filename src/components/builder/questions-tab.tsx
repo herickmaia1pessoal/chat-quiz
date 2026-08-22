@@ -113,9 +113,20 @@ interface QuestionSettings {
   quadrant_points?: QuadrantPoint[]
   // audio block
   audio_url?: string
-  // ─── Style tab — shared by every block type ───
+  // ─── Style tab — common base, present for every block type ───
   style_accent_color?: string
   style_text_align?: 'left' | 'center' | 'right'
+  // ─── Style tab — per-type extras (only relevant to their own type) ───
+  style_options_layout?: 'list' | 'grid' // multiple_choice, likert
+  style_image_shape?: 'square' | 'circle' // image_choice
+  style_card_style?: 'flat' | 'quote' // content, testimonial
+  style_left_color?: string // comparison
+  style_right_color?: string // comparison
+  style_urgency_color?: string // timer
+  style_toast_position?: 'bottom-left' | 'bottom-right' // social_proof
+  style_button_style?: 'solid' | 'outline' // button
+  style_bar_style?: 'gradient' | 'solid' // chart
+  style_show_grid?: boolean // quadrant
   // ─── Display tab — shared by every block type ───
   // When set, this block only renders in the player if the referenced
   // block's answer matches. null/undefined = always shown.
@@ -980,6 +991,11 @@ export function QuestionsTab({
                 </div>
 
                 {propertiesTab === 'style' ? (
+                  q.type === 'spacer' ? (
+                    <p className="text-xs text-zinc-500">
+                      Este bloco não tem elementos visuais para estilizar além da altura, já configurada na aba Componente.
+                    </p>
+                  ) : (
                   <div className="space-y-4">
                     <div className="space-y-1.5">
                       <Label className="text-zinc-300 text-xs">Cor de Destaque</Label>
@@ -1037,7 +1053,261 @@ export function QuestionsTab({
                         })}
                       </div>
                     </div>
+
+                    {/* ─── Per-type style extras — only shown for the block
+                         types they're actually relevant to ─── */}
+
+                    {(q.type === 'multiple_choice' || q.type === 'likert') && (
+                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
+                        <Label className="text-zinc-300 text-xs">Layout das Opções</Label>
+                        <div className="flex items-center gap-1.5">
+                          {([
+                            { value: 'list' as const, label: 'Lista' },
+                            { value: 'grid' as const, label: 'Grade' },
+                          ]).map(({ value, label }) => {
+                            const isActive = (q.settings?.style_options_layout || 'list') === value
+                            return (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => updateSettings(blockIdx, 'style_options_layout', value)}
+                                className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
+                                  isActive
+                                    ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
+                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                        <p className="text-[11px] text-zinc-500">
+                          Grade organiza as opções em 2 colunas — útil quando os textos são curtos.
+                        </p>
+                      </div>
+                    )}
+
+                    {q.type === 'image_choice' && (
+                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
+                        <Label className="text-zinc-300 text-xs">Formato da Imagem</Label>
+                        <div className="flex items-center gap-1.5">
+                          {([
+                            { value: 'square' as const, label: 'Quadrado' },
+                            { value: 'circle' as const, label: 'Círculo' },
+                          ]).map(({ value, label }) => {
+                            const isActive = (q.settings?.style_image_shape || 'square') === value
+                            return (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => updateSettings(blockIdx, 'style_image_shape', value)}
+                                className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
+                                  isActive
+                                    ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
+                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {(q.type === 'content' || q.type === 'testimonial') && (
+                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
+                        <Label className="text-zinc-300 text-xs">Estilo do Card</Label>
+                        <div className="flex items-center gap-1.5">
+                          {([
+                            { value: 'quote' as const, label: 'Com aspas' },
+                            { value: 'flat' as const, label: 'Simples' },
+                          ]).map(({ value, label }) => {
+                            const isActive = (q.settings?.style_card_style || 'quote') === value
+                            return (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => updateSettings(blockIdx, 'style_card_style', value)}
+                                className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
+                                  isActive
+                                    ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
+                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {q.type === 'comparison' && (
+                      <div className="space-y-3 border-t border-zinc-800/60 pt-4">
+                        <Label className="text-zinc-300 text-xs">Cores das Colunas</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-zinc-500 text-[11px]">Esquerda</Label>
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="color"
+                                value={q.settings?.style_left_color || '#f87171'}
+                                onChange={(e) => updateSettings(blockIdx, 'style_left_color', e.target.value)}
+                                className="h-8 w-9 rounded-lg border border-zinc-700 bg-zinc-950 cursor-pointer shrink-0"
+                              />
+                              <Input
+                                value={q.settings?.style_left_color || ''}
+                                onChange={(e) => updateSettings(blockIdx, 'style_left_color', e.target.value)}
+                                placeholder="#f87171"
+                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8 font-mono"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-zinc-500 text-[11px]">Direita</Label>
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="color"
+                                value={q.settings?.style_right_color || '#34d399'}
+                                onChange={(e) => updateSettings(blockIdx, 'style_right_color', e.target.value)}
+                                className="h-8 w-9 rounded-lg border border-zinc-700 bg-zinc-950 cursor-pointer shrink-0"
+                              />
+                              <Input
+                                value={q.settings?.style_right_color || ''}
+                                onChange={(e) => updateSettings(blockIdx, 'style_right_color', e.target.value)}
+                                placeholder="#34d399"
+                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8 font-mono"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-zinc-500">
+                          Por padrão é vermelho/verde (risco vs. solução) — troque se o seu comparativo não for esse tipo de contraste.
+                        </p>
+                      </div>
+                    )}
+
+                    {q.type === 'timer' && (
+                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
+                        <Label className="text-zinc-300 text-xs">Cor de Urgência (últimos 60s)</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={q.settings?.style_urgency_color || '#f87171'}
+                            onChange={(e) => updateSettings(blockIdx, 'style_urgency_color', e.target.value)}
+                            className="h-9 w-11 rounded-lg border border-zinc-700 bg-zinc-950 cursor-pointer shrink-0"
+                          />
+                          <Input
+                            value={q.settings?.style_urgency_color || ''}
+                            onChange={(e) => updateSettings(blockIdx, 'style_urgency_color', e.target.value)}
+                            placeholder="#f87171 (vermelho padrão)"
+                            className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 font-mono flex-1"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {q.type === 'social_proof' && (
+                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
+                        <Label className="text-zinc-300 text-xs">Posição do Popup</Label>
+                        <div className="flex items-center gap-1.5">
+                          {([
+                            { value: 'bottom-left' as const, label: 'Inferior esquerda' },
+                            { value: 'bottom-right' as const, label: 'Inferior direita' },
+                          ]).map(({ value, label }) => {
+                            const isActive = (q.settings?.style_toast_position || 'bottom-left') === value
+                            return (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => updateSettings(blockIdx, 'style_toast_position', value)}
+                                className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
+                                  isActive
+                                    ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
+                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {q.type === 'button' && (
+                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
+                        <Label className="text-zinc-300 text-xs">Estilo do Botão</Label>
+                        <div className="flex items-center gap-1.5">
+                          {([
+                            { value: 'solid' as const, label: 'Preenchido' },
+                            { value: 'outline' as const, label: 'Contornado' },
+                          ]).map(({ value, label }) => {
+                            const isActive = (q.settings?.style_button_style || 'solid') === value
+                            return (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => updateSettings(blockIdx, 'style_button_style', value)}
+                                className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
+                                  isActive
+                                    ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
+                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {q.type === 'chart' && (
+                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
+                        <Label className="text-zinc-300 text-xs">Estilo das Barras</Label>
+                        <div className="flex items-center gap-1.5">
+                          {([
+                            { value: 'gradient' as const, label: 'Gradiente' },
+                            { value: 'solid' as const, label: 'Cor sólida' },
+                          ]).map(({ value, label }) => {
+                            const isActive = (q.settings?.style_bar_style || 'gradient') === value
+                            return (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => updateSettings(blockIdx, 'style_bar_style', value)}
+                                className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
+                                  isActive
+                                    ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
+                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {q.type === 'quadrant' && (
+                      <div className="border-t border-zinc-800/60 pt-4">
+                        <label className="flex items-center gap-2 text-xs text-zinc-300">
+                          <input
+                            type="checkbox"
+                            checked={q.settings?.style_show_grid ?? true}
+                            onChange={(e) => updateSettings(blockIdx, 'style_show_grid', e.target.checked)}
+                            className="rounded border-zinc-700 bg-zinc-950"
+                          />
+                          Mostrar linhas de grade no plano
+                        </label>
+                      </div>
+                    )}
                   </div>
+                  )
                 ) : propertiesTab === 'display' ? (() => {
                   const candidates = answerableBlocksBefore(q)
                   const condition = q.settings?.display_condition

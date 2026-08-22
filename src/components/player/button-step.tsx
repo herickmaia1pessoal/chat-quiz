@@ -14,6 +14,7 @@ export function ButtonStep({
   openNewTab,
   onContinue,
   accentColor,
+  buttonStyle = 'solid',
 }: {
   title: string
   body?: string
@@ -22,9 +23,13 @@ export function ButtonStep({
   openNewTab?: boolean
   onContinue: () => void
   accentColor?: string
+  buttonStyle?: 'solid' | 'outline'
 }) {
   const isExternal = !!url
-  const accentStyle = accentColor ? { backgroundColor: accentColor } : undefined
+  const isOutline = buttonStyle === 'outline'
+  const accentStyle = isOutline
+    ? (accentColor ? { backgroundColor: 'transparent', borderColor: accentColor, color: accentColor } : undefined)
+    : (accentColor ? { backgroundColor: accentColor } : undefined)
 
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300 text-center">
@@ -38,7 +43,9 @@ export function ButtonStep({
           target={openNewTab ? '_blank' : undefined}
           rel={openNewTab ? 'noopener noreferrer' : undefined}
           style={accentStyle}
-          className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm transition"
+          className={`w-full h-11 inline-flex items-center justify-center gap-2 rounded-lg font-medium text-sm transition ${
+            isOutline ? 'border-2 border-indigo-500 text-indigo-400 hover:bg-indigo-500/10' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+          }`}
         >
           {ctaLabel || 'Continuar'} <ExternalLink className="h-4 w-4" />
         </a>
@@ -47,7 +54,9 @@ export function ButtonStep({
           type="button"
           onClick={onContinue}
           style={accentStyle}
-          className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
+          className={`w-full h-11 gap-2 font-medium ${
+            isOutline ? 'border-2 border-indigo-500 bg-transparent text-indigo-400 hover:bg-indigo-500/10' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+          }`}
         >
           {ctaLabel || 'Continuar'} <ArrowRight className="h-4 w-4" />
         </Button>

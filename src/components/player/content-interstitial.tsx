@@ -15,6 +15,7 @@ export function ContentInterstitial({
   ctaLabel,
   onContinue,
   accentColor,
+  cardStyle,
 }: {
   title: string
   body?: string
@@ -23,6 +24,7 @@ export function ContentInterstitial({
   ctaLabel?: string
   onContinue: () => void
   accentColor?: string
+  cardStyle?: 'flat' | 'quote'
 }) {
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -34,7 +36,9 @@ export function ContentInterstitial({
 
       {testimonialText && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
-          <Quote className="h-4 w-4 text-indigo-400" style={accentColor ? { color: accentColor } : undefined} />
+          {cardStyle !== 'flat' && (
+            <Quote className="h-4 w-4 text-indigo-400" style={accentColor ? { color: accentColor } : undefined} />
+          )}
           <p className="text-zinc-300 text-sm italic leading-relaxed">{testimonialText}</p>
           {testimonialAuthor && (
             <p className="text-zinc-500 text-xs font-medium">— {testimonialAuthor}</p>

@@ -15,14 +15,16 @@ export function LikertStep({
   selectedOptionId,
   onSelect,
   accentColor,
+  optionsLayout,
 }: {
   options: Option[]
   selectedOptionId?: string
   onSelect: (option: Option) => void
   accentColor?: string
+  optionsLayout?: 'list' | 'grid'
 }) {
   return (
-    <div className="space-y-2 pt-2">
+    <div className={optionsLayout === 'grid' ? 'grid grid-cols-2 gap-2 pt-2' : 'space-y-2 pt-2'}>
       {options.map((opt, idx) => {
         const isSelected = selectedOptionId === opt.id
         // Tint from agreement (emerald) to disagreement (amber) across the

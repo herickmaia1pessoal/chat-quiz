@@ -15,12 +15,16 @@ export function ImageChoiceStep({
   selectedOptionId,
   onSelect,
   accentColor,
+  imageShape,
 }: {
   options: Option[]
   selectedOptionId?: string
   onSelect: (option: Option) => void
   accentColor?: string
+  imageShape?: 'square' | 'circle'
 }) {
+  const isCircle = imageShape === 'circle'
+
   return (
     <div className={`grid gap-3 pt-2 ${options.length <= 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
       {options.map((opt) => {
@@ -37,13 +41,13 @@ export function ImageChoiceStep({
                 : 'border-zinc-800 hover:border-zinc-700'
             }`}
           >
-            <div className="aspect-square bg-zinc-900 overflow-hidden">
+            <div className={`aspect-square bg-zinc-900 overflow-hidden ${isCircle ? 'p-3' : ''}`}>
               {opt.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={opt.image_url}
                   alt={opt.text}
-                  className={`h-full w-full object-cover transition ${isSelected ? '' : 'group-hover:scale-105'}`}
+                  className={`h-full w-full object-cover transition ${isCircle ? 'rounded-full' : ''} ${isSelected ? '' : 'group-hover:scale-105'}`}
                 />
               ) : (
                 <div className="h-full w-full flex items-center justify-center text-zinc-700 text-xs">

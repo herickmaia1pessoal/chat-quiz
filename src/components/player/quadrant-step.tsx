@@ -23,6 +23,7 @@ export function QuadrantStep({
   points,
   onContinue,
   accentColor,
+  showGrid = true,
 }: {
   title: string
   body?: string
@@ -31,6 +32,7 @@ export function QuadrantStep({
   points: QuadrantPoint[]
   onContinue: () => void
   accentColor?: string
+  showGrid?: boolean
 }) {
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -51,12 +53,14 @@ export function QuadrantStep({
         <div className="flex-1 space-y-2">
           <div className="relative aspect-square w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 overflow-hidden">
             {/* Grid lines */}
-            <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-              <div className="border-r border-b border-zinc-800/60" />
-              <div className="border-b border-zinc-800/60" />
-              <div className="border-r border-zinc-800/60" />
-              <div />
-            </div>
+            {showGrid && (
+              <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                <div className="border-r border-b border-zinc-800/60" />
+                <div className="border-b border-zinc-800/60" />
+                <div className="border-r border-zinc-800/60" />
+                <div />
+              </div>
+            )}
 
             {points.map((point, idx) => (
               <div

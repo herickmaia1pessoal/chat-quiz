@@ -96,6 +96,16 @@ interface QuestionSettings {
   audio_url?: string
   style_accent_color?: string
   style_text_align?: 'left' | 'center' | 'right'
+  style_options_layout?: 'list' | 'grid'
+  style_image_shape?: 'square' | 'circle'
+  style_card_style?: 'flat' | 'quote'
+  style_left_color?: string
+  style_right_color?: string
+  style_urgency_color?: string
+  style_toast_position?: 'bottom-left' | 'bottom-right'
+  style_button_style?: 'solid' | 'outline'
+  style_bar_style?: 'gradient' | 'solid'
+  style_show_grid?: boolean
   display_condition?: DisplayCondition | null
 }
 
@@ -635,6 +645,7 @@ export function QuizPlayer({
                     ctaLabel={interpolate(block.settings?.cta_label)}
                     onContinue={() => advance()}
                     accentColor={accentColor}
+                    cardStyle={block.settings?.style_card_style}
                   />
                 ) : block.type === 'comparison' ? (
                   <ComparisonStep
@@ -648,6 +659,8 @@ export function QuizPlayer({
                     }))}
                     onContinue={() => advance()}
                     accentColor={accentColor}
+                    leftColor={block.settings?.style_left_color}
+                    rightColor={block.settings?.style_right_color}
                   />
                 ) : block.type === 'timer' ? (
                   <TimerStep
@@ -657,6 +670,7 @@ export function QuizPlayer({
                     ctaLabel={interpolate(block.settings?.cta_label)}
                     onContinue={() => advance()}
                     accentColor={accentColor}
+                    urgencyColor={block.settings?.style_urgency_color}
                   />
                 ) : block.type === 'alert' ? (
                   <AlertStep
@@ -676,6 +690,7 @@ export function QuizPlayer({
                     avatarUrl={block.settings?.avatar_url}
                     onContinue={() => advance()}
                     accentColor={accentColor}
+                    cardStyle={block.settings?.style_card_style}
                   />
                 ) : block.type === 'social_proof' ? (
                   // Purely decorative — rendered as a floating toast outside
@@ -690,6 +705,7 @@ export function QuizPlayer({
                     openNewTab={block.settings?.button_open_new_tab}
                     onContinue={() => advance()}
                     accentColor={accentColor}
+                    buttonStyle={block.settings?.style_button_style}
                   />
                 ) : block.type === 'spacer' ? (
                   <div style={{ height: block.settings?.duration_seconds || 24 }} aria-hidden="true" />
@@ -704,6 +720,7 @@ export function QuizPlayer({
                     unit={block.settings?.chart_unit}
                     onContinue={() => advance()}
                     accentColor={accentColor}
+                    barStyle={block.settings?.style_bar_style}
                   />
                 ) : block.type === 'quadrant' ? (
                   <QuadrantStep
@@ -717,6 +734,7 @@ export function QuizPlayer({
                     }))}
                     onContinue={() => advance()}
                     accentColor={accentColor}
+                    showGrid={block.settings?.style_show_grid}
                   />
                 ) : block.type === 'audio' ? (
                   <AudioStep
@@ -749,7 +767,7 @@ export function QuizPlayer({
 
                     {/* Multiple Choice */}
                     {block.type === 'multiple_choice' && (
-                      <div className="space-y-3 pt-2">
+                      <div className={block.settings?.style_options_layout === 'grid' ? 'grid grid-cols-2 gap-3 pt-2' : 'space-y-3 pt-2'}>
                         {block.options?.map((opt, optIdx) => {
                           const isSelected = answers[block.id]?.optionId === opt.id
                           return (
@@ -790,6 +808,7 @@ export function QuizPlayer({
                         selectedOptionId={answers[block.id]?.optionId}
                         onSelect={(opt) => handleSelectOption(block, opt)}
                         accentColor={accentColor}
+                        imageShape={block.settings?.style_image_shape}
                       />
                     )}
 
@@ -800,6 +819,7 @@ export function QuizPlayer({
                         selectedOptionId={answers[block.id]?.optionId}
                         onSelect={(opt) => handleSelectOption(block, opt)}
                         accentColor={accentColor}
+                        optionsLayout={block.settings?.style_options_layout}
                       />
                     )}
 
@@ -893,6 +913,7 @@ export function QuizPlayer({
             name={interpolate(b.settings?.notification_name)}
             action={interpolate(b.settings?.notification_action)}
             timeLabel={interpolate(b.settings?.notification_time_label)}
+            position={b.settings?.style_toast_position}
           />
         ))}
 

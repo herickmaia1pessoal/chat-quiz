@@ -15,6 +15,7 @@ export function TestimonialStep({
   avatarUrl,
   onContinue,
   accentColor,
+  cardStyle,
 }: {
   title: string
   text?: string
@@ -24,6 +25,7 @@ export function TestimonialStep({
   avatarUrl?: string
   onContinue: () => void
   accentColor?: string
+  cardStyle?: 'flat' | 'quote'
 }) {
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -41,7 +43,9 @@ export function TestimonialStep({
           </div>
         )}
 
-        <Quote className="h-5 w-5 text-indigo-400" style={accentColor ? { color: accentColor } : undefined} />
+        {cardStyle !== 'flat' && (
+          <Quote className="h-5 w-5 text-indigo-400" style={accentColor ? { color: accentColor } : undefined} />
+        )}
 
         {text && <p className="text-zinc-200 text-sm sm:text-base italic leading-relaxed">{text}</p>}
 
