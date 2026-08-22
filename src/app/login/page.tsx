@@ -67,7 +67,7 @@ export default async function LoginPage({
                   type="email" 
                   placeholder="nome@empresa.com" 
                   required 
-                  className="h-11 rounded-xl border-zinc-800 bg-zinc-950/50 px-4 text-sm text-zinc-100 transition-colors hover:bg-zinc-950/80 focus:border-indigo-500/50 focus:bg-zinc-950/80 focus:ring-1 focus:ring-indigo-500/50 placeholder:text-zinc-600"
+                  className="h-11 rounded-xl border-zinc-800 bg-zinc-950/50 px-4 text-sm text-zinc-100 transition-colors hover:bg-zinc-950/80 focus:border-indigo-500/50 focus:bg-zinc-950/80 focus:ring-1 focus:ring-indigo-500/50 placeholder:text-zinc-600 [&:-webkit-autofill]:shadow-[inset_0_0_0px_1000px_rgb(9,9,11)] [&:-webkit-autofill]:[-webkit-text-fill-color:white]"
                 />
               </div>
               <div className="space-y-2.5">
@@ -79,11 +79,11 @@ export default async function LoginPage({
                   name="password" 
                   type="password" 
                   required 
-                  className="h-11 rounded-xl border-zinc-800 bg-zinc-950/50 px-4 text-sm text-zinc-100 transition-colors hover:bg-zinc-950/80 focus:border-indigo-500/50 focus:bg-zinc-950/80 focus:ring-1 focus:ring-indigo-500/50"
+                  className="h-11 rounded-xl border-zinc-800 bg-zinc-950/50 px-4 text-sm text-zinc-100 transition-colors hover:bg-zinc-950/80 focus:border-indigo-500/50 focus:bg-zinc-950/80 focus:ring-1 focus:ring-indigo-500/50 [&:-webkit-autofill]:shadow-[inset_0_0_0px_1000px_rgb(9,9,11)] [&:-webkit-autofill]:[-webkit-text-fill-color:white]"
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-3 px-6 pb-8">
+            <CardFooter className="flex flex-col gap-3 border-t-0 bg-transparent px-6 pb-8">
               <LoginButtons loginAction={login} signupAction={signup} />
             </CardFooter>
           </form>
