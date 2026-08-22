@@ -14,10 +14,12 @@ export function ImageChoiceStep({
   options,
   selectedOptionId,
   onSelect,
+  accentColor,
 }: {
   options: Option[]
   selectedOptionId?: string
   onSelect: (option: Option) => void
+  accentColor?: string
 }) {
   return (
     <div className={`grid gap-3 pt-2 ${options.length <= 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
@@ -28,6 +30,7 @@ export function ImageChoiceStep({
             key={opt.id}
             type="button"
             onClick={() => onSelect(opt)}
+            style={isSelected && accentColor ? { borderColor: accentColor } : undefined}
             className={`rounded-2xl border overflow-hidden transition-all text-left group ${
               isSelected
                 ? 'border-indigo-500 shadow-md shadow-indigo-500/10'
@@ -48,7 +51,10 @@ export function ImageChoiceStep({
                 </div>
               )}
             </div>
-            <div className={`p-2.5 text-center text-sm font-medium ${isSelected ? 'bg-indigo-600/15 text-white' : 'bg-zinc-950/60 text-zinc-300'}`}>
+            <div
+              style={isSelected && accentColor ? { backgroundColor: `${accentColor}26` } : undefined}
+              className={`p-2.5 text-center text-sm font-medium ${isSelected ? 'bg-indigo-600/15 text-white' : 'bg-zinc-950/60 text-zinc-300'}`}
+            >
               {opt.text}
             </div>
           </button>

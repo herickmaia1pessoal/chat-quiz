@@ -14,6 +14,7 @@ export function ContentInterstitial({
   testimonialAuthor,
   ctaLabel,
   onContinue,
+  accentColor,
 }: {
   title: string
   body?: string
@@ -21,6 +22,7 @@ export function ContentInterstitial({
   testimonialAuthor?: string
   ctaLabel?: string
   onContinue: () => void
+  accentColor?: string
 }) {
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -32,7 +34,7 @@ export function ContentInterstitial({
 
       {testimonialText && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
-          <Quote className="h-4 w-4 text-indigo-400" />
+          <Quote className="h-4 w-4 text-indigo-400" style={accentColor ? { color: accentColor } : undefined} />
           <p className="text-zinc-300 text-sm italic leading-relaxed">{testimonialText}</p>
           {testimonialAuthor && (
             <p className="text-zinc-500 text-xs font-medium">— {testimonialAuthor}</p>
@@ -43,6 +45,7 @@ export function ContentInterstitial({
       <Button
         type="button"
         onClick={onContinue}
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
         className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
       >
         {ctaLabel || 'Continuar'} <ArrowRight className="h-4 w-4" />

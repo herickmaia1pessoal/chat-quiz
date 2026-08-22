@@ -14,10 +14,12 @@ export function LikertStep({
   options,
   selectedOptionId,
   onSelect,
+  accentColor,
 }: {
   options: Option[]
   selectedOptionId?: string
   onSelect: (option: Option) => void
+  accentColor?: string
 }) {
   return (
     <div className="space-y-2 pt-2">
@@ -33,6 +35,7 @@ export function LikertStep({
             key={opt.id}
             type="button"
             onClick={() => onSelect(opt)}
+            style={isSelected && accentColor ? { borderColor: accentColor } : undefined}
             className={`w-full text-left px-4 py-3 rounded-xl border transition-all flex items-center gap-3 ${
               isSelected
                 ? 'border-indigo-500 bg-indigo-600/15 text-white shadow-md shadow-indigo-500/10'

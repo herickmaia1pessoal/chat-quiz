@@ -20,11 +20,13 @@ export function AlertStep({
   body,
   variant = 'warning',
   onContinue,
+  accentColor,
 }: {
   title: string
   body?: string
   variant?: AlertVariant
   onContinue: () => void
+  accentColor?: string
 }) {
   const { icon: Icon, classes, iconColor } = VARIANT_STYLES[variant] || VARIANT_STYLES.warning
 
@@ -41,6 +43,7 @@ export function AlertStep({
       <Button
         type="button"
         onClick={onContinue}
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
         className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
       >
         Continuar <ArrowRight className="h-4 w-4" />

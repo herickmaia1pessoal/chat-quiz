@@ -14,6 +14,7 @@ export function TestimonialStep({
   rating,
   avatarUrl,
   onContinue,
+  accentColor,
 }: {
   title: string
   text?: string
@@ -22,6 +23,7 @@ export function TestimonialStep({
   rating?: number
   avatarUrl?: string
   onContinue: () => void
+  accentColor?: string
 }) {
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -39,7 +41,7 @@ export function TestimonialStep({
           </div>
         )}
 
-        <Quote className="h-5 w-5 text-indigo-400" />
+        <Quote className="h-5 w-5 text-indigo-400" style={accentColor ? { color: accentColor } : undefined} />
 
         {text && <p className="text-zinc-200 text-sm sm:text-base italic leading-relaxed">{text}</p>}
 
@@ -64,6 +66,7 @@ export function TestimonialStep({
       <Button
         type="button"
         onClick={onContinue}
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
         className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
       >
         Continuar <ArrowRight className="h-4 w-4" />

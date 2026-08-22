@@ -13,6 +13,7 @@ export function ButtonStep({
   url,
   openNewTab,
   onContinue,
+  accentColor,
 }: {
   title: string
   body?: string
@@ -20,8 +21,10 @@ export function ButtonStep({
   url?: string
   openNewTab?: boolean
   onContinue: () => void
+  accentColor?: string
 }) {
   const isExternal = !!url
+  const accentStyle = accentColor ? { backgroundColor: accentColor } : undefined
 
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300 text-center">
@@ -34,6 +37,7 @@ export function ButtonStep({
           href={url}
           target={openNewTab ? '_blank' : undefined}
           rel={openNewTab ? 'noopener noreferrer' : undefined}
+          style={accentStyle}
           className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm transition"
         >
           {ctaLabel || 'Continuar'} <ExternalLink className="h-4 w-4" />
@@ -42,6 +46,7 @@ export function ButtonStep({
         <Button
           type="button"
           onClick={onContinue}
+          style={accentStyle}
           className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
         >
           {ctaLabel || 'Continuar'} <ArrowRight className="h-4 w-4" />

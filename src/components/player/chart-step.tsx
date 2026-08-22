@@ -18,12 +18,14 @@ export function ChartStep({
   bars,
   unit = '',
   onContinue,
+  accentColor,
 }: {
   title: string
   body?: string
   bars: ChartBar[]
   unit?: string
   onContinue: () => void
+  accentColor?: string
 }) {
   const maxValue = Math.max(1, ...bars.map((b) => b.value))
 
@@ -41,14 +43,14 @@ export function ChartStep({
             <div key={idx} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-300 font-medium">{bar.label}</span>
-                <span className="text-indigo-400 font-mono font-semibold tabular-nums">
+                <span className="text-indigo-400 font-mono font-semibold tabular-nums" style={accentColor ? { color: accentColor } : undefined}>
                   {bar.value}{unit}
                 </span>
               </div>
               <div className="h-2.5 w-full rounded-full bg-zinc-950 border border-zinc-800 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-700"
-                  style={{ width: `${widthPct}%` }}
+                  style={{ width: `${widthPct}%`, ...(accentColor ? { background: accentColor } : {}) }}
                 />
               </div>
             </div>
@@ -59,6 +61,7 @@ export function ChartStep({
       <Button
         type="button"
         onClick={onContinue}
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
         className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
       >
         Continuar <ArrowRight className="h-4 w-4" />

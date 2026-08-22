@@ -29,6 +29,10 @@ import {
   Music,
   Layers,
   FileStack,
+  AlignCenter,
+  AlignRight,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -109,6 +113,24 @@ interface QuestionSettings {
   quadrant_points?: QuadrantPoint[]
   // audio block
   audio_url?: string
+  // ─── Style tab — shared by every block type ───
+  style_accent_color?: string
+  style_text_align?: 'left' | 'center' | 'right'
+  // ─── Display tab — shared by every block type ───
+  // When set, this block only renders in the player if the referenced
+  // block's answer matches. null/undefined = always shown.
+  display_condition?: DisplayCondition | null
+}
+
+interface DisplayCondition {
+  // References the source block by its answerable position (the same
+  // 1-indexed number shown as {{resposta_N}} throughout the builder) —
+  // not by database id, since a newly-added block has no id until the
+  // next save, which would make the condition impossible to set up
+  // before saving once and reloading.
+  source_position: number
+  operator: 'equals' | 'not_equals'
+  value: string
 }
 
 interface Question {
@@ -343,6 +365,18 @@ export function QuestionsTab({
   const answerablePositionOf = (block: Question) => {
     const globalIdx = allBlocks.indexOf(block)
     return allBlocks.slice(0, globalIdx + 1).filter((b) => !isNarrativeBlock(b.type)).length
+  }
+
+  // Every answerable block that comes *before* the given block in play
+  // order, each tagged with its {{resposta_N}} position — the pool a
+  // display condition can reference. A block can't be conditioned on an
+  // answer that doesn't exist yet by the time it's shown.
+  const answerableBlocksBefore = (block: Question) => {
+    const globalIdx = allBlocks.indexOf(block)
+    return allBlocks
+      .slice(0, globalIdx)
+      .map((b, i) => ({ block: b, position: allBlocks.slice(0, i + 1).filter((x) => !isNarrativeBlock(x.type)).length }))
+      .filter(({ block: b }) => !isNarrativeBlock(b.type))
   }
 
   // ─── Step-level helpers ───
@@ -912,30 +946,22 @@ export function QuestionsTab({
             const answerablePosition = answerablePositionOf(q)
             return (
               <div className="space-y-4 p-5">
-                {/* Properties tabs — only "Componente" is functional today;
-                    Estilo/Exibição are placeholders for a future iteration
-                    (per-block visual overrides and conditional display). */}
+                {/* Properties tabs */}
                 <div className="flex items-center gap-1 border-b border-zinc-800 -mx-5 px-5 pb-3">
                   {(['component', 'style', 'display'] as const).map((tab) => (
                     <button
                       key={tab}
                       type="button"
-                      disabled={tab !== 'component'}
                       onClick={() => setPropertiesTab(tab)}
-                      title={tab !== 'component' ? 'Em breve' : undefined}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
-                        propertiesTab === tab && tab === 'component'
+                        propertiesTab === tab
                           ? 'bg-zinc-800 text-white'
-                          : tab !== 'component'
-                          ? 'text-zinc-600 cursor-not-allowed'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
                     >
                       <span>{tab === 'component' ? 'Componente' : tab === 'style' ? 'Estilo' : 'Exibição'}</span>
-                      {tab !== 'component' && (
-                        <span className="text-[9px] leading-none px-1 py-0.5 rounded bg-zinc-800/80 text-zinc-500">
-                          em breve
-                        </span>
+                      {tab === 'display' && q.settings?.display_condition && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-purple-400" title="Condição ativa" />
                       )}
                     </button>
                   ))}
@@ -953,6 +979,187 @@ export function QuestionsTab({
                   )}
                 </div>
 
+                {propertiesTab === 'style' ? (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-zinc-300 text-xs">Cor de Destaque</Label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={q.settings?.style_accent_color || '#6366f1'}
+                          onChange={(e) => updateSettings(blockIdx, 'style_accent_color', e.target.value)}
+                          className="h-9 w-11 rounded-lg border border-zinc-700 bg-zinc-950 cursor-pointer shrink-0"
+                        />
+                        <Input
+                          value={q.settings?.style_accent_color || ''}
+                          onChange={(e) => updateSettings(blockIdx, 'style_accent_color', e.target.value)}
+                          placeholder="#6366f1 (padrão do tema)"
+                          className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 font-mono flex-1"
+                        />
+                        {q.settings?.style_accent_color && (
+                          <Button type="button" variant="ghost" size="icon"
+                            onClick={() => updateSettings(blockIdx, 'style_accent_color', '')}
+                            title="Voltar para a cor padrão"
+                            className="h-9 w-9 text-zinc-500 hover:text-red-400 shrink-0">
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-zinc-500">
+                        Substitui a cor padrão (índigo) nos elementos de destaque deste bloco — botões, bordas selecionadas, barras.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-zinc-300 text-xs">Alinhamento do Texto</Label>
+                      <div className="flex items-center gap-1.5">
+                        {([
+                          { value: 'left' as const, icon: AlignLeft, label: 'Esquerda' },
+                          { value: 'center' as const, icon: AlignCenter, label: 'Centro' },
+                          { value: 'right' as const, icon: AlignRight, label: 'Direita' },
+                        ]).map(({ value, icon: Icon, label }) => {
+                          const isActive = (q.settings?.style_text_align || 'left') === value
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              title={label}
+                              onClick={() => updateSettings(blockIdx, 'style_text_align', value)}
+                              className={`h-9 w-9 rounded-lg border flex items-center justify-center transition ${
+                                isActive
+                                  ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
+                                  : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                              }`}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : propertiesTab === 'display' ? (() => {
+                  const candidates = answerableBlocksBefore(q)
+                  const condition = q.settings?.display_condition
+                  const sourceBlock = condition ? candidates.find((c) => c.position === condition.source_position)?.block : undefined
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateSettings(blockIdx, 'display_condition', null)}
+                          className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition ${
+                            !condition
+                              ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
+                              : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-zinc-200'
+                          }`}
+                        >
+                          <Eye className="h-3.5 w-3.5" /> Sempre visível
+                        </button>
+                        <button
+                          type="button"
+                          disabled={candidates.length === 0}
+                          onClick={() => {
+                            if (!condition && candidates.length > 0) {
+                              updateSettings(blockIdx, 'display_condition', {
+                                source_position: candidates[0].position,
+                                operator: 'equals',
+                                value: candidates[0].block.options?.[0]?.text || '',
+                              })
+                            }
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                            condition
+                              ? 'border-purple-500 bg-purple-600/15 text-purple-400'
+                              : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-zinc-200'
+                          }`}
+                        >
+                          <EyeOff className="h-3.5 w-3.5" /> Condicional
+                        </button>
+                      </div>
+
+                      {candidates.length === 0 && (
+                        <p className="text-[11px] text-zinc-500">
+                          Não há nenhum bloco respondível antes deste na etapa atual ou em etapas anteriores — a exibição condicional depende de uma resposta já dada.
+                        </p>
+                      )}
+
+                      {condition && candidates.length > 0 && (
+                        <div className="space-y-3 bg-zinc-950/40 rounded-xl border border-zinc-800/60 p-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-zinc-400 text-xs">Mostrar SE a resposta de</Label>
+                            <Select
+                              value={String(condition.source_position)}
+                              onValueChange={(val) => {
+                                const newSource = candidates.find((c) => c.position === Number(val))
+                                updateSettings(blockIdx, 'display_condition', {
+                                  ...condition,
+                                  source_position: Number(val),
+                                  value: newSource?.block.options?.[0]?.text || condition.value,
+                                })
+                              }}
+                            >
+                              <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                                {candidates.map(({ block, position }) => (
+                                  <SelectItem key={position} value={String(position)}>
+                                    {`{{resposta_${position}}}`} — {block.title.slice(0, 40)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="grid grid-cols-[100px_1fr] gap-2">
+                            <Select
+                              value={condition.operator}
+                              onValueChange={(val) => updateSettings(blockIdx, 'display_condition', { ...condition, operator: val as 'equals' | 'not_equals' })}
+                            >
+                              <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                                <SelectItem value="equals">é</SelectItem>
+                                <SelectItem value="not_equals">não é</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            {sourceBlock?.options?.length ? (
+                              <Select
+                                value={condition.value}
+                                onValueChange={(val) => updateSettings(blockIdx, 'display_condition', { ...condition, value: val })}
+                              >
+                                <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-9">
+                                  <SelectValue placeholder="Escolher opção..." />
+                                </SelectTrigger>
+                                <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                                  {sourceBlock.options.map((opt, oi) => (
+                                    <SelectItem key={oi} value={opt.text}>{opt.text}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Input
+                                value={condition.value}
+                                onChange={(e) => updateSettings(blockIdx, 'display_condition', { ...condition, value: e.target.value })}
+                                placeholder="Valor esperado"
+                                className="border-zinc-800 bg-zinc-900 text-zinc-200 text-xs h-9"
+                              />
+                            )}
+                          </div>
+
+                          <p className="text-[11px] text-purple-300/80 bg-purple-950/20 border border-purple-900/30 rounded-lg px-3 py-2">
+                            Este bloco só aparece no player quando {`{{resposta_${condition.source_position}}}`} {condition.operator === 'equals' ? 'for' : 'não for'} <strong>&ldquo;{condition.value}&rdquo;</strong>.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })() : (
+                <>
                 {/* Title + Type */}
                 <div className="space-y-3">
                   <div className="space-y-1.5">
@@ -1589,6 +1796,8 @@ export function QuestionsTab({
                         </div>
                       </div>
                     )}
+                </>
+                )}
               </div>
             )
           })()}

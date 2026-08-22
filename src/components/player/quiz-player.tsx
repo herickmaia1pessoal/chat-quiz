@@ -94,6 +94,16 @@ interface QuestionSettings {
   quadrant_y_label?: string
   quadrant_points?: QuadrantPoint[]
   audio_url?: string
+  style_accent_color?: string
+  style_text_align?: 'left' | 'center' | 'right'
+  display_condition?: DisplayCondition | null
+}
+
+interface DisplayCondition {
+  // 1-indexed position among answerable blocks, matching {{resposta_N}}.
+  source_position: number
+  operator: 'equals' | 'not_equals'
+  value: string
 }
 
 interface Question {
@@ -215,6 +225,20 @@ export function QuizPlayer({
       leadEmail,
       answersByPosition,
     })
+
+  // A block with a display_condition only renders once the referenced
+  // answer has been given and matches — a condition that can't yet be
+  // evaluated (the source answer doesn't exist, e.g. branching skipped
+  // past it) fails closed, i.e. the block stays hidden rather than
+  // guessing. No condition at all always renders.
+  const isBlockVisible = (block: Question): boolean => {
+    const condition = block.settings?.display_condition
+    if (!condition) return true
+    const sourceValue = answersByPosition[condition.source_position]
+    if (sourceValue === undefined) return false
+    const matches = sourceValue === condition.value
+    return condition.operator === 'equals' ? matches : !matches
+  }
 
   // Declared before the effects that call it — `const` functions are not
   // usable prior to their declaration line (temporal dead zone), and this
@@ -596,8 +620,12 @@ export function QuizPlayer({
              several elements into one step" model. Any interactive block
              (a question, a CTA) advances straight to the next step. */
           <div key={currentStepIndex} className="w-full space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-            {currentStep.blocks.map((block) => (
-              <div key={block.id}>
+            {currentStep.blocks.filter(isBlockVisible).map((block) => {
+              const accentColor = block.settings?.style_accent_color || undefined
+              const textAlign = block.settings?.style_text_align
+
+              return (
+              <div key={block.id} style={textAlign ? { textAlign } : undefined}>
                 {block.type === 'content' ? (
                   <ContentInterstitial
                     title={interpolate(block.title)}
@@ -606,6 +634,7 @@ export function QuizPlayer({
                     testimonialAuthor={interpolate(block.settings?.testimonial_author)}
                     ctaLabel={interpolate(block.settings?.cta_label)}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : block.type === 'comparison' ? (
                   <ComparisonStep
@@ -618,6 +647,7 @@ export function QuizPlayer({
                       right_text: interpolate(row.right_text),
                     }))}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : block.type === 'timer' ? (
                   <TimerStep
@@ -626,6 +656,7 @@ export function QuizPlayer({
                     durationSeconds={block.settings?.duration_seconds || 300}
                     ctaLabel={interpolate(block.settings?.cta_label)}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : block.type === 'alert' ? (
                   <AlertStep
@@ -633,6 +664,7 @@ export function QuizPlayer({
                     body={interpolate(block.settings?.body)}
                     variant={block.settings?.alert_variant}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : block.type === 'testimonial' ? (
                   <TestimonialStep
@@ -643,6 +675,7 @@ export function QuizPlayer({
                     rating={block.settings?.rating}
                     avatarUrl={block.settings?.avatar_url}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : block.type === 'social_proof' ? (
                   // Purely decorative — rendered as a floating toast outside
@@ -656,6 +689,7 @@ export function QuizPlayer({
                     url={block.settings?.button_url}
                     openNewTab={block.settings?.button_open_new_tab}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : block.type === 'spacer' ? (
                   <div style={{ height: block.settings?.duration_seconds || 24 }} aria-hidden="true" />
@@ -669,6 +703,7 @@ export function QuizPlayer({
                     }))}
                     unit={block.settings?.chart_unit}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : block.type === 'quadrant' ? (
                   <QuadrantStep
@@ -681,6 +716,7 @@ export function QuizPlayer({
                       label: interpolate(p.label) || '',
                     }))}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : block.type === 'audio' ? (
                   <AudioStep
@@ -688,6 +724,7 @@ export function QuizPlayer({
                     body={interpolate(block.settings?.body)}
                     audioUrl={block.settings?.audio_url}
                     onContinue={() => advance()}
+                    accentColor={accentColor}
                   />
                 ) : (
                   /* QUESTION BLOCK — multiple_choice, image_choice, likert,
@@ -695,7 +732,10 @@ export function QuizPlayer({
                   <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6">
                     <div className="space-y-2">
                       {!isContentBlock(block.type) && (
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
+                        <span
+                          style={accentColor ? { color: accentColor } : undefined}
+                          className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20"
+                        >
                           Pergunta {allBlocks.filter((b) => !isContentBlock(b.type)).indexOf(block) + 1} de {answerableQuestions.length}
                         </span>
                       )}
@@ -717,6 +757,7 @@ export function QuizPlayer({
                               key={opt.id || optIdx}
                               type="button"
                               onClick={() => handleSelectOption(block, opt)}
+                              style={isSelected && accentColor ? { borderColor: accentColor } : undefined}
                               className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
                                 isSelected
                                   ? 'border-indigo-500 bg-indigo-600/15 text-white shadow-md shadow-indigo-500/10'
@@ -724,11 +765,13 @@ export function QuizPlayer({
                               }`}
                             >
                               <div className="flex items-center gap-3">
-                                <span className={`h-7 w-7 rounded-lg text-xs font-semibold flex items-center justify-center transition ${
-                                  isSelected
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-200'
-                                }`}>
+                                <span
+                                  style={isSelected && accentColor ? { backgroundColor: accentColor } : undefined}
+                                  className={`h-7 w-7 rounded-lg text-xs font-semibold flex items-center justify-center transition ${
+                                    isSelected
+                                      ? 'bg-indigo-600 text-white'
+                                      : 'bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-200'
+                                  }`}>
                                   {String.fromCharCode(65 + optIdx)}
                                 </span>
                                 <span className="text-sm font-medium">{opt.text}</span>
@@ -746,6 +789,7 @@ export function QuizPlayer({
                         options={block.options || []}
                         selectedOptionId={answers[block.id]?.optionId}
                         onSelect={(opt) => handleSelectOption(block, opt)}
+                        accentColor={accentColor}
                       />
                     )}
 
@@ -755,6 +799,7 @@ export function QuizPlayer({
                         options={block.options || []}
                         selectedOptionId={answers[block.id]?.optionId}
                         onSelect={(opt) => handleSelectOption(block, opt)}
+                        accentColor={accentColor}
                       />
                     )}
 
@@ -770,6 +815,7 @@ export function QuizPlayer({
                         <Button
                           onClick={handleNext}
                           disabled={!answers[block.id]?.textValue?.trim()}
+                          style={accentColor ? { backgroundColor: accentColor } : undefined}
                           className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
                         >
                           Continuar <ArrowRight className="h-4 w-4" />
@@ -791,6 +837,7 @@ export function QuizPlayer({
                                   handleTextAnswer(block, String(num))
                                   setTimeout(() => handleNext(), 200)
                                 }}
+                                style={isSelected && accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : undefined}
                                 className={`h-14 rounded-xl border font-bold text-lg transition flex items-center justify-center ${
                                   isSelected
                                     ? 'border-indigo-500 bg-indigo-600 text-white'
@@ -831,7 +878,8 @@ export function QuizPlayer({
                   </div>
                 )}
               </div>
-            ))}
+              )
+            })}
           </div>
         ) : null}
       </main>

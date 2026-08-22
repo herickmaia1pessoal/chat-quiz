@@ -22,6 +22,7 @@ export function QuadrantStep({
   yLabel,
   points,
   onContinue,
+  accentColor,
 }: {
   title: string
   body?: string
@@ -29,6 +30,7 @@ export function QuadrantStep({
   yLabel?: string
   points: QuadrantPoint[]
   onContinue: () => void
+  accentColor?: string
 }) {
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -71,6 +73,7 @@ export function QuadrantStep({
                       ? 'bg-indigo-500 border-indigo-300 shadow-lg shadow-indigo-500/40 ring-4 ring-indigo-500/20'
                       : 'bg-zinc-700 border-zinc-600'
                   }`}
+                  style={point.highlighted && accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : undefined}
                 />
                 {point.label && (
                   <span className={`text-[10px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded ${
@@ -94,6 +97,7 @@ export function QuadrantStep({
       <Button
         type="button"
         onClick={onContinue}
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
         className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
       >
         Continuar <ArrowRight className="h-4 w-4" />

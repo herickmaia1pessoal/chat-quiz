@@ -12,16 +12,21 @@ export function AudioStep({
   body,
   audioUrl,
   onContinue,
+  accentColor,
 }: {
   title: string
   body?: string
   audioUrl?: string
   onContinue: () => void
+  accentColor?: string
 }) {
   return (
     <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="space-y-1 text-center">
-        <div className="h-12 w-12 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-2">
+        <div
+          className="h-12 w-12 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-2"
+          style={accentColor ? { color: accentColor, borderColor: accentColor } : undefined}
+        >
           <Volume2 className="h-5 w-5" />
         </div>
         <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">{title}</h2>
@@ -39,6 +44,7 @@ export function AudioStep({
       <Button
         type="button"
         onClick={onContinue}
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
         className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
       >
         Continuar <ArrowRight className="h-4 w-4" />

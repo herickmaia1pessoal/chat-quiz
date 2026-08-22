@@ -22,12 +22,14 @@ export function ComparisonStep({
   rightLabel,
   rows,
   onContinue,
+  accentColor,
 }: {
   title: string
   leftLabel: string
   rightLabel: string
   rows: ComparisonRow[]
   onContinue: () => void
+  accentColor?: string
 }) {
   const [calculating, setCalculating] = useState(true)
 
@@ -68,6 +70,7 @@ export function ComparisonStep({
         type="button"
         onClick={onContinue}
         disabled={calculating}
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
         className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
       >
         {calculating ? (

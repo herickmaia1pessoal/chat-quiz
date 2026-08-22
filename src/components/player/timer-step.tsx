@@ -16,12 +16,14 @@ export function TimerStep({
   durationSeconds,
   ctaLabel,
   onContinue,
+  accentColor,
 }: {
   title: string
   body?: string
   durationSeconds: number
   ctaLabel?: string
   onContinue: () => void
+  accentColor?: string
 }) {
   const [remaining, setRemaining] = useState(durationSeconds)
 
@@ -62,6 +64,7 @@ export function TimerStep({
       <Button
         type="button"
         onClick={onContinue}
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
         className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-medium"
       >
         {ctaLabel || 'Continuar'} <ArrowRight className="h-4 w-4" />
