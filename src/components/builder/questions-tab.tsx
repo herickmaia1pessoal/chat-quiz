@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Plus,
   Trash2,
@@ -33,6 +33,12 @@ import {
   AlignRight,
   Eye,
   EyeOff,
+  Copy,
+  PlayCircle,
+  Workflow,
+  LayoutGrid,
+  ArrowDown,
+  CornerDownRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,6 +46,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { saveQuestions } from '@/app/dashboard/actions'
 
 interface BranchingRule {
@@ -359,6 +366,16 @@ export function QuestionsTab({
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [expandedBranching, setExpandedBranching] = useState(false)
   const [propertiesTab, setPropertiesTab] = useState<'component' | 'style' | 'display'>('component')
+  const [viewMode, setViewMode] = useState<'design' | 'flow'>('design')
+  const [showPreview, setShowPreview] = useState(false)
+
+  // Dirty-state tracking: a snapshot of `steps` taken right after the last
+  // successful load/save. Comparing the current `steps` against it via
+  // JSON.stringify is simple and cheap enough at this data volume — no need
+  // for a real diffing algorithm just to answer "has anything changed since
+  // the last save?".
+  const [savedSnapshot, setSavedSnapshot] = useState(() => JSON.stringify(steps))
+  const isDirty = useMemo(() => JSON.stringify(steps) !== savedSnapshot, [steps, savedSnapshot])
 
   const selectStep = (stepIdx: number) => {
     setSelectedStepIndex(stepIdx)
@@ -671,6 +688,7 @@ export function QuestionsTab({
     try {
       await saveQuestions(quizId, steps)
       setSavedSuccess(true)
+      setSavedSnapshot(JSON.stringify(steps))
       setTimeout(() => setSavedSuccess(false), 3000)
     } catch (err) {
       console.error(err)
@@ -678,6 +696,28 @@ export function QuestionsTab({
     } finally {
       setSaving(false)
     }
+  }
+
+  // Clones the given step — including a deep copy of its blocks — and
+  // inserts it right after the original. New blocks/options are stripped of
+  // their `id` (same principle as `addStep`/`addBlock`) so the next save
+  // creates fresh rows instead of colliding with the original's.
+  const duplicateStep = (stepIdx: number) => {
+    const original = steps[stepIdx]
+    if (!original) return
+    const cloned: Step = {
+      order_num: stepIdx + 1,
+      title: original.title,
+      branching_rules: [], // rules reference option ids that only exist on the original blocks — dropped rather than left dangling
+      blocks: original.blocks.map((block) => ({
+        ...block,
+        id: undefined,
+        options: block.options?.map((opt) => ({ ...opt, id: undefined })),
+      })),
+    }
+    const next = [...steps.slice(0, stepIdx + 1), cloned, ...steps.slice(stepIdx + 1)]
+    setSteps(next)
+    selectStep(stepIdx + 1)
   }
 
   // Every option-based block across the whole selected step, used to
@@ -696,11 +736,46 @@ export function QuestionsTab({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {savedSuccess && (
+          {/* Design/Fluxo toggle */}
+          <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900/60 p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode('design')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                viewMode === 'design' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> Design
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('flow')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                viewMode === 'flow' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <Workflow className="h-3.5 w-3.5" /> Fluxo
+            </button>
+          </div>
+
+          {/* Dirty-state indicator */}
+          {savedSuccess ? (
             <span className="text-xs text-emerald-400 flex items-center gap-1">
               <Check className="h-4 w-4" /> Alterações salvas!
             </span>
+          ) : (
+            <span className={`text-xs flex items-center gap-1.5 ${isDirty ? 'text-amber-400' : 'text-zinc-500'}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${isDirty ? 'bg-amber-400' : 'bg-zinc-600'}`} />
+              {isDirty ? 'Alterações não salvas' : 'Salvo'}
+            </span>
           )}
+
+          <Button type="button" variant="outline" onClick={() => setShowPreview(true)}
+            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 gap-2">
+            <PlayCircle className="h-4 w-4 text-indigo-400" />
+            Preview
+          </Button>
+
           <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
             <Save className="h-4 w-4" />
             {saving ? 'Salvando...' : 'Salvar Alterações'}
@@ -708,6 +783,111 @@ export function QuestionsTab({
         </div>
       </div>
 
+      {/* Preview modal — reflects the last SAVED version of the quiz, not
+          in-progress edits, since the public player only ever reads from
+          the database. Warns when there are unsaved changes so the user
+          doesn't mistake a stale preview for a broken save. */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="!max-w-md bg-zinc-950 border border-zinc-800 text-zinc-100 p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle className="text-white">Pré-visualização</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              {isDirty
+                ? 'Mostrando a última versão salva — salve suas alterações para vê-las aqui.'
+                : 'Exatamente como o quiz aparece para quem acessa o link público.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="h-[70vh] w-full bg-zinc-900">
+            {showPreview && (
+              <iframe
+                src={`/q/${quizId}`}
+                className="h-full w-full border-0"
+                title="Pré-visualização do quiz"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {viewMode === 'flow' ? (
+        /* ─── FLOW MODE — vertical stack of step cards connected by
+             labeled arrows, showing the whole quiz's navigation at a
+             glance. Pure visualization over the existing `steps` state —
+             clicking a card jumps back into Design mode with that step
+             selected. ─── */
+        <div className="max-w-xl mx-auto space-y-0">
+          {steps.map((step, stepIdx) => {
+            const label = step.title || step.blocks[0]?.title || `Etapa ${stepIdx + 1}`
+            const capturedPositions = step.blocks
+              .filter((b) => !isNarrativeBlock(b.type))
+              .map((b) => answerablePositionOf(b))
+            const isLast = stepIdx === steps.length - 1
+            const hasBranching = (step.branching_rules?.length ?? 0) > 0
+
+            const targetLabelFor = (goToOrder: number) => {
+              if (goToOrder >= steps.length) return 'Captura de Lead (Final)'
+              const target = steps.find((s) => s.order_num === goToOrder)
+              return target ? (target.title || target.blocks[0]?.title || `Etapa ${goToOrder + 1}`) : `Etapa ${goToOrder + 1}`
+            }
+
+            return (
+              <div key={stepIdx}>
+                <button
+                  type="button"
+                  onClick={() => { selectStep(stepIdx); setViewMode('design') }}
+                  className="w-full text-left rounded-2xl border border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/70 backdrop-blur-xl p-4 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="h-7 w-7 shrink-0 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center">
+                      {stepIdx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-zinc-200 truncate">{label}</p>
+                      <p className="text-[11px] text-zinc-500">
+                        {step.blocks.length} {step.blocks.length === 1 ? 'bloco' : 'blocos'}
+                      </p>
+                    </div>
+                    {capturedPositions.length > 0 && (
+                      <div className="flex flex-wrap gap-1 justify-end max-w-[40%]">
+                        {capturedPositions.map((pos) => (
+                          <span key={pos} className="text-[10px] font-mono text-zinc-500 bg-zinc-950/60 border border-zinc-800 rounded px-1.5 py-0.5">
+                            {`{{resposta_${pos}}}`}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                {/* Connector to the next step */}
+                <div className="flex items-center gap-2 py-2 pl-4">
+                  {hasBranching ? (
+                    <div className="flex flex-col gap-1">
+                      {step.branching_rules!.map((rule, ri) => (
+                        <div key={ri} className="flex items-center gap-1.5 text-[11px] text-purple-400">
+                          <CornerDownRight className="h-3 w-3 shrink-0" />
+                          <span className="text-zinc-500">SE ramificação →</span>
+                          <span className="font-medium">{targetLabelFor(rule.go_to_order)}</span>
+                        </div>
+                      ))}
+                      <div className="flex items-center gap-1.5 text-[11px] text-zinc-600">
+                        <ArrowDown className="h-3 w-3 shrink-0" />
+                        <span>senão, {isLast ? 'Captura de Lead (Final)' : 'próxima etapa'}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-600">
+                      <ArrowDown className="h-3.5 w-3.5 shrink-0" />
+                      <span>{isLast ? 'Captura de Lead (Final)' : `${targetLabelFor(stepIdx + 1)}`}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+      <>
       {/* The 4-column layout needs real desktop width to stay legible —
           below xl, point people at a wider screen rather than cramming
           etapas/paleta/preview/propriedades into a column that can't fit
@@ -781,13 +961,24 @@ export function QuestionsTab({
           {selectedStep && (
             <>
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 backdrop-blur-xl">
-                <Label className="text-zinc-400 text-xs">Nome interno da etapa (opcional, só para organização)</Label>
-                <Input
-                  value={selectedStep.title || ''}
-                  onChange={(e) => updateStepTitle(selectedStepIndex, e.target.value)}
-                  placeholder={selectedStep.blocks[0]?.title || `Etapa ${selectedStepIndex + 1}`}
-                  className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs mt-1.5"
-                />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-zinc-400 text-xs">Nome interno da etapa (opcional, só para organização)</Label>
+                    <Input
+                      value={selectedStep.title || ''}
+                      onChange={(e) => updateStepTitle(selectedStepIndex, e.target.value)}
+                      placeholder={selectedStep.blocks[0]?.title || `Etapa ${selectedStepIndex + 1}`}
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs mt-1.5"
+                    />
+                  </div>
+                  <Button type="button" variant="outline" size="sm"
+                    onClick={() => duplicateStep(selectedStepIndex)}
+                    title="Duplicar esta etapa"
+                    className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 gap-1.5 shrink-0 mt-4">
+                    <Copy className="h-3.5 w-3.5 text-indigo-400" />
+                    Duplicar Etapa
+                  </Button>
+                </div>
               </div>
 
               {selectedStep.blocks.map((q, blockIdx) => {
@@ -2073,6 +2264,8 @@ export function QuestionsTab({
           })()}
         </div>
       </div>
+      </>
+      )}
     </div>
   )
 }
