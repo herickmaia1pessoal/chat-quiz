@@ -173,6 +173,29 @@ const TYPE_LABELS: Record<string, string> = {
   audio: 'Áudio',
 }
 
+// The block palette shown in column 2 — same 17 types previously offered by
+// the "Adicionar Bloco" bar, now always visible instead of pinned to the
+// bottom of the page. Order mirrors TYPE_LABELS/newBlock/defaultSettingsFor.
+const BLOCK_PALETTE: Array<{ type: string; label: string; icon: typeof ListCheck; color: string }> = [
+  { type: 'multiple_choice', label: 'Múltipla Escolha', icon: ListCheck, color: 'text-indigo-400' },
+  { type: 'text', label: 'Resposta Aberta', icon: AlignLeft, color: 'text-cyan-400' },
+  { type: 'scale', label: 'Escala (1 a 5)', icon: Sliders, color: 'text-amber-400' },
+  { type: 'image_choice', label: 'Opções com Imagem', icon: ImageIcon, color: 'text-pink-400' },
+  { type: 'likert', label: 'Escala de Concordância', icon: ListTree, color: 'text-teal-400' },
+  { type: 'content', label: 'Interstício (Conteúdo)', icon: MessageSquareQuote, color: 'text-violet-400' },
+  { type: 'comparison', label: 'Comparativo', icon: Columns2, color: 'text-rose-400' },
+  { type: 'timer', label: 'Timer de Escassez', icon: Timer, color: 'text-orange-400' },
+  { type: 'numeric_calc', label: 'Cálculo Numérico', icon: Calculator, color: 'text-lime-400' },
+  { type: 'alert', label: 'Alerta', icon: AlertTriangle, color: 'text-amber-400' },
+  { type: 'testimonial', label: 'Depoimento', icon: Quote, color: 'text-fuchsia-400' },
+  { type: 'social_proof', label: 'Notificação', icon: BellRing, color: 'text-sky-400' },
+  { type: 'button', label: 'Botão', icon: MousePointerClick, color: 'text-indigo-300' },
+  { type: 'spacer', label: 'Espaço', icon: MoveVertical, color: 'text-zinc-400' },
+  { type: 'chart', label: 'Gráfico', icon: BarChart3, color: 'text-emerald-400' },
+  { type: 'quadrant', label: 'Cartesiano', icon: Move, color: 'text-cyan-300' },
+  { type: 'audio', label: 'Áudio', icon: Music, color: 'text-purple-400' },
+]
+
 // Shared between addBlock (new block) and updateBlock (type switch) so
 // picking a type always seeds sensible defaults, never an empty settings
 // object the editor UI would render as a wall of blank fields.
@@ -295,11 +318,23 @@ export function QuestionsTab({
   )
 
   const [selectedStepIndex, setSelectedStepIndex] = useState(0)
+  // Which block within the selected step is showing in the properties
+  // panel — reset to 0 whenever the step changes so the panel never points
+  // at a block index that belongs to a different (or no longer selected) step.
+  const [selectedBlockIndex, setSelectedBlockIndex] = useState(0)
   const [saving, setSaving] = useState(false)
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [expandedBranching, setExpandedBranching] = useState(false)
+  const [propertiesTab, setPropertiesTab] = useState<'component' | 'style' | 'display'>('component')
+
+  const selectStep = (stepIdx: number) => {
+    setSelectedStepIndex(stepIdx)
+    setSelectedBlockIndex(0)
+  }
 
   const selectedStep = steps[selectedStepIndex] as Step | undefined
+  const selectedBlock = selectedStep?.blocks[Math.min(selectedBlockIndex, (selectedStep?.blocks.length || 1) - 1)] as Question | undefined
+  const effectiveBlockIndex = Math.min(selectedBlockIndex, (selectedStep?.blocks.length || 1) - 1)
 
   // Flattened list of every block across every step, in play order — the
   // basis for "Pergunta X de Y" numbering and the {{resposta_N}} hint shown
@@ -342,11 +377,10 @@ export function QuestionsTab({
   // ─── Block-level helpers (operate on the currently selected step) ───
   const addBlock = (type: string) => {
     const next = [...steps]
-    next[selectedStepIndex] = {
-      ...next[selectedStepIndex],
-      blocks: [...next[selectedStepIndex].blocks, newBlock(type)],
-    }
+    const blocks = [...next[selectedStepIndex].blocks, newBlock(type)]
+    next[selectedStepIndex] = { ...next[selectedStepIndex], blocks }
     setSteps(next)
+    setSelectedBlockIndex(blocks.length - 1)
   }
 
   const removeBlock = (blockIdx: number) => {
@@ -363,6 +397,7 @@ export function QuestionsTab({
       )
     }
     setSteps(next)
+    setSelectedBlockIndex((prev) => Math.min(prev, next[selectedStepIndex].blocks.length - 1))
   }
 
   const moveBlock = (blockIdx: number, direction: 'up' | 'down') => {
@@ -374,6 +409,8 @@ export function QuestionsTab({
     ;[blocks[blockIdx], blocks[target]] = [blocks[target], blocks[blockIdx]]
     next[selectedStepIndex] = { ...step, blocks }
     setSteps(next)
+    if (selectedBlockIndex === blockIdx) setSelectedBlockIndex(target)
+    else if (selectedBlockIndex === target) setSelectedBlockIndex(blockIdx)
   }
 
   const updateBlock = (blockIdx: number, field: keyof Question, value: any) => {
@@ -626,79 +663,76 @@ export function QuestionsTab({
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
-        {/* ─── Steps sidebar ─── */}
-        <div className="space-y-2">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-xl p-2 space-y-1 max-h-[calc(100vh-260px)] overflow-y-auto lg:sticky lg:top-4">
+      {/* The 4-column layout needs real desktop width to stay legible —
+          below xl, point people at a wider screen rather than cramming
+          etapas/paleta/preview/propriedades into a column that can't fit
+          any of them usefully. */}
+      <div className="xl:hidden rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20 p-8 text-center space-y-2">
+        <Layers className="h-6 w-6 text-zinc-600 mx-auto" />
+        <p className="text-sm text-zinc-300 font-medium">Use uma tela maior para editar as etapas</p>
+        <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+          O construtor de etapas e blocos foi desenhado para telas de desktop. Abra esta página numa janela mais larga para continuar editando.
+        </p>
+      </div>
+
+      <div className="hidden xl:grid gap-3 xl:grid-cols-[64px_180px_1fr_320px] items-start">
+        {/* ─── Column 1: Steps (compact, numbered) ─── */}
+        <div className="space-y-2 sticky top-4">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-xl p-1.5 space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto">
             {steps.map((step, stepIdx) => {
-              const firstBlock = step.blocks[0]
-              const label = step.title || firstBlock?.title || `Etapa ${stepIdx + 1}`
+              const label = step.title || step.blocks[0]?.title || `Etapa ${stepIdx + 1}`
               const isSelected = stepIdx === selectedStepIndex
               return (
-                <div key={stepIdx}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedStepIndex(stepIdx)}
-                    className={`w-full text-left rounded-xl px-3 py-2.5 flex items-center gap-2 transition group ${
-                      isSelected
-                        ? 'bg-indigo-600/15 border border-indigo-500/30 text-white'
-                        : 'border border-transparent text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
-                    }`}
-                  >
-                    <span className={`h-5 w-5 shrink-0 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                      isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-zinc-400'
-                    }`}>
-                      {stepIdx + 1}
-                    </span>
-                    <span className="flex-1 truncate text-xs font-medium">{label}</span>
-                    {step.blocks.length > 1 && (
-                      <span className="text-[10px] font-mono text-zinc-500 shrink-0" title={`${step.blocks.length} blocos nesta etapa`}>
-                        <Layers className="h-3 w-3" />
-                      </span>
-                    )}
-                    {(step.branching_rules?.length ?? 0) > 0 && (
-                      <GitBranch className="h-3 w-3 text-purple-400 shrink-0" />
-                    )}
-                    <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
-                      <span
-                        role="button"
-                        tabIndex={-1}
-                        onClick={(e) => { e.stopPropagation(); moveStep(stepIdx, 'up') }}
-                        className="p-0.5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-200"
-                      >
-                        <ChevronUp className="h-3 w-3" />
-                      </span>
-                      <span
-                        role="button"
-                        tabIndex={-1}
-                        onClick={(e) => { e.stopPropagation(); moveStep(stepIdx, 'down') }}
-                        className="p-0.5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-200"
-                      >
-                        <ChevronDown className="h-3 w-3" />
-                      </span>
-                      <span
-                        role="button"
-                        tabIndex={-1}
-                        onClick={(e) => { e.stopPropagation(); if (steps.length > 1) removeStep(stepIdx) }}
-                        className={`p-0.5 rounded hover:bg-zinc-700 ${steps.length > 1 ? 'text-zinc-500 hover:text-red-400' : 'text-zinc-700 cursor-not-allowed'}`}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </span>
-                    </div>
-                  </button>
-                </div>
+                <button
+                  key={stepIdx}
+                  type="button"
+                  onClick={() => selectStep(stepIdx)}
+                  title={label}
+                  className={`w-full rounded-xl py-2 flex flex-col items-center gap-0.5 transition group relative ${
+                    isSelected
+                      ? 'bg-indigo-600/15 border border-indigo-500/30 text-white'
+                      : 'border border-transparent text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className={`h-6 w-6 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                    isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-zinc-400'
+                  }`}>
+                    {stepIdx + 1}
+                  </span>
+                  <div className="flex items-center gap-0.5 h-3">
+                    {step.blocks.length > 1 && <Layers className="h-2.5 w-2.5 text-zinc-500" />}
+                    {(step.branching_rules?.length ?? 0) > 0 && <GitBranch className="h-2.5 w-2.5 text-purple-400" />}
+                  </div>
+                </button>
               )
             })}
           </div>
-          <Button type="button" variant="outline" onClick={addStep}
-            className="w-full border-dashed border-zinc-700 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800 text-xs gap-2">
+          <Button type="button" variant="outline" size="icon" onClick={addStep}
+            title="Nova Etapa"
+            className="w-full border-dashed border-zinc-700 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800 h-9">
             <FileStack className="h-3.5 w-3.5 text-indigo-400" />
-            Nova Etapa
           </Button>
         </div>
 
-        {/* ─── Selected step: stacked blocks ─── */}
-        <div className="space-y-4 min-w-0">
+        {/* ─── Column 2: Block palette — always visible, click to insert
+             into the selected step ─── */}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-xl p-2 space-y-0.5 max-h-[calc(100vh-220px)] overflow-y-auto sticky top-4">
+          {BLOCK_PALETTE.map(({ type, label, icon: Icon, color }) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => addBlock(type)}
+              disabled={!selectedStep}
+              className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-300 hover:bg-zinc-800/70 hover:text-white transition text-left disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+              <span className="truncate">{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* ─── Column 3: Preview — clickable list of blocks in this step ─── */}
+        <div className="space-y-3 min-w-0">
           {selectedStep && (
             <>
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 backdrop-blur-xl">
@@ -714,96 +748,241 @@ export function QuestionsTab({
               {selectedStep.blocks.map((q, blockIdx) => {
                 const answerablePosition = answerablePositionOf(q)
                 const isAnswerable = !isNarrativeBlock(q.type)
+                const isBlockSelected = blockIdx === effectiveBlockIndex
 
                 return (
-                  <div key={blockIdx} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-4">
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="h-6 w-6 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center">
+                  <button
+                    key={blockIdx}
+                    type="button"
+                    onClick={() => setSelectedBlockIndex(blockIdx)}
+                    className={`w-full text-left rounded-2xl border p-4 backdrop-blur-xl transition space-y-2 ${
+                      isBlockSelected
+                        ? 'border-indigo-500/50 bg-indigo-600/10 shadow-md shadow-indigo-500/10'
+                        : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/70'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`h-6 w-6 shrink-0 rounded-full text-xs font-bold flex items-center justify-center ${
+                          isBlockSelected ? 'bg-indigo-600 text-white' : 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-400'
+                        }`}>
                           {blockIdx + 1}
                         </span>
-                        <span className="text-sm font-semibold text-zinc-300">
-                          {TYPE_LABELS[q.type] || q.type}
+                        <span className="text-sm font-semibold text-zinc-200 truncate">{q.title || TYPE_LABELS[q.type]}</span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span
+                          role="button"
+                          tabIndex={-1}
+                          onClick={(e) => { e.stopPropagation(); moveBlock(blockIdx, 'up') }}
+                          className={`p-1 rounded hover:bg-zinc-700 ${blockIdx === 0 ? 'text-zinc-700 pointer-events-none' : 'text-zinc-500 hover:text-zinc-200'}`}
+                        >
+                          <ChevronUp className="h-3.5 w-3.5" />
                         </span>
-                        {isAnswerable && (
-                          <span
-                            className="text-[10px] font-mono text-zinc-500 bg-zinc-950/60 border border-zinc-800 rounded px-1.5 py-0.5"
-                            title="Use este código em textos de perguntas ou telas posteriores para repetir a resposta desta pergunta"
-                          >
-                            {`{{resposta_${answerablePosition}}}`}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button type="button" variant="ghost" size="icon" disabled={blockIdx === 0}
-                          onClick={() => moveBlock(blockIdx, 'up')}
-                          className="h-8 w-8 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800">
-                          <ChevronUp className="h-4 w-4" />
-                        </Button>
-                        <Button type="button" variant="ghost" size="icon" disabled={blockIdx === selectedStep.blocks.length - 1}
-                          onClick={() => moveBlock(blockIdx, 'down')}
-                          className="h-8 w-8 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800">
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                        <Button type="button" variant="ghost" size="icon"
-                          disabled={selectedStep.blocks.length <= 1}
-                          onClick={() => removeBlock(blockIdx)}
-                          className="h-8 w-8 text-zinc-400 hover:text-red-400 hover:bg-zinc-800">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <span
+                          role="button"
+                          tabIndex={-1}
+                          onClick={(e) => { e.stopPropagation(); moveBlock(blockIdx, 'down') }}
+                          className={`p-1 rounded hover:bg-zinc-700 ${blockIdx === selectedStep.blocks.length - 1 ? 'text-zinc-700 pointer-events-none' : 'text-zinc-500 hover:text-zinc-200'}`}
+                        >
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </span>
+                        <span
+                          role="button"
+                          tabIndex={-1}
+                          onClick={(e) => { e.stopPropagation(); if (selectedStep.blocks.length > 1) removeBlock(blockIdx) }}
+                          className={`p-1 rounded hover:bg-zinc-700 ${selectedStep.blocks.length > 1 ? 'text-zinc-500 hover:text-red-400' : 'text-zinc-700 cursor-not-allowed'}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </span>
                       </div>
                     </div>
-
-                    {/* Title + Type */}
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <div className="sm:col-span-2 space-y-1.5">
-                        <Label className="text-zinc-300 text-xs">Título do Bloco</Label>
-                        <Input value={q.title}
-                          onChange={(e) => updateBlock(blockIdx, 'title', e.target.value)}
-                          placeholder="Enunciado da pergunta"
-                          className="border-zinc-700 bg-zinc-950 text-zinc-100 font-medium" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-zinc-300 text-xs">Tipo</Label>
-                        <Select value={q.type} onValueChange={(val) => updateBlock(blockIdx, 'type', val)}>
-                          <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
-                            <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
-                            <SelectItem value="image_choice">Opções com Imagem</SelectItem>
-                            <SelectItem value="text">Texto Livre</SelectItem>
-                            <SelectItem value="scale">Escala (1 a 5)</SelectItem>
-                            <SelectItem value="likert">Escala de Concordância</SelectItem>
-                            <SelectItem value="content">Interstício (Conteúdo)</SelectItem>
-                            <SelectItem value="comparison">Comparativo</SelectItem>
-                            <SelectItem value="timer">Timer de Escassez</SelectItem>
-                            <SelectItem value="numeric_calc">Cálculo Numérico</SelectItem>
-                            <SelectItem value="alert">Alerta</SelectItem>
-                            <SelectItem value="testimonial">Depoimento</SelectItem>
-                            <SelectItem value="social_proof">Notificação de Prova Social</SelectItem>
-                            <SelectItem value="button">Botão (CTA)</SelectItem>
-                            <SelectItem value="spacer">Espaçador</SelectItem>
-                            <SelectItem value="chart">Gráfico</SelectItem>
-                            <SelectItem value="quadrant">Cartesiano (Perfil)</SelectItem>
-                            <SelectItem value="audio">Áudio</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="flex items-center gap-2 pl-8">
+                      <Badge className="bg-zinc-800/80 border-zinc-700 text-zinc-400 text-[10px]">
+                        {TYPE_LABELS[q.type] || q.type}
+                      </Badge>
+                      {isAnswerable && (
+                        <span className="text-[10px] font-mono text-zinc-500">
+                          {`{{resposta_${answerablePosition}}}`}
+                        </span>
+                      )}
                     </div>
+                  </button>
+                )
+              })}
 
-                    {!isNarrativeBlock(q.type) && (
-                      <div className="space-y-1.5">
-                        <Label className="text-zinc-400 text-xs">Descrição ou Subtítulo (opcional)</Label>
-                        <Input value={q.description || ''}
-                          onChange={(e) => updateBlock(blockIdx, 'description', e.target.value)}
-                          placeholder="Ex: Selecione apenas uma opção para continuar"
-                          className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs" />
-                      </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => addBlock('multiple_choice')}
+                className="w-full border-dashed border-zinc-700 bg-zinc-900/20 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 text-xs gap-2">
+                <Plus className="h-3.5 w-3.5" />
+                Adicionar bloco a esta etapa
+              </Button>
+
+              {/* ─── Step-level Branching Rules Panel ─── */}
+              {optionBlocksInSelectedStep.length > 0 && steps.length > 1 && (
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 backdrop-blur-xl space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedBranching(!expandedBranching)}
+                    className="flex items-center gap-2 text-xs font-semibold text-purple-400 hover:text-purple-300 transition"
+                  >
+                    <GitBranch className="h-3.5 w-3.5" />
+                    Ramificação da Etapa
+                    {(selectedStep.branching_rules?.length ?? 0) > 0 && (
+                      <Badge className="bg-purple-500/10 border-purple-500/20 text-purple-400 text-[11px] ml-1">
+                        {selectedStep.branching_rules!.length} regra(s)
+                      </Badge>
                     )}
+                  </button>
 
-                    {/* Options — shared by multiple_choice and image_choice */}
+                  {expandedBranching && (
+                    <div className="space-y-2 bg-zinc-950/40 rounded-xl border border-zinc-800/60 p-4">
+                      <p className="text-[11px] text-zinc-500">
+                        Defina para qual etapa o usuário deve ser enviado dependendo da resposta escolhida nesta etapa. Sem regra = próxima etapa em sequência.
+                      </p>
+
+                      {(selectedStep.branching_rules || []).map((rule, rIdx) => (
+                        <div key={rIdx} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 py-2 border-b border-zinc-800/40 last:border-0">
+                          <span className="text-[11px] text-zinc-500 uppercase font-semibold w-6">SE</span>
+                          <Select
+                            value={rule.option_id}
+                            onValueChange={(val) => updateBranchingRule(rIdx, 'option_id', val)}
+                          >
+                            <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-8 flex-1">
+                              <SelectValue placeholder="Escolher opção..." />
+                            </SelectTrigger>
+                            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                              {optionBlocksInSelectedStep.flatMap((block) =>
+                                (block.options || []).map((opt, oi) => (
+                                  <SelectItem key={opt.id || `${block.title}-${oi}`} value={opt.id || `opt-${oi}`}>
+                                    {String.fromCharCode(65 + oi)}: {opt.text}
+                                    {optionBlocksInSelectedStep.length > 1 ? ` (${block.title})` : ''}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <span className="text-[11px] text-zinc-500 uppercase font-semibold">IR PARA</span>
+                          <Select
+                            value={String(rule.go_to_order)}
+                            onValueChange={(val) => updateBranchingRule(rIdx, 'go_to_order', val)}
+                          >
+                            <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-8 flex-1">
+                              <SelectValue placeholder="Etapa destino..." />
+                            </SelectTrigger>
+                            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                              {steps
+                                .filter((_, i) => i !== selectedStepIndex)
+                                .map((destStep, di) => (
+                                  <SelectItem key={di} value={String(destStep.order_num)}>
+                                    Etapa {destStep.order_num + 1}: {(destStep.title || destStep.blocks[0]?.title || '').slice(0, 40)}
+                                  </SelectItem>
+                                ))}
+                              <SelectItem value={String(steps.length)}>
+                                → Captura de Lead (Final)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button type="button" variant="ghost" size="icon"
+                            onClick={() => removeBranchingRule(rIdx)}
+                            className="h-8 w-8 text-zinc-500 hover:text-red-400 shrink-0">
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+
+                      <Button type="button" variant="outline" size="sm"
+                        onClick={addBranchingRule}
+                        className="border-dashed border-purple-800 bg-purple-950/20 text-purple-400 hover:bg-purple-900/20 text-xs mt-1">
+                        <Plus className="h-3.5 w-3.5 mr-1" />
+                        Adicionar Regra de Ramificação
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* ─── Column 4: Properties panel for the selected block ─── */}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-xl sticky top-4 max-h-[calc(100vh-220px)] overflow-y-auto">
+          {selectedBlock && (() => {
+            const q = selectedBlock
+            const blockIdx = effectiveBlockIndex
+            const answerablePosition = answerablePositionOf(q)
+            return (
+              <div className="space-y-4 p-5">
+                {/* Properties tabs — only "Componente" is functional today;
+                    Estilo/Exibição are placeholders for a future iteration
+                    (per-block visual overrides and conditional display). */}
+                <div className="flex items-center gap-1 border-b border-zinc-800 -mx-5 px-5 pb-3">
+                  {(['component', 'style', 'display'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      disabled={tab !== 'component'}
+                      onClick={() => setPropertiesTab(tab)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                        propertiesTab === tab && tab === 'component'
+                          ? 'bg-zinc-800 text-white'
+                          : tab !== 'component'
+                          ? 'text-zinc-600 cursor-not-allowed'
+                          : 'text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      {tab === 'component' ? 'Componente' : tab === 'style' ? 'Estilo' : 'Exibição'}
+                      {tab !== 'component' && <span className="ml-1 text-[9px] text-zinc-700">em breve</span>}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-zinc-300">{TYPE_LABELS[q.type] || q.type}</span>
+                  {!isNarrativeBlock(q.type) && (
+                    <span
+                      className="text-[10px] font-mono text-zinc-500 bg-zinc-950/60 border border-zinc-800 rounded px-1.5 py-0.5"
+                      title="Use este código em textos de perguntas ou telas posteriores para repetir a resposta desta pergunta"
+                    >
+                      {`{{resposta_${answerablePosition}}}`}
+                    </span>
+                  )}
+                </div>
+
+                {/* Title + Type */}
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-300 text-xs">Título do Bloco</Label>
+                    <Input value={q.title}
+                      onChange={(e) => updateBlock(blockIdx, 'title', e.target.value)}
+                      placeholder="Enunciado da pergunta"
+                      className="border-zinc-700 bg-zinc-950 text-zinc-100 font-medium" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-300 text-xs">Tipo</Label>
+                    <Select value={q.type} onValueChange={(val) => updateBlock(blockIdx, 'type', val)}>
+                      <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                        {BLOCK_PALETTE.map(({ type, label }) => (
+                          <SelectItem key={type} value={type}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {!isNarrativeBlock(q.type) && (
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-400 text-xs">Descrição ou Subtítulo (opcional)</Label>
+                    <Input value={q.description || ''}
+                      onChange={(e) => updateBlock(blockIdx, 'description', e.target.value)}
+                      placeholder="Ex: Selecione apenas uma opção para continuar"
+                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs" />
+                  </div>
+                )}
+
+                {/* Options — shared by multiple_choice and image_choice */}
                     {(q.type === 'multiple_choice' || q.type === 'image_choice') && (
                       <div className="space-y-2 pt-2">
                         <div className="flex items-center justify-between">
@@ -1405,207 +1584,9 @@ export function QuestionsTab({
                         </div>
                       </div>
                     )}
-                  </div>
-                )
-              })}
-
-              {/* Add Block Bar — inserts into the currently selected step */}
-              <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20 p-6 text-center space-y-4">
-                <p className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">Adicionar Bloco Nesta Etapa</p>
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('multiple_choice')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <ListCheck className="h-4 w-4 text-indigo-400" />
-                    Múltipla Escolha
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('text')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <AlignLeft className="h-4 w-4 text-cyan-400" />
-                    Resposta Aberta
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('scale')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <Sliders className="h-4 w-4 text-amber-400" />
-                    Escala (1 a 5)
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('image_choice')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <ImageIcon className="h-4 w-4 text-pink-400" />
-                    Opções com Imagem
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('likert')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <ListTree className="h-4 w-4 text-teal-400" />
-                    Escala de Concordância
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('content')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <MessageSquareQuote className="h-4 w-4 text-violet-400" />
-                    Interstício (Conteúdo)
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('comparison')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <Columns2 className="h-4 w-4 text-rose-400" />
-                    Comparativo
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('timer')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <Timer className="h-4 w-4 text-orange-400" />
-                    Timer de Escassez
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('numeric_calc')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <Calculator className="h-4 w-4 text-lime-400" />
-                    Cálculo Numérico
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('alert')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <AlertTriangle className="h-4 w-4 text-amber-400" />
-                    Alerta
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('testimonial')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <Quote className="h-4 w-4 text-fuchsia-400" />
-                    Depoimento
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('social_proof')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <BellRing className="h-4 w-4 text-sky-400" />
-                    Notificação
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('button')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <MousePointerClick className="h-4 w-4 text-indigo-300" />
-                    Botão
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('spacer')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <MoveVertical className="h-4 w-4 text-zinc-400" />
-                    Espaço
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('chart')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <BarChart3 className="h-4 w-4 text-emerald-400" />
-                    Gráfico
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('quadrant')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <Move className="h-4 w-4 text-cyan-300" />
-                    Cartesiano
-                  </Button>
-                  <Button type="button" variant="outline"
-                    onClick={() => addBlock('audio')}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:text-white gap-2">
-                    <Music className="h-4 w-4 text-purple-400" />
-                    Áudio
-                  </Button>
-                </div>
               </div>
-
-              {/* ─── Step-level Branching Rules Panel ─── */}
-              {optionBlocksInSelectedStep.length > 0 && steps.length > 1 && (
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => setExpandedBranching(!expandedBranching)}
-                    className="flex items-center gap-2 text-xs font-semibold text-purple-400 hover:text-purple-300 transition"
-                  >
-                    <GitBranch className="h-3.5 w-3.5" />
-                    Lógica Condicional (Ramificação da Etapa)
-                    <span className="text-zinc-500 font-normal ml-1">
-                      — SE resposta X, IR para etapa Y
-                    </span>
-                    {(selectedStep.branching_rules?.length ?? 0) > 0 && (
-                      <Badge className="bg-purple-500/10 border-purple-500/20 text-purple-400 text-[11px] ml-1">
-                        {selectedStep.branching_rules!.length} regra(s)
-                      </Badge>
-                    )}
-                  </button>
-
-                  {expandedBranching && (
-                    <div className="space-y-2 bg-zinc-950/40 rounded-xl border border-zinc-800/60 p-4">
-                      <p className="text-[11px] text-zinc-500">
-                        Defina para qual etapa o usuário deve ser enviado dependendo da resposta escolhida nesta etapa. Sem regra = próxima etapa em sequência.
-                      </p>
-
-                      {(selectedStep.branching_rules || []).map((rule, rIdx) => (
-                        <div key={rIdx} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 py-2 border-b border-zinc-800/40 last:border-0">
-                          <span className="text-[11px] text-zinc-500 uppercase font-semibold w-6">SE</span>
-                          <Select
-                            value={rule.option_id}
-                            onValueChange={(val) => updateBranchingRule(rIdx, 'option_id', val)}
-                          >
-                            <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-8 flex-1">
-                              <SelectValue placeholder="Escolher opção..." />
-                            </SelectTrigger>
-                            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
-                              {optionBlocksInSelectedStep.flatMap((block) =>
-                                (block.options || []).map((opt, oi) => (
-                                  <SelectItem key={opt.id || `${block.title}-${oi}`} value={opt.id || `opt-${oi}`}>
-                                    {String.fromCharCode(65 + oi)}: {opt.text}
-                                    {optionBlocksInSelectedStep.length > 1 ? ` (${block.title})` : ''}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <span className="text-[11px] text-zinc-500 uppercase font-semibold">IR PARA</span>
-                          <Select
-                            value={String(rule.go_to_order)}
-                            onValueChange={(val) => updateBranchingRule(rIdx, 'go_to_order', val)}
-                          >
-                            <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-8 flex-1">
-                              <SelectValue placeholder="Etapa destino..." />
-                            </SelectTrigger>
-                            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
-                              {steps
-                                .filter((_, i) => i !== selectedStepIndex)
-                                .map((destStep, di) => (
-                                  <SelectItem key={di} value={String(destStep.order_num)}>
-                                    Etapa {destStep.order_num + 1}: {(destStep.title || destStep.blocks[0]?.title || '').slice(0, 40)}
-                                  </SelectItem>
-                                ))}
-                              <SelectItem value={String(steps.length)}>
-                                → Captura de Lead (Final)
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button type="button" variant="ghost" size="icon"
-                            onClick={() => removeBranchingRule(rIdx)}
-                            className="h-8 w-8 text-zinc-500 hover:text-red-400 shrink-0">
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      ))}
-
-                      <Button type="button" variant="outline" size="sm"
-                        onClick={addBranchingRule}
-                        className="border-dashed border-purple-800 bg-purple-950/20 text-purple-400 hover:bg-purple-900/20 text-xs mt-1">
-                        <Plus className="h-3.5 w-3.5 mr-1" />
-                        Adicionar Regra de Ramificação
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
+            )
+          })()}
         </div>
       </div>
     </div>
