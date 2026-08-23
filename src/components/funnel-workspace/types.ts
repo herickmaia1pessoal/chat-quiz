@@ -41,6 +41,22 @@ export interface FunnelPageAnalytics {
   visits: number
   abandonments: number
   abandonmentRate: number
+  elementAnalytics: FunnelElementAnalytics[]
+}
+
+export interface FunnelElementAnalytics {
+  id: string
+  fieldKey: string
+  label: string
+  interactions: number
+  abandonments: number
+}
+
+export interface FunnelBreakdownEntry {
+  key: string
+  starts: number
+  completions: number
+  conversionRate: number
 }
 
 export interface FunnelAnalyticsData {
@@ -50,6 +66,8 @@ export interface FunnelAnalyticsData {
   conversionRate: number
   abandonments: number
   pageAnalytics: FunnelPageAnalytics[]
+  utmSources: FunnelBreakdownEntry[]
+  devices: FunnelBreakdownEntry[]
   daily: Array<{
     date: string
     label: string

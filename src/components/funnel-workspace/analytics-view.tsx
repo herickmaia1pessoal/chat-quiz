@@ -1,4 +1,7 @@
-import { Activity, ArrowDownRight, CheckCircle2, Eye, MousePointer2, UsersRound } from 'lucide-react'
+'use client'
+
+import { useState } from 'react'
+import { Activity, ArrowDownRight, CheckCircle2, ChevronDown, Eye, Globe2, MousePointer2, Smartphone, UsersRound } from 'lucide-react'
 import type { FunnelAnalyticsData } from './types'
 
 interface AnalyticsViewProps {
@@ -14,8 +17,11 @@ function formatPercent(value: number) {
 }
 
 export function AnalyticsView({ analytics }: AnalyticsViewProps) {
+  const [expandedPageId, setExpandedPageId] = useState<string | null>(null)
   const maxDaily = Math.max(1, ...analytics.daily.map((day) => day.starts))
   const maxPageVisits = Math.max(1, ...analytics.pageAnalytics.map((page) => page.visits))
+  const maxUtmStarts = Math.max(1, ...analytics.utmSources.map((entry) => entry.starts))
+  const maxDeviceStarts = Math.max(1, ...analytics.devices.map((entry) => entry.starts))
 
   const cards = [
     { label: 'Visitas', value: formatNumber(analytics.visits), icon: Eye, tone: 'text-cyan-300 bg-cyan-400/10 border-cyan-400/10' },
@@ -104,10 +110,27 @@ export function AnalyticsView({ analytics }: AnalyticsViewProps) {
         </section>
       </div>
 
+      <div className="grid gap-5 lg:grid-cols-2">
+        <BreakdownCard
+          title="Origem (UTM)"
+          description="Inícios por utm_source, com conversão de cada origem."
+          icon={Globe2}
+          entries={analytics.utmSources}
+          maxStarts={maxUtmStarts}
+        />
+        <BreakdownCard
+          title="Dispositivo"
+          description="Inícios por tipo de tela, com conversão de cada um."
+          icon={Smartphone}
+          entries={analytics.devices}
+          maxStarts={maxDeviceStarts}
+        />
+      </div>
+
       <section className="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0b0c12]/90">
         <div className="border-b border-white/[0.06] p-5 sm:p-6">
           <p className="text-sm font-bold text-zinc-200">Abandono por página</p>
-          <p className="mt-1 text-xs text-zinc-600">Última página dos inícios que não chegaram à conclusão.</p>
+          <p className="mt-1 text-xs text-zinc-600">Última página dos inícios que não chegaram à conclusão. Páginas com campos expandem o detalhe por campo.</p>
         </div>
 
         {analytics.pageAnalytics.length === 0 ? (
@@ -116,35 +139,116 @@ export function AnalyticsView({ analytics }: AnalyticsViewProps) {
           </div>
         ) : (
           <div className="divide-y divide-white/[0.05]">
-            {analytics.pageAnalytics.map((page, index) => (
-              <div key={page.id} className="grid gap-4 px-5 py-4 sm:grid-cols-[minmax(180px,0.8fr)_minmax(240px,1.7fr)_110px] sm:items-center sm:px-6">
-                <div className="flex items-center gap-3">
-                  <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-white/[0.06] bg-white/[0.025] font-mono text-[10px] text-zinc-600">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-semibold text-zinc-300">{page.name}</p>
-                    <p className="mt-1 text-[10px] text-zinc-700">{formatNumber(page.visits)} visitas únicas</p>
-                  </div>
-                </div>
+            {analytics.pageAnalytics.map((page, index) => {
+              const expandable = page.elementAnalytics.length > 0
+              const expanded = expandedPageId === page.id
+              return (
+                <div key={page.id}>
+                  <button
+                    type="button"
+                    onClick={() => expandable && setExpandedPageId(expanded ? null : page.id)}
+                    disabled={!expandable}
+                    className={`grid w-full gap-4 px-5 py-4 text-left sm:grid-cols-[minmax(180px,0.8fr)_minmax(240px,1.7fr)_110px_28px] sm:items-center sm:px-6 ${expandable ? 'cursor-pointer transition hover:bg-white/[0.02]' : 'cursor-default'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-white/[0.06] bg-white/[0.025] font-mono text-[10px] text-zinc-600">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-zinc-300">{page.name}</p>
+                        <p className="mt-1 text-[10px] text-zinc-700">{formatNumber(page.visits)} visitas únicas</p>
+                      </div>
+                    </div>
 
-                <div className="h-2 overflow-hidden rounded-full bg-white/[0.045]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-600 via-indigo-400 to-cyan-300"
-                    style={{ width: `${page.visits === 0 ? 0 : Math.max(2, (page.visits / maxPageVisits) * 100)}%` }}
-                  />
-                </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/[0.045]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-violet-600 via-indigo-400 to-cyan-300"
+                        style={{ width: `${page.visits === 0 ? 0 : Math.max(2, (page.visits / maxPageVisits) * 100)}%` }}
+                      />
+                    </div>
 
-                <div className="sm:text-right">
-                  <p className="text-xs font-bold text-zinc-300">{formatPercent(page.abandonmentRate)}</p>
-                  <p className="mt-1 text-[10px] text-zinc-700">{page.abandonments} abandonos</p>
+                    <div className="sm:text-right">
+                      <p className="text-xs font-bold text-zinc-300">{formatPercent(page.abandonmentRate)}</p>
+                      <p className="mt-1 text-[10px] text-zinc-700">{page.abandonments} abandonos</p>
+                    </div>
+
+                    <span className={`hidden size-7 shrink-0 items-center justify-center rounded-lg text-zinc-600 sm:flex ${expandable ? '' : 'opacity-0'}`}>
+                      <ChevronDown className={`size-4 transition ${expanded ? 'rotate-180' : ''}`} />
+                    </span>
+                  </button>
+
+                  {expandable && expanded && (
+                    <div className="border-t border-white/[0.04] bg-black/15 px-5 py-3 sm:px-6">
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-600">Abandono por campo</p>
+                      <div className="space-y-1.5">
+                        {page.elementAnalytics.map((element) => (
+                          <div key={element.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.02] px-3 py-2 text-xs">
+                            <span className="min-w-0 truncate text-zinc-400">{element.label}</span>
+                            <span className="flex shrink-0 items-center gap-3 font-mono text-[10px] text-zinc-500">
+                              <span>{element.interactions} interações</span>
+                              {element.abandonments > 0 && <span className="text-amber-300/80">{element.abandonments} abandonos aqui</span>}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>
     </div>
+  )
+}
+
+function BreakdownCard({
+  title,
+  description,
+  icon: Icon,
+  entries,
+  maxStarts,
+}: {
+  title: string
+  description: string
+  icon: typeof Globe2
+  entries: FunnelAnalyticsData['utmSources']
+  maxStarts: number
+}) {
+  return (
+    <section className="rounded-2xl border border-white/[0.07] bg-[#0b0c12]/90 p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold text-zinc-200">{title}</p>
+          <p className="mt-1 text-xs text-zinc-600">{description}</p>
+        </div>
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.025] text-violet-300">
+          <Icon className="size-4" />
+        </span>
+      </div>
+
+      {entries.length === 0 ? (
+        <p className="mt-6 text-xs text-zinc-700">Sem inícios registrados ainda.</p>
+      ) : (
+        <div className="mt-6 space-y-3.5">
+          {entries.map((entry) => (
+            <div key={entry.key}>
+              <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
+                <span className="min-w-0 truncate text-zinc-400">{entry.key}</span>
+                <span className="shrink-0 font-mono text-[10px] text-zinc-600">{formatNumber(entry.starts)} · {formatPercent(entry.conversionRate)}</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-white/[0.045]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-600 via-indigo-400 to-cyan-300"
+                  style={{ width: `${Math.max(2, (entry.starts / maxStarts) * 100)}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
 

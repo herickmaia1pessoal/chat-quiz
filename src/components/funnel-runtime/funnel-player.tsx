@@ -214,6 +214,18 @@ function responseFieldPageMap(document: FunnelDocument) {
     ]))
 }
 
+// Powers per-element analytics (drop-off by field, not just by page): the
+// 'interaction' event needs to carry which element was touched, and this is
+// how updateValue() resolves a fieldKey back to its element id.
+function responseFieldElementMap(document: FunnelDocument) {
+  return new Map(document.elements
+    .filter((element) => fieldTypes.has(element.type))
+    .map((element) => [
+      typeof element.content.fieldKey === 'string' ? element.content.fieldKey : element.id,
+      element.id,
+    ]))
+}
+
 function valuesForPages(
   values: Record<string, FunnelValue>,
   fieldPages: Map<string, string>,
@@ -461,6 +473,7 @@ export function FunnelPlayer({
     [document.elements, currentPage?.id],
   )
   const fieldPages = useMemo(() => responseFieldPageMap(document), [document])
+  const fieldElements = useMemo(() => responseFieldElementMap(document), [document])
   const activePageIds = useMemo(
     () => new Set([...pageHistory, currentPage?.id].filter((id): id is string => Boolean(id))),
     [currentPage?.id, pageHistory],
@@ -600,7 +613,7 @@ export function FunnelPlayer({
       delete next[key]
       return next
     })
-    void emit({ type: 'interaction', pageId: currentPage?.id, payload: { fieldKey: key } })
+    void emit({ type: 'interaction', pageId: currentPage?.id, elementId: fieldElements.get(key), payload: { fieldKey: key } })
   }
 
   const uploadFile = async (key: string, file: File) => {

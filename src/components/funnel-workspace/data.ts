@@ -50,6 +50,8 @@ interface SessionRow {
   status: 'active' | 'completed' | 'abandoned' | 'expired'
   current_page_id: string | null
   last_seen_at: string
+  utm: Record<string, unknown> | null
+  device: Record<string, unknown> | null
 }
 
 interface EventRow {
@@ -59,10 +61,24 @@ interface EventRow {
   occurred_at: string
 }
 
+interface InteractionEventRow {
+  session_id: string
+  page_id: string | null
+  element_id: string | null
+  occurred_at: string
+}
+
 interface PageRow {
   id: string
   name: string
   order_num: number
+}
+
+interface ElementFieldRow {
+  id: string
+  page_id: string
+  type: string
+  content: Record<string, unknown> | null
 }
 
 function asFiniteNumber(value: number | string | null | undefined) {
@@ -215,11 +231,13 @@ export async function getFunnelAnalytics(funnelId: string): Promise<{
 
   const [
     pagesResult,
+    elementsResult,
     sessionsResult,
     submissionsResult,
     visitsResult,
     startsResult,
     pageEventsResult,
+    interactionEventsResult,
   ] = await Promise.all([
     supabase
       .from('funnel_pages')
@@ -227,8 +245,13 @@ export async function getFunnelAnalytics(funnelId: string): Promise<{
       .eq('funnel_id', funnelId)
       .order('order_num', { ascending: true }),
     supabase
+      .from('funnel_elements')
+      .select('id, page_id, type, content')
+      .eq('funnel_id', funnelId)
+      .in('type', ['short_text', 'email', 'phone', 'number', 'date', 'select', 'checkbox', 'radio', 'upload', 'quiz_choice', 'slider', 'rating']),
+    supabase
       .from('funnel_sessions')
-      .select('id, status, current_page_id, last_seen_at', { count: 'exact' })
+      .select('id, status, current_page_id, last_seen_at, utm, device', { count: 'exact' })
       .eq('funnel_id', funnelId)
       .order('last_seen_at', { ascending: false })
       .limit(MAX_ANALYTICS_SESSIONS),
@@ -257,23 +280,35 @@ export async function getFunnelAnalytics(funnelId: string): Promise<{
       .in('event_type', ['view', 'page_view'])
       .order('occurred_at', { ascending: false })
       .limit(MAX_ANALYTICS_EVENTS),
+    supabase
+      .from('funnel_events')
+      .select('session_id, page_id, element_id, occurred_at', { count: 'exact' })
+      .eq('funnel_id', funnelId)
+      .eq('event_type', 'interaction')
+      .not('element_id', 'is', null)
+      .order('occurred_at', { ascending: true })
+      .limit(MAX_ANALYTICS_EVENTS),
   ])
 
   const firstError = [
     pagesResult.error,
+    elementsResult.error,
     sessionsResult.error,
     submissionsResult.error,
     visitsResult.error,
     startsResult.error,
     pageEventsResult.error,
+    interactionEventsResult.error,
   ].find(Boolean)
   if (firstError) throw new Error(`Não foi possível calcular os indicadores: ${firstError.message}`)
 
   const pages = (pagesResult.data ?? []) as PageRow[]
+  const elements = (elementsResult.data ?? []) as ElementFieldRow[]
   const sessions = (sessionsResult.data ?? []) as SessionRow[]
   const submissions = (submissionsResult.data ?? []) as Array<{ id: string; submitted_at: string }>
   const startEvents = (startsResult.data ?? []) as EventRow[]
   const pageEvents = (pageEventsResult.data ?? []) as EventRow[]
+  const interactionEvents = (interactionEventsResult.data ?? []) as InteractionEventRow[]
   const sessionCount = sessionsResult.count ?? sessions.length
   const startCount = startsResult.count ?? startEvents.length
   const completionCount = submissionsResult.count ?? submissions.length
@@ -305,6 +340,80 @@ export async function getFunnelAnalytics(funnelId: string): Promise<{
       (pageAbandonments.get(session.current_page_id) ?? 0) + 1,
     )
   }
+
+  // Per-element interaction counts (engagement) and the last element each
+  // abandoned session touched on its final page (a proxy for exactly which
+  // field the visitor stalled on, not just which page).
+  const elementInteractionCounts = new Map<string, number>()
+  const lastInteractedElementBySession = new Map<string, string>()
+  for (const event of interactionEvents) {
+    if (!event.element_id) continue
+    elementInteractionCounts.set(event.element_id, (elementInteractionCounts.get(event.element_id) ?? 0) + 1)
+    // Events are ordered ascending by occurred_at, so the last write wins.
+    lastInteractedElementBySession.set(event.session_id, event.element_id)
+  }
+  const elementAbandonments = new Map<string, number>()
+  for (const session of abandonedSessions) {
+    const lastElementId = lastInteractedElementBySession.get(session.id)
+    if (!lastElementId) continue
+    elementAbandonments.set(lastElementId, (elementAbandonments.get(lastElementId) ?? 0) + 1)
+  }
+
+  const elementsByPage = new Map<string, ElementFieldRow[]>()
+  for (const element of elements) {
+    const list = elementsByPage.get(element.page_id) ?? []
+    list.push(element)
+    elementsByPage.set(element.page_id, list)
+  }
+  const elementLabel = (element: ElementFieldRow) => {
+    const content = element.content ?? {}
+    const label = typeof content.label === 'string' ? content.label.trim() : ''
+    return label || (typeof content.fieldKey === 'string' ? content.fieldKey : element.id)
+  }
+
+  // UTM source and device breakdowns, joined against the same start events
+  // used for the headline conversion rate. A session's completion is read
+  // straight off its status (set to 'completed' by submit_funnel_impl),
+  // consistent with how abandonment above already reads session.status.
+  const sessionById = new Map(sessions.map((session) => [session.id, session]))
+
+  function breakdownBy(keyOf: (session: SessionRow) => string): FunnelAnalyticsData['utmSources'] {
+    const startsByKey = new Map<string, Set<string>>()
+    for (const event of startEvents) {
+      const session = sessionById.get(event.session_id)
+      if (!session) continue
+      const key = keyOf(session)
+      const set = startsByKey.get(key) ?? new Set<string>()
+      set.add(event.session_id)
+      startsByKey.set(key, set)
+    }
+    const completionsByKey = new Map<string, number>()
+    for (const [key, sessionIds] of startsByKey) {
+      let completed = 0
+      for (const sessionId of sessionIds) {
+        const session = sessionById.get(sessionId)
+        if (session?.status === 'completed') completed += 1
+      }
+      completionsByKey.set(key, completed)
+    }
+    return Array.from(startsByKey.entries())
+      .map(([key, sessionIds]) => {
+        const starts = sessionIds.size
+        const completions = completionsByKey.get(key) ?? 0
+        return { key, starts, completions, conversionRate: starts > 0 ? (completions / starts) * 100 : 0 }
+      })
+      .sort((left, right) => right.starts - left.starts)
+      .slice(0, 20)
+  }
+
+  const utmSources = breakdownBy((session) => {
+    const source = session.utm && typeof session.utm.utm_source === 'string' ? session.utm.utm_source.trim() : ''
+    return source || 'Direto / sem UTM'
+  })
+  const devices = breakdownBy((session) => {
+    const breakpoint = session.device && typeof session.device.breakpoint === 'string' ? session.device.breakpoint.trim() : ''
+    return breakpoint === 'desktop' ? 'Desktop' : breakpoint === 'tablet' ? 'Tablet' : breakpoint === 'mobile' ? 'Celular' : 'Não identificado'
+  })
 
   const dailyMap = new Map<string, { starts: number; completions: number }>()
   const today = startOfLocalDay(new Date())
@@ -341,6 +450,7 @@ export async function getFunnelAnalytics(funnelId: string): Promise<{
       pageAnalytics: pages.map((page) => {
         const visits = pageVisits.get(page.id)?.size ?? 0
         const abandonments = pageAbandonments.get(page.id) ?? 0
+        const pageElements = elementsByPage.get(page.id) ?? []
         return {
           id: page.id,
           name: page.name,
@@ -348,14 +458,27 @@ export async function getFunnelAnalytics(funnelId: string): Promise<{
           visits,
           abandonments,
           abandonmentRate: visits > 0 ? (abandonments / visits) * 100 : 0,
+          elementAnalytics: pageElements
+            .map((element) => ({
+              id: element.id,
+              fieldKey: typeof element.content?.fieldKey === 'string' ? element.content.fieldKey : element.id,
+              label: elementLabel(element),
+              interactions: elementInteractionCounts.get(element.id) ?? 0,
+              abandonments: elementAbandonments.get(element.id) ?? 0,
+            }))
+            .filter((item) => item.interactions > 0 || item.abandonments > 0)
+            .sort((left, right) => right.abandonments - left.abandonments || right.interactions - left.interactions),
         }
       }),
+      utmSources,
+      devices,
       daily,
       sampled:
         sessionCount > sessions.length ||
         completionCount > submissions.length ||
         startCount > startEvents.length ||
-        (pageEventsResult.count ?? pageEvents.length) > pageEvents.length,
+        (pageEventsResult.count ?? pageEvents.length) > pageEvents.length ||
+        (interactionEventsResult.count ?? interactionEvents.length) > interactionEvents.length,
     },
   }
 }
