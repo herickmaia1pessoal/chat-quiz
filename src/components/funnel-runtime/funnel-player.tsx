@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckCircle2, ChevronLeft, LoaderCircle, RotateCcw } from 'lucide-react'
 import type { Breakpoint, FunnelDocument, FunnelElement } from '@/lib/funnel'
-import { getChildren } from '@/lib/funnel'
+import { getChildren, normalizeFunnelOptions } from '@/lib/funnel'
 import {
   calculateFunnelScore,
   getFunnelFlowDefinition,
@@ -673,22 +673,12 @@ export function FunnelPlayer({
         nextErrors[key] = 'Informe uma data válida.'
       }
       if (!empty && ['select', 'radio', 'quiz_choice'].includes(element.type)) {
-        const allowed = Array.isArray(element.content.options)
-          ? element.content.options.flatMap((option) => {
-              if (typeof option === 'string') return [option]
-              if (!option || typeof option !== 'object' || Array.isArray(option)) return []
-              return typeof (option as { label?: unknown }).label === 'string'
-                ? [(option as { label: string }).label]
-                : []
-            })
-          : []
+        const allowed = normalizeFunnelOptions(element.content.options).map((option) => option.value)
         if (!allowed.includes(String(value))) nextErrors[key] = 'Escolha uma das opções disponíveis.'
       }
       if (!empty && element.type === 'checkbox') {
-        const allowed = Array.isArray(element.content.options)
-          ? new Set(element.content.options.filter((option): option is string => typeof option === 'string'))
-          : new Set<string>()
-        if (!Array.isArray(value) || value.some((item) => !allowed.has(item))) {
+        const allowed = new Set(normalizeFunnelOptions(element.content.options).map((option) => option.value))
+        if (!Array.isArray(value) || value.some((item) => !allowed.has(String(item)))) {
           nextErrors[key] = 'Há uma opção inválida nesta resposta.'
         }
       }

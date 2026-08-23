@@ -44,6 +44,7 @@ import {
   moveElement,
   moveElementToPage,
   normalizeElementDropIndex,
+  normalizeFunnelOptions,
   removeElement,
   removePage,
   remapElementFieldReferences,
@@ -634,12 +635,8 @@ export function FunnelBuilder({
         }
       }
       if (original.type === 'quiz_choice' && updated.type === 'quiz_choice') {
-        const previousOptions = Array.isArray(original.content.options)
-          ? original.content.options.filter((option): option is string => typeof option === 'string')
-          : []
-        const nextOptions = Array.isArray(updated.content.options)
-          ? updated.content.options.filter((option): option is string => typeof option === 'string')
-          : []
+        const previousOptions = normalizeFunnelOptions(original.content.options).map((option) => option.value)
+        const nextOptions = normalizeFunnelOptions(updated.content.options).map((option) => option.value)
         if (JSON.stringify(previousOptions) !== JSON.stringify(nextOptions)) {
           updated = {
             ...updated,

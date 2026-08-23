@@ -1,11 +1,14 @@
 'use client'
 
-import { FolderOpen, Plus, RotateCcw, SlidersHorizontal, Trash2, X } from 'lucide-react'
+import { FolderOpen, Plus, RotateCcw, SlidersHorizontal, Tag, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import {
   ELEMENT_REGISTRY,
   hasBreakpointOverride,
+  normalizeFunnelOptions,
   type Breakpoint,
+  type ElementType,
+  type FunnelChoiceOption,
   type FunnelElement,
   type FunnelPage,
   type InspectorFieldDefinition,
@@ -30,6 +33,11 @@ const MEDIA_URL_FIELDS = new Set([
   'embed.url',
   'testimonial.avatar',
 ])
+
+// Element types whose `options` field is a set of choices someone picks
+// from (as opposed to a plain string list like logo_cloud.logos or
+// price.features) — these get the richer label+tag editor.
+const CHOICE_ELEMENT_TYPES = new Set<ElementType>(['select', 'checkbox', 'radio', 'quiz_choice'])
 
 function toInputValue(value: unknown) {
   if (typeof value === 'string' || typeof value === 'number') return value
@@ -108,6 +116,62 @@ function ContentField({
           >
             <Plus className="size-3.5" /> Adicionar item
           </button>
+        </fieldset>
+      )
+    }
+
+    if (field.key === 'options' && CHOICE_ELEMENT_TYPES.has(element.type)) {
+      const options = normalizeFunnelOptions(value)
+      const updateOption = (index: number, patch: Partial<FunnelChoiceOption>) => onChange(
+        options.map((option, optionIndex) => optionIndex === index ? { ...option, ...patch } : option),
+      )
+      return (
+        <fieldset className="space-y-2.5">
+          <legend className={labelClass}>{field.label}</legend>
+          {options.map((option, index) => (
+            <div key={index} className="rounded-xl border border-white/8 bg-white/[0.025] p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-600">Opção {index + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => onChange(options.filter((_, optionIndex) => optionIndex !== index))}
+                  aria-label={`Excluir opção ${index + 1}`}
+                  className="rounded-md p-1 text-zinc-600 transition hover:bg-rose-500/10 hover:text-rose-400"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              </div>
+              <label className="block">
+                <span className="sr-only">Texto da opção {index + 1}</span>
+                <input
+                  value={option.label}
+                  onChange={(event) => updateOption(index, { label: event.target.value, value: event.target.value })}
+                  placeholder="Texto exibido"
+                  className={fieldClass}
+                />
+              </label>
+              <label className="mt-2 flex items-center gap-2">
+                <Tag className="size-3.5 shrink-0 text-zinc-600" />
+                <span className="sr-only">Tag de qualificação da opção {index + 1}</span>
+                <input
+                  value={option.tag ?? ''}
+                  onChange={(event) => updateOption(index, { tag: event.target.value })}
+                  placeholder="Tag (opcional, ex: alta-intencao)"
+                  className={fieldClass}
+                />
+              </label>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => onChange([...options, { label: `Opção ${options.length + 1}`, value: `Opção ${options.length + 1}` }])}
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/10 text-[11px] font-semibold text-zinc-500 transition hover:border-violet-400/35 hover:text-violet-300"
+          >
+            <Plus className="size-3.5" /> Adicionar opção
+          </button>
+          <p className="px-1 text-[10px] leading-relaxed text-zinc-600">
+            A tag é aplicada ao lead quando esta opção é escolhida — use para qualificar respostas (ex: &quot;pronto-para-comprar&quot;).
+          </p>
         </fieldset>
       )
     }
@@ -290,20 +354,18 @@ function ScoringEditor({
   }))
 
   if (element.type === 'quiz_choice') {
-    const choices = Array.isArray(element.content.options)
-      ? element.content.options.filter((item): item is string => typeof item === 'string')
-      : []
+    const choices = normalizeFunnelOptions(element.content.options)
     return (
       <fieldset className="space-y-2 rounded-xl border border-white/8 bg-white/[0.025] p-3">
         <legend className="px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">Pontos por resposta</legend>
         {choices.map((choice) => (
-          <label key={choice} className="flex items-center gap-3">
-            <span className="min-w-0 flex-1 truncate text-xs text-zinc-400">{choice}</span>
+          <label key={choice.value} className="flex items-center gap-3">
+            <span className="min-w-0 flex-1 truncate text-xs text-zinc-400">{choice.label}</span>
             <input
               type="number"
-              value={rules.find((rule) => String(rule.value) === choice)?.points ?? 0}
-              onChange={(event) => updateRule(choice, Number(event.target.value))}
-              aria-label={`Pontos para ${choice}`}
+              value={rules.find((rule) => String(rule.value) === choice.value)?.points ?? 0}
+              onChange={(event) => updateRule(choice.value, Number(event.target.value))}
+              aria-label={`Pontos para ${choice.label}`}
               className={`${fieldClass} w-20 text-right`}
             />
           </label>

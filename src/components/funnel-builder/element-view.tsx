@@ -16,7 +16,7 @@ import {
   Quote,
   Star,
 } from 'lucide-react'
-import { resolveElementStyles } from '@/lib/funnel'
+import { normalizeFunnelOptions, resolveElementStyles } from '@/lib/funnel'
 import type { Breakpoint, FunnelElement, StyleProperties } from '@/lib/funnel'
 import { FunnelIcon } from '@/components/funnel-shared/funnel-icon'
 import { safeUrl, videoEmbedUrl } from '@/components/funnel-runtime/style-utils'
@@ -225,7 +225,7 @@ export function ElementView({
         <FieldShell element={element}>
           <select className={inputClass} defaultValue="">
             <option value="" disabled>{placeholder || 'Escolha...'}</option>
-            {contentStrings(element, 'options').map((option) => <option key={option}>{option}</option>)}
+            {normalizeFunnelOptions(element.content.options).map((option) => <option key={option.value}>{option.label}</option>)}
           </select>
         </FieldShell>
       )
@@ -233,9 +233,9 @@ export function ElementView({
       return (
         <FieldShell element={element} group>
           <div className="grid gap-2">
-            {contentStrings(element, 'options').map((option) => (
-              <label key={option} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 py-3 text-sm text-zinc-300">
-                <input type="checkbox" className="size-4 accent-violet-500" /> {option}
+            {normalizeFunnelOptions(element.content.options).map((option) => (
+              <label key={option.value} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 py-3 text-sm text-zinc-300">
+                <input type="checkbox" className="size-4 accent-violet-500" /> {option.label}
               </label>
             ))}
           </div>
@@ -245,9 +245,9 @@ export function ElementView({
       return (
         <FieldShell element={element} group>
           <div className="grid gap-2">
-            {contentStrings(element, 'options').map((option) => (
-              <label key={option} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 py-3 text-sm text-zinc-300">
-                <input type="radio" name={element.id} className="size-4 accent-violet-500" /> {option}
+            {normalizeFunnelOptions(element.content.options).map((option) => (
+              <label key={option.value} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 py-3 text-sm text-zinc-300">
+                <input type="radio" name={element.id} className="size-4 accent-violet-500" /> {option.label}
               </label>
             ))}
           </div>
@@ -268,10 +268,10 @@ export function ElementView({
         <div style={css} className="w-full">
           <FieldShell element={element} group>
             <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={contentString(element, 'label', 'Escolha uma resposta')}>
-              {contentStrings(element, 'options').map((option, index) => (
-                <label key={`${option}-${index}`} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 text-sm text-zinc-300 transition hover:border-violet-400/30 hover:bg-violet-500/[0.06]">
-                  <input type="radio" name={element.id} value={option} className="size-4" style={{ accentColor: style.accentColor ?? '#8b5cf6' }} />
-                  <span>{option}</span>
+              {normalizeFunnelOptions(element.content.options).map((option) => (
+                <label key={option.value} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 text-sm text-zinc-300 transition hover:border-violet-400/30 hover:bg-violet-500/[0.06]">
+                  <input type="radio" name={element.id} value={option.value} className="size-4" style={{ accentColor: style.accentColor ?? '#8b5cf6' }} />
+                  <span>{option.label}</span>
                 </label>
               ))}
             </div>

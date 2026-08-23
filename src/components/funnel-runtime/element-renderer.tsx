@@ -13,7 +13,7 @@ import {
   UploadCloud,
 } from 'lucide-react'
 import type { Breakpoint, ElementActionType, FunnelElement } from '@/lib/funnel'
-import { resolveElementStyles } from '@/lib/funnel'
+import { normalizeFunnelOptions, resolveElementStyles } from '@/lib/funnel'
 import { evaluateCondition, interpolateFunnelText } from './variables'
 import { safeUrl, toReactStyle, videoEmbedUrl } from './style-utils'
 import { FunnelIcon } from '@/components/funnel-shared/funnel-icon'
@@ -48,13 +48,7 @@ function number(content: Record<string, unknown>, key: string, fallback = 0) {
 }
 
 function options(content: Record<string, unknown>) {
-  if (!Array.isArray(content.options)) return []
-  return content.options.map((item) => {
-    if (typeof item === 'string') return item
-    if (!item || typeof item !== 'object' || Array.isArray(item)) return ''
-    const label = (item as { label?: unknown }).label
-    return typeof label === 'string' ? label : ''
-  }).filter(Boolean)
+  return normalizeFunnelOptions(content.options)
 }
 
 function titledItems(content: Record<string, unknown>) {
@@ -354,7 +348,7 @@ export function FunnelElementRenderer({
         <FieldShell element={element} variables={variables} error={errors[fieldKey]}>
           <select id={`field-${element.id}`} value={typeof value === 'string' ? value : ''} required={Boolean(content.required)} onChange={(event) => onValue(fieldKey, event.target.value)} className={fieldClass}>
             <option value="">{interpolated('placeholder', 'Escolha...')}</option>
-            {options(content).map((option) => <option key={option} value={option}>{option}</option>)}
+            {options(content).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </FieldShell>
       )
@@ -365,9 +359,9 @@ export function FunnelElementRenderer({
         <FieldShell element={element} variables={variables} error={errors[fieldKey]} group>
           <div className="grid gap-2">
             {options(content).map((option, index) => (
-              <label key={`${option}-${index}`} htmlFor={`field-${element.id}-${index}`} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-current/10 bg-current/[.025] px-3.5 text-sm transition hover:bg-current/[.05]">
-                <input id={`field-${element.id}-${index}`} type="checkbox" checked={selected.includes(option)} onChange={(event) => onValue(fieldKey, event.target.checked ? [...selected, option] : selected.filter((item) => item !== option))} className="size-4 accent-violet-500" />
-                {option}
+              <label key={`${option.value}-${index}`} htmlFor={`field-${element.id}-${index}`} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-current/10 bg-current/[.025] px-3.5 text-sm transition hover:bg-current/[.05]">
+                <input id={`field-${element.id}-${index}`} type="checkbox" checked={selected.includes(option.value)} onChange={(event) => onValue(fieldKey, event.target.checked ? [...selected, option.value] : selected.filter((item) => item !== option.value))} className="size-4 accent-violet-500" />
+                {option.label}
               </label>
             ))}
           </div>
@@ -381,9 +375,9 @@ export function FunnelElementRenderer({
         <FieldShell element={element} variables={variables} error={errors[fieldKey]} group>
           <div className="grid gap-2 sm:grid-cols-2">
             {options(content).map((option, index) => (
-              <label key={`${option}-${index}`} htmlFor={`field-${element.id}-${index}`} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3.5 text-sm transition ${value === option ? 'border-violet-400 bg-violet-500/12' : 'border-current/10 bg-current/[.025] hover:bg-current/[.05]'}`}>
-                <input id={`field-${element.id}-${index}`} type="radio" name={fieldKey} value={option} checked={value === option} onChange={() => onValue(fieldKey, option)} className="size-4" style={{ accentColor }} />
-                {option}
+              <label key={`${option.value}-${index}`} htmlFor={`field-${element.id}-${index}`} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3.5 text-sm transition ${value === option.value ? 'border-violet-400 bg-violet-500/12' : 'border-current/10 bg-current/[.025] hover:bg-current/[.05]'}`}>
+                <input id={`field-${element.id}-${index}`} type="radio" name={fieldKey} value={option.value} checked={value === option.value} onChange={() => onValue(fieldKey, option.value)} className="size-4" style={{ accentColor }} />
+                {option.label}
               </label>
             ))}
           </div>

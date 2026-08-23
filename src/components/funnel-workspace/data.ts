@@ -33,6 +33,7 @@ interface SubmissionRow {
   lead: Record<string, unknown> | null
   score: number | string | null
   result_key: string | null
+  tags: string[] | null
   submitted_at: string
 }
 
@@ -130,7 +131,7 @@ export async function getFunnelSubmissions(funnelId: string): Promise<{
   const { supabase, funnel } = await requireFunnelWorkspace(funnelId)
   const { data, error, count } = await supabase
     .from('funnel_submissions')
-    .select('id, session_id, name, email, phone, lead, score, result_key, submitted_at', {
+    .select('id, session_id, name, email, phone, lead, score, result_key, tags, submitted_at', {
       count: 'exact',
     })
     .eq('funnel_id', funnelId)
@@ -186,6 +187,7 @@ export async function getFunnelSubmissions(funnelId: string): Promise<{
       lead: row.lead ?? {},
       score: asFiniteNumber(row.score),
       resultKey: row.result_key,
+      tags: row.tags ?? [],
       submittedAt: row.submitted_at,
       values: valuesBySubmission.get(row.id) ?? [],
     })),

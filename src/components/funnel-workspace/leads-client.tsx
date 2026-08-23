@@ -68,8 +68,15 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
   const [downloadError, setDownloadError] = useState('')
   const [filterNow] = useState(() => Date.now())
 
+  const [tagFilter, setTagFilter] = useState('all')
+
   const resultOptions = useMemo(
     () => Array.from(new Set(submissions.map((item) => item.resultKey).filter(Boolean))).sort() as string[],
+    [submissions],
+  )
+
+  const tagOptions = useMemo(
+    () => Array.from(new Set(submissions.flatMap((item) => item.tags))).sort(),
     [submissions],
   )
 
@@ -79,25 +86,26 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
 
     return submissions.filter((submission) => {
       if (resultFilter !== 'all' && submission.resultKey !== resultFilter) return false
+      if (tagFilter !== 'all' && !submission.tags.includes(tagFilter)) return false
       if (periodDays) {
         const age = filterNow - new Date(submission.submittedAt).getTime()
         if (age > periodDays * 24 * 60 * 60 * 1000) return false
       }
       if (!normalizedQuery) return true
       const answerText = submission.values.map((value) => displayValue(value.value)).join(' ')
-      return [submission.name, submission.email, submission.phone, submission.resultKey, answerText]
+      return [submission.name, submission.email, submission.phone, submission.resultKey, answerText, ...submission.tags]
         .filter(Boolean)
         .join(' ')
         .toLocaleLowerCase('pt-BR')
         .includes(normalizedQuery)
     })
-  }, [filterNow, period, query, resultFilter, submissions])
+  }, [filterNow, period, query, resultFilter, tagFilter, submissions])
 
   const exportCsv = () => {
     const answerKeys = Array.from(
       new Set(filtered.flatMap((submission) => submission.values.map((value) => value.fieldKey))),
     ).sort()
-    const headers = ['Nome', 'E-mail', 'Telefone', 'Score', 'Resultado', 'Enviado em', ...answerKeys]
+    const headers = ['Nome', 'E-mail', 'Telefone', 'Score', 'Resultado', 'Tags', 'Enviado em', ...answerKeys]
     const lines = [
       headers.map(csvCell).join(','),
       ...filtered.map((submission) => {
@@ -108,6 +116,7 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
           submission.phone,
           submission.score,
           submission.resultKey,
+          submission.tags.join('; '),
           submission.submittedAt,
           ...answerKeys.map((key) => answers.get(key)),
         ]
@@ -165,6 +174,23 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
               </select>
             </label>
 
+            {tagOptions.length > 0 && (
+              <label className="relative">
+                <span className="sr-only">Filtrar por tag</span>
+                <SlidersHorizontal className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-600" />
+                <select
+                  value={tagFilter}
+                  onChange={(event) => setTagFilter(event.target.value)}
+                  className="h-11 min-w-36 appearance-none rounded-xl border border-white/[0.07] bg-[#101118] pl-9 pr-8 text-xs font-semibold text-zinc-300 outline-none focus:border-violet-400/45"
+                >
+                  <option value="all">Todas as tags</option>
+                  {tagOptions.map((tag) => (
+                    <option key={tag} value={tag}>{tag}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+
             <label className="relative">
               <span className="sr-only">Filtrar por período</span>
               <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-600" />
@@ -221,6 +247,7 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
                   <th className="px-5 py-3.5">Lead</th>
                   <th className="px-4 py-3.5">Contato</th>
                   <th className="px-4 py-3.5">Resultado</th>
+                  <th className="px-4 py-3.5">Tags</th>
                   <th className="px-4 py-3.5">Score</th>
                   <th className="px-4 py-3.5">Enviado em</th>
                   <th className="px-5 py-3.5 text-right">Respostas</th>
@@ -253,6 +280,15 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
                         <span className="rounded-lg border border-cyan-400/10 bg-cyan-400/[0.07] px-2.5 py-1 text-[11px] font-semibold text-cyan-300">
                           {submission.resultKey}
                         </span>
+                      ) : <span className="text-zinc-700">—</span>}
+                    </td>
+                    <td className="px-4 py-4">
+                      {submission.tags.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {submission.tags.map((tag) => (
+                            <span key={tag} className="rounded-full border border-violet-400/15 bg-violet-500/[0.08] px-2 py-0.5 text-[10px] font-semibold text-violet-300">{tag}</span>
+                          ))}
+                        </div>
                       ) : <span className="text-zinc-700">—</span>}
                     </td>
                     <td className="px-4 py-4 font-mono text-xs text-zinc-400">{submission.score ?? '—'}</td>
@@ -305,6 +341,17 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
                 <DetailCard icon={Phone} label="Telefone" value={selected.phone} />
                 <DetailCard icon={SlidersHorizontal} label="Resultado" value={selected.resultKey} />
               </div>
+
+              {selected.tags.length > 0 && (
+                <section>
+                  <h3 className="mb-3 text-sm font-bold text-zinc-200">Tags</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selected.tags.map((tag) => (
+                      <span key={tag} className="rounded-full border border-violet-400/15 bg-violet-500/[0.08] px-2.5 py-1 text-[11px] font-semibold text-violet-300">{tag}</span>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               <section>
                 <div className="mb-3 flex items-center justify-between">

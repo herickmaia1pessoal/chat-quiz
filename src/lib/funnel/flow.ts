@@ -13,6 +13,7 @@ import {
   isReservedFunnelKey,
   isSupportedFunnelUtmKey,
 } from './keys'
+import { normalizeFunnelOptions } from './options'
 
 export interface FlowEvaluationContext {
   answers?: Record<string, unknown>
@@ -601,9 +602,7 @@ export function validateFunnelFlow(document: FunnelDocument): FlowValidationResu
   }
 
   for (const element of document.elements) {
-    const optionValues = Array.isArray(element.content.options)
-      ? element.content.options.filter((option): option is string => typeof option === 'string')
-      : []
+    const optionValues = normalizeFunnelOptions(element.content.options).map((option) => option.value)
     for (const rule of element.logic.scoring ?? []) {
       const valueIsInvalidChoice = element.type === 'quiz_choice'
         && (rule.value === undefined || !optionValues.includes(String(rule.value)))

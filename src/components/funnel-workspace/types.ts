@@ -29,6 +29,7 @@ export interface FunnelSubmissionRecord {
   lead: Record<string, unknown>
   score: number | null
   resultKey: string | null
+  tags: string[]
   submittedAt: string
   values: FunnelSubmissionValueRecord[]
 }
