@@ -305,7 +305,7 @@ export function ImportFunnelV2Dialog({ workspaceId }: { workspaceId: string }) {
   )
 }
 
-export function UseFunnelTemplateButton({ templateId }: { templateId: string }) {
+export function UseFunnelTemplateButton({ templateId, workspaceId }: { templateId: string; workspaceId: string }) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -314,7 +314,7 @@ export function UseFunnelTemplateButton({ templateId }: { templateId: string }) 
     setPending(true)
     setError(null)
     try {
-      const result = await createFunnelFromTemplateV2(templateId)
+      const result = await createFunnelFromTemplateV2(templateId, workspaceId)
       router.push(`/dashboard/funnels/${result.funnelId}`)
     } catch (caught) {
       console.error(caught)

@@ -1003,21 +1003,15 @@ export async function createTemplateFromFunnelV2(funnelId: string) {
   return { templateId: String((data as { template_id: string }).template_id) }
 }
 
-export async function createFunnelFromTemplateV2(templateId: string) {
+export async function createFunnelFromTemplateV2(templateId: string, workspaceId: string) {
   const { supabase } = await requireAuthenticatedClient()
   assertUuid(templateId, 'Template')
-
-  const { data: template, error: templateError } = await supabase
-    .from('funnel_templates')
-    .select('id, workspace_id')
-    .eq('id', templateId)
-    .maybeSingle()
-  if (templateError || !template) throw new Error('Template não encontrado ou sem permissão.')
-  await assertWorkspaceAccess(supabase, String(template.workspace_id))
+  await assertWorkspaceAccess(supabase, workspaceId)
 
   const { data, error } = await supabase
     .rpc('create_funnel_from_template', {
       p_template_id: templateId,
+      p_workspace_id: workspaceId,
       p_name: null,
       p_slug: null,
     })

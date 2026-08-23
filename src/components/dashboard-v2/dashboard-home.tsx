@@ -83,6 +83,7 @@ export interface FunnelTemplateSummary {
   category: string
   createdAt: string
   sourceFunnelId: string | null
+  isSystem: boolean
 }
 
 interface WorkspaceSummary {
@@ -147,31 +148,16 @@ const templateIdeas = [
     tone: 'from-violet-500/25 to-indigo-500/5 text-violet-300',
     available: true,
   },
-  {
-    name: 'Captura de leads',
-    description: 'Landing page curta com benefícios, formulário e chamada final.',
-    category: 'Conversão',
-    icon: FormInput,
-    tone: 'from-cyan-500/20 to-sky-500/5 text-cyan-300',
-    available: false,
-  },
-  {
-    name: 'Diagnóstico interativo',
-    description: 'Perguntas, pontuação e uma recomendação personalizada ao final.',
-    category: 'Qualificação',
-    icon: Gauge,
-    tone: 'from-amber-500/20 to-orange-500/5 text-amber-300',
-    available: false,
-  },
-  {
-    name: 'Aplicação premium',
-    description: 'Fluxo de candidatura com filtros, contexto e coleta de dados.',
-    category: 'Seleção',
-    icon: CheckCircle2,
-    tone: 'from-emerald-500/20 to-teal-500/5 text-emerald-300',
-    available: false,
-  },
 ]
+
+// Visual identity for the 3 curated system templates, matched by category
+// (set when they were seeded — see supabase/migrations). Falls back to a
+// neutral violet tone for any other system or workspace template.
+const systemTemplateTone: Record<string, { icon: React.ComponentType<{ className?: string }>; tone: string }> = {
+  'Conversão': { icon: FormInput, tone: 'from-cyan-500/20 to-sky-500/5 text-cyan-300' },
+  'Qualificação': { icon: Gauge, tone: 'from-amber-500/20 to-orange-500/5 text-amber-300' },
+  'Seleção': { icon: CheckCircle2, tone: 'from-emerald-500/20 to-teal-500/5 text-emerald-300' },
+}
 
 function normalizeSearch(value: string) {
   return value
@@ -427,6 +413,9 @@ export function DashboardHome({
     return legacyQuizzes.filter((quiz) => !normalizedSearch || normalizeSearch(`${quiz.title} ${quiz.description || ''}`).includes(normalizedSearch))
   }, [legacyQuizzes, normalizedSearch])
 
+  const systemFunnelTemplates = funnelTemplates.filter((template) => template.isSystem)
+  const workspaceFunnelTemplates = funnelTemplates.filter((template) => !template.isSystem)
+
   const publishedFunnels = funnels.filter((funnel) => funnel.status === 'published').length
   const v2Submissions = funnels.reduce((sum, funnel) => sum + funnel.submissionCount, 0)
   const allLeads = totalLegacyLeads + v2Submissions
@@ -595,7 +584,69 @@ export function DashboardHome({
 
       {view === 'templates' && (
         <div className="space-y-9 pt-8">
-          {funnelTemplates.length > 0 && (
+          {systemFunnelTemplates.length > 0 && (
+            <section>
+              <div className="mb-4 flex items-end justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-zinc-100">Templates do Builder V2</h2>
+                    <span className="rounded-full border border-violet-400/15 bg-violet-500/[0.06] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-violet-300">Curado</span>
+                  </div>
+                  <p className="mt-1 text-xs text-zinc-600">Estruturas prontas, mantidas pela plataforma, disponíveis para todos os workspaces.</p>
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <article className="flex min-h-64 flex-col overflow-hidden rounded-2xl border border-white/[0.065] bg-[#0c0d13]/85 transition hover:-translate-y-0.5 hover:border-white/10">
+                  <div className={cn('relative grid h-28 place-items-center border-b border-white/[0.055] bg-gradient-to-br', templateIdeas[0].tone)}>
+                    <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(rgba(255,255,255,.13)_1px,transparent_1px)] [background-size:16px_16px]" />
+                    <Layers3 className="relative h-8 w-8" />
+                  </div>
+                  <div className="flex flex-1 flex-col p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-bold text-zinc-200">{templateIdeas[0].name}</h3>
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-700">{templateIdeas[0].category}</span>
+                    </div>
+                    <p className="mt-2 flex-1 text-xs leading-relaxed text-zinc-400">{templateIdeas[0].description}</p>
+                    <div className="mt-4">
+                      {workspaceId && funnelDataAvailable ? (
+                        <CreateFunnelDialog workspaceId={workspaceId} compact initialName="Novo funil" triggerLabel="Usar base" />
+                      ) : (
+                        <span className="inline-flex h-9 items-center rounded-lg border border-white/[0.06] bg-white/[0.025] px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-700">Indisponível</span>
+                      )}
+                    </div>
+                  </div>
+                </article>
+                {systemFunnelTemplates.map((template) => {
+                  const visual = systemTemplateTone[template.category] ?? { icon: LayoutTemplate, tone: 'from-violet-500/20 to-indigo-500/5 text-violet-300' }
+                  const Icon = visual.icon
+                  return (
+                    <article key={template.id} className="flex min-h-64 flex-col overflow-hidden rounded-2xl border border-white/[0.065] bg-[#0c0d13]/85 transition hover:-translate-y-0.5 hover:border-white/10">
+                      <div className={cn('relative grid h-28 place-items-center border-b border-white/[0.055] bg-gradient-to-br', visual.tone)}>
+                        <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(rgba(255,255,255,.13)_1px,transparent_1px)] [background-size:16px_16px]" />
+                        <Icon className="relative h-8 w-8" />
+                      </div>
+                      <div className="flex flex-1 flex-col p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <h3 className="text-sm font-bold text-zinc-200">{template.name}</h3>
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-700">{template.category}</span>
+                        </div>
+                        <p className="mt-2 flex-1 text-xs leading-relaxed text-zinc-400">{template.description}</p>
+                        <div className="mt-4">
+                          {workspaceId ? (
+                            <UseFunnelTemplateButton templateId={template.id} workspaceId={workspaceId} />
+                          ) : (
+                            <span className="inline-flex h-9 items-center rounded-lg border border-white/[0.06] bg-white/[0.025] px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-700">Indisponível</span>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {workspaceFunnelTemplates.length > 0 && (
             <section>
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -608,7 +659,7 @@ export function DashboardHome({
                 {workspaceId && <ImportFunnelV2Dialog workspaceId={workspaceId} />}
               </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {funnelTemplates.map((template) => (
+                {workspaceFunnelTemplates.map((template) => (
                   <article key={template.id} className="flex min-h-52 flex-col overflow-hidden rounded-2xl border border-emerald-400/10 bg-[#0c0d13]/85 transition hover:-translate-y-0.5 hover:border-emerald-400/20">
                     <div className="relative grid h-20 place-items-center border-b border-white/[0.055] bg-gradient-to-br from-emerald-500/20 via-cyan-500/[0.06] to-transparent">
                       <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:20px_20px]" />
@@ -622,7 +673,7 @@ export function DashboardHome({
                       <p className="mt-2 flex-1 text-xs leading-relaxed text-zinc-400">{template.description || 'Estrutura pronta para duplicar e personalizar.'}</p>
                       <div className="mt-4 flex items-end justify-between gap-3 border-t border-white/[0.05] pt-3">
                         <span className="text-[10px] text-zinc-700">Criado em {formatDate(template.createdAt)}</span>
-                        <UseFunnelTemplateButton templateId={template.id} />
+                        {workspaceId && <UseFunnelTemplateButton templateId={template.id} workspaceId={workspaceId} />}
                       </div>
                     </div>
                   </article>
@@ -630,43 +681,6 @@ export function DashboardHome({
               </div>
             </section>
           )}
-
-          <section>
-            <div className="mb-4 flex items-end justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-zinc-100">Templates do Builder V2</h2>
-                <p className="mt-1 text-xs text-zinc-600">Estruturas responsivas para acelerar a primeira versão.</p>
-              </div>
-              <span className="rounded-full border border-violet-400/15 bg-violet-500/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-violet-300">Nova biblioteca</span>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {templateIdeas.map((template) => {
-                const Icon = template.icon
-                return (
-                  <article key={template.name} className="flex min-h-64 flex-col overflow-hidden rounded-2xl border border-white/[0.065] bg-[#0c0d13]/85 transition hover:-translate-y-0.5 hover:border-white/10">
-                    <div className={cn('relative grid h-28 place-items-center border-b border-white/[0.055] bg-gradient-to-br', template.tone)}>
-                      <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(rgba(255,255,255,.13)_1px,transparent_1px)] [background-size:16px_16px]" />
-                      <Icon className="relative h-8 w-8" />
-                    </div>
-                    <div className="flex flex-1 flex-col p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className="text-sm font-bold text-zinc-200">{template.name}</h3>
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-700">{template.category}</span>
-                      </div>
-                      <p className="mt-2 flex-1 text-xs leading-relaxed text-zinc-400">{template.description}</p>
-                      <div className="mt-4">
-                        {workspaceId && template.available && funnelDataAvailable ? (
-                          <CreateFunnelDialog workspaceId={workspaceId} compact initialName="Novo funil" triggerLabel="Usar base" />
-                        ) : (
-                          <span className="inline-flex h-9 items-center rounded-lg border border-white/[0.06] bg-white/[0.025] px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-700">Em breve</span>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          </section>
 
           <section className="border-t border-white/[0.06] pt-8">
             <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

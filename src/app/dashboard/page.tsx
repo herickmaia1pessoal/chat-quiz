@@ -58,6 +58,7 @@ interface RawFunnelTemplate {
   category: string
   created_at: string
   source_funnel_id: string | null
+  workspace_id: string | null
 }
 
 function firstParam(value: string | string[] | undefined) {
@@ -137,8 +138,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
         .eq('is_active', true),
       supabase
         .from('funnel_templates')
-        .select('id, name, description, category, created_at, source_funnel_id')
-        .eq('workspace_id', activeWorkspaceId)
+        .select('id, name, description, category, created_at, source_funnel_id, workspace_id')
+        .or(`workspace_id.eq.${activeWorkspaceId},workspace_id.is.null`)
         .order('updated_at', { ascending: false }),
     ])
 
@@ -214,6 +215,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
     category: template.category,
     createdAt: template.created_at,
     sourceFunnelId: template.source_funnel_id,
+    isSystem: template.workspace_id === null,
   }))
 
   const totalLegacyLeads = legacyQuizzes.reduce((total, quiz) => total + quiz.leadCount, 0)
