@@ -4,7 +4,6 @@ import {
   type DashboardViewName,
   type FunnelSummary,
   type LegacyQuizSummary,
-  type LegacyTemplateSummary,
   type FunnelTemplateSummary,
 } from '@/components/dashboard-v2/dashboard-home'
 import { createClient } from '@/utils/supabase/server'
@@ -43,14 +42,6 @@ interface RawQuiz {
   leads: Array<{ count: number }> | null
 }
 
-interface RawTemplate {
-  id: string
-  name: string
-  description: string | null
-  category: string
-  thumbnail_emoji: string | null
-}
-
 interface RawFunnelTemplate {
   id: string
   name: string
@@ -79,14 +70,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
 
   if (!user) redirect('/login')
 
-  const [{ data: workspaceRows }, { data: templateRows }] = await Promise.all([
-    supabase.from('workspaces').select('id, name').order('created_at', { ascending: true }),
-    supabase
-      .from('quiz_templates')
-      .select('id, name, description, category, thumbnail_emoji')
-      .eq('is_active', true)
-      .order('created_at', { ascending: true }),
-  ])
+  const { data: workspaceRows } = await supabase
+    .from('workspaces')
+    .select('id, name')
+    .order('created_at', { ascending: true })
 
   const workspaces = workspaceRows || []
   const requestedWorkspaceId = firstParam(params.ws)
@@ -200,14 +187,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
     leadCount: quiz.leads?.[0]?.count || 0,
   }))
 
-  const templates: LegacyTemplateSummary[] = ((templateRows || []) as RawTemplate[]).map((template) => ({
-    id: template.id,
-    name: template.name,
-    description: template.description || '',
-    category: template.category,
-    thumbnail_emoji: template.thumbnail_emoji || '📋',
-  }))
-
   const funnelTemplates: FunnelTemplateSummary[] = rawFunnelTemplates.map((template) => ({
     id: template.id,
     name: template.name,
@@ -229,7 +208,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
       userEmail={user.email || 'Conta FunnelFlow'}
       funnels={funnels}
       legacyQuizzes={legacyQuizzes}
-      templates={templates}
       funnelTemplates={funnelTemplates}
       totalLegacyLeads={totalLegacyLeads}
       totalLegacyCompleted={completedLegacyResult.count || 0}

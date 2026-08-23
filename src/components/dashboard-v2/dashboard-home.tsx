@@ -30,7 +30,6 @@ import { DeleteQuizButton } from '@/components/dashboard/delete-quiz-button'
 import { DuplicateQuizButton } from '@/components/dashboard/duplicate-quiz-button'
 import { ExportQuizButton } from '@/components/dashboard/export-quiz-button'
 import { ImportQuizButton } from '@/components/dashboard/import-quiz-button'
-import { TemplatesDialog } from '@/components/dashboard/templates-dialog'
 import { WorkspaceSelector } from '@/components/dashboard/workspace-selector'
 import { CreateFunnelDialog } from '@/components/dashboard-v2/create-funnel-dialog'
 import { MediaLibrary } from '@/components/dashboard-v2/media-library'
@@ -68,14 +67,6 @@ export interface LegacyQuizSummary {
   leadCount: number
 }
 
-export interface LegacyTemplateSummary {
-  id: string
-  name: string
-  description: string
-  category: string
-  thumbnail_emoji: string
-}
-
 export interface FunnelTemplateSummary {
   id: string
   name: string
@@ -99,7 +90,6 @@ interface DashboardHomeProps {
   userEmail: string
   funnels: FunnelSummary[]
   legacyQuizzes: LegacyQuizSummary[]
-  templates: LegacyTemplateSummary[]
   funnelTemplates: FunnelTemplateSummary[]
   totalLegacyLeads: number
   totalLegacyCompleted: number
@@ -389,7 +379,6 @@ export function DashboardHome({
   userEmail,
   funnels,
   legacyQuizzes,
-  templates,
   funnelTemplates,
   totalLegacyLeads,
   totalLegacyCompleted,
@@ -682,33 +671,6 @@ export function DashboardHome({
             </section>
           )}
 
-          <section className="border-t border-white/[0.06] pt-8">
-            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold text-zinc-100">Biblioteca de quizzes</h2>
-                  <span className="rounded-full border border-amber-400/15 bg-amber-400/[0.055] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300">Legado</span>
-                </div>
-                <p className="mt-1 text-xs text-zinc-600">Templates disponíveis para o editor atual.</p>
-              </div>
-              {workspaceId && templates.length > 0 && <TemplatesDialog workspaceId={workspaceId} templates={templates} />}
-            </div>
-            {templates.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/[0.07] py-10 text-center text-sm text-zinc-600">Nenhum template legado disponível.</div>
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {templates.map((template) => (
-                  <div key={template.id} className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/[0.06] bg-black/20 text-xl">{template.thumbnail_emoji}</span>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-zinc-300">{template.name}</p>
-                      <p className="mt-0.5 line-clamp-1 text-xs text-zinc-700">{template.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
         </div>
       )}
 
