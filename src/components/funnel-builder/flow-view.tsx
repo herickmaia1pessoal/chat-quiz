@@ -255,7 +255,7 @@ export function FlowView({ document, activePageId, onSelectPage, onChange }: Flo
   const selectedIssues = validation.issues.filter((issue) => !issue.pageId || issue.pageId === selectedPage.id)
 
   return (
-    <div className="mx-auto w-[min(1460px,calc(100vw-390px))] min-w-[980px] space-y-5 p-8" onClick={(event) => event.stopPropagation()}>
+    <div className="mx-auto w-full max-w-[1460px] space-y-5 p-8" onClick={(event) => event.stopPropagation()}>
       <section className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-[#101014]/95 p-4 shadow-2xl shadow-black/25">
         <div>
           <div className="flex items-center gap-2 text-sm font-bold text-zinc-100"><GitBranch className="size-4 text-violet-400" /> Fluxo e ramificações</div>

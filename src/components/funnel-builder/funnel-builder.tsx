@@ -911,7 +911,7 @@ export function FunnelBuilder({
       </header>
 
       {notice && (
-        <button type="button" onClick={() => setNotice(null)} className="absolute right-4 top-16 z-[80] flex items-center gap-2 rounded-xl border border-white/10 bg-[#17171d] px-4 py-3 text-xs text-zinc-200 shadow-2xl shadow-black/60"><Check className="size-3.5 text-emerald-400" />{notice}<X className="ml-2 size-3 text-zinc-600" /></button>
+        <button type="button" onClick={() => setNotice(null)} className="absolute right-4 top-16 z-[80] flex max-w-[min(420px,calc(100vw-2rem))] items-start gap-2 rounded-xl border border-white/10 bg-[#17171d] px-4 py-3 text-left text-xs text-zinc-200 shadow-2xl shadow-black/60"><Check className="mt-0.5 size-3.5 shrink-0 text-emerald-400" /><span className="min-w-0">{notice}</span><X className="ml-2 size-3 shrink-0 text-zinc-600" /></button>
       )}
 
       <div className="flex min-h-0 flex-1">
@@ -947,7 +947,7 @@ export function FunnelBuilder({
             <span className="text-[9px] font-semibold text-zinc-600">{activePage?.name ?? 'Página'}</span>
             <span className="font-mono text-[9px] text-zinc-700">{breakpoint} · {width}px</span>
           </div>
-          <div className="min-h-[calc(100%-2rem)] min-w-max bg-[linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] bg-[size:36px_36px] px-14 py-12">
+          <div className={`min-h-[calc(100%-2rem)] bg-[linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] bg-[size:36px_36px] px-14 py-12 ${mode === 'flow' ? 'min-w-0' : 'min-w-max'}`}>
             {mode === 'flow' ? (
               <FlowView document={document} activePageId={activePage?.id ?? ''} onSelectPage={(id) => { setActivePageId(id); setSelectedId(null) }} onChange={mutate} />
             ) : (
