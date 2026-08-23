@@ -240,77 +240,119 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[880px] text-left">
-              <thead>
-                <tr className="border-b border-white/[0.06] bg-white/[0.015] text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-600">
-                  <th className="px-5 py-3.5">Lead</th>
-                  <th className="px-4 py-3.5">Contato</th>
-                  <th className="px-4 py-3.5">Resultado</th>
-                  <th className="px-4 py-3.5">Tags</th>
-                  <th className="px-4 py-3.5">Score</th>
-                  <th className="px-4 py-3.5">Enviado em</th>
-                  <th className="px-5 py-3.5 text-right">Respostas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((submission) => (
-                  <tr
-                    key={submission.id}
-                    onClick={() => setSelected(submission)}
-                    className="cursor-pointer border-b border-white/[0.045] text-sm transition last:border-0 hover:bg-violet-500/[0.045]"
-                  >
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-violet-400/10 bg-violet-500/10 text-xs font-bold text-violet-300">
-                          {(submission.name || submission.email || '?').slice(0, 1).toUpperCase()}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="max-w-52 truncate font-semibold text-zinc-200">{submission.name || 'Lead sem nome'}</p>
-                          <p className="mt-0.5 text-[11px] text-zinc-600">{submission.values.length} respostas</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <p className="max-w-56 truncate text-xs text-zinc-400">{submission.email || '—'}</p>
-                      <p className="mt-1 text-[11px] text-zinc-600">{submission.phone || 'Sem telefone'}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      {submission.resultKey ? (
-                        <span className="rounded-lg border border-cyan-400/10 bg-cyan-400/[0.07] px-2.5 py-1 text-[11px] font-semibold text-cyan-300">
+          <>
+            {/* Mobile: card list, one lead per row of info instead of a dense table. */}
+            <div className="divide-y divide-white/[0.045] sm:hidden">
+              {filtered.map((submission) => (
+                <button
+                  type="button"
+                  key={submission.id}
+                  onClick={() => setSelected(submission)}
+                  className="flex w-full items-start gap-3 px-4 py-4 text-left transition active:bg-violet-500/[0.06]"
+                >
+                  <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-violet-400/10 bg-violet-500/10 text-xs font-bold text-violet-300">
+                    {(submission.name || submission.email || '?').slice(0, 1).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold text-zinc-200">{submission.name || 'Lead sem nome'}</p>
+                      <ChevronRight className="size-4 shrink-0 text-zinc-600" />
+                    </div>
+                    <p className="mt-0.5 truncate text-xs text-zinc-500">{submission.email || submission.phone || 'Sem contato'}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      {submission.resultKey && (
+                        <span className="rounded-lg border border-cyan-400/10 bg-cyan-400/[0.07] px-2 py-0.5 text-[10px] font-semibold text-cyan-300">
                           {submission.resultKey}
                         </span>
-                      ) : <span className="text-zinc-700">—</span>}
-                    </td>
-                    <td className="px-4 py-4">
-                      {submission.tags.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {submission.tags.map((tag) => (
-                            <span key={tag} className="rounded-full border border-violet-400/15 bg-violet-500/[0.08] px-2 py-0.5 text-[10px] font-semibold text-violet-300">{tag}</span>
-                          ))}
-                        </div>
-                      ) : <span className="text-zinc-700">—</span>}
-                    </td>
-                    <td className="px-4 py-4 font-mono text-xs text-zinc-400">{submission.score ?? '—'}</td>
-                    <td className="px-4 py-4 text-xs text-zinc-500">{formatDate(submission.submittedAt)}</td>
-                    <td className="px-5 py-4 text-right">
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          setSelected(submission)
-                        }}
-                        className="inline-flex size-8 items-center justify-center rounded-lg text-zinc-600 transition hover:bg-white/[0.06] hover:text-white"
-                        aria-label={`Ver respostas de ${submission.name || 'lead'}`}
-                      >
-                        <ChevronRight className="size-4" />
-                      </button>
-                    </td>
+                      )}
+                      {submission.score !== null && (
+                        <span className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-zinc-400">
+                          Score {submission.score}
+                        </span>
+                      )}
+                      {submission.tags.map((tag) => (
+                        <span key={tag} className="rounded-full border border-violet-400/15 bg-violet-500/[0.08] px-2 py-0.5 text-[10px] font-semibold text-violet-300">{tag}</span>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-[10px] text-zinc-700">{formatDate(submission.submittedAt)} · {submission.values.length} respostas</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop/tablet: full table. */}
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[880px] text-left">
+                <thead>
+                  <tr className="border-b border-white/[0.06] bg-white/[0.015] text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-600">
+                    <th className="px-5 py-3.5">Lead</th>
+                    <th className="px-4 py-3.5">Contato</th>
+                    <th className="px-4 py-3.5">Resultado</th>
+                    <th className="px-4 py-3.5">Tags</th>
+                    <th className="px-4 py-3.5">Score</th>
+                    <th className="px-4 py-3.5">Enviado em</th>
+                    <th className="px-5 py-3.5 text-right">Respostas</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filtered.map((submission) => (
+                    <tr
+                      key={submission.id}
+                      onClick={() => setSelected(submission)}
+                      className="cursor-pointer border-b border-white/[0.045] text-sm transition last:border-0 hover:bg-violet-500/[0.045]"
+                    >
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-violet-400/10 bg-violet-500/10 text-xs font-bold text-violet-300">
+                            {(submission.name || submission.email || '?').slice(0, 1).toUpperCase()}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="max-w-52 truncate font-semibold text-zinc-200">{submission.name || 'Lead sem nome'}</p>
+                            <p className="mt-0.5 text-[11px] text-zinc-600">{submission.values.length} respostas</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="max-w-56 truncate text-xs text-zinc-400">{submission.email || '—'}</p>
+                        <p className="mt-1 text-[11px] text-zinc-600">{submission.phone || 'Sem telefone'}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        {submission.resultKey ? (
+                          <span className="rounded-lg border border-cyan-400/10 bg-cyan-400/[0.07] px-2.5 py-1 text-[11px] font-semibold text-cyan-300">
+                            {submission.resultKey}
+                          </span>
+                        ) : <span className="text-zinc-700">—</span>}
+                      </td>
+                      <td className="px-4 py-4">
+                        {submission.tags.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {submission.tags.map((tag) => (
+                              <span key={tag} className="rounded-full border border-violet-400/15 bg-violet-500/[0.08] px-2 py-0.5 text-[10px] font-semibold text-violet-300">{tag}</span>
+                            ))}
+                          </div>
+                        ) : <span className="text-zinc-700">—</span>}
+                      </td>
+                      <td className="px-4 py-4 font-mono text-xs text-zinc-400">{submission.score ?? '—'}</td>
+                      <td className="px-4 py-4 text-xs text-zinc-500">{formatDate(submission.submittedAt)}</td>
+                      <td className="px-5 py-4 text-right">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setSelected(submission)
+                          }}
+                          className="inline-flex size-8 items-center justify-center rounded-lg text-zinc-600 transition hover:bg-white/[0.06] hover:text-white"
+                          aria-label={`Ver respostas de ${submission.name || 'lead'}`}
+                        >
+                          <ChevronRight className="size-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
 

@@ -228,33 +228,35 @@ export default async function QuizBuilderPage({
 
       {/* Builder Tabs */}
       <Tabs defaultValue="questions" className="space-y-6">
-        <TabsList className="bg-zinc-900 border border-zinc-800 p-1 rounded-xl flex-wrap gap-1">
-          <TabsTrigger value="questions"
-            className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400 gap-2 rounded-lg text-xs font-medium">
-            <ListOrdered className="h-4 w-4 text-indigo-400" />
-            Etapas ({steps.length})
-          </TabsTrigger>
-          <TabsTrigger value="settings"
-            className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400 gap-2 rounded-lg text-xs font-medium">
-            <Settings className="h-4 w-4 text-cyan-400" />
-            Configurações
-          </TabsTrigger>
-          <TabsTrigger value="result"
-            className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400 gap-2 rounded-lg text-xs font-medium">
-            <Sparkles className="h-4 w-4 text-amber-400" />
-            Resultado
-          </TabsTrigger>
-          <TabsTrigger value="funnel"
-            className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400 gap-2 rounded-lg text-xs font-medium">
-            <BarChart2 className="h-4 w-4 text-purple-400" />
-            Funil & Drop-off
-          </TabsTrigger>
-          <TabsTrigger value="leads"
-            className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400 gap-2 rounded-lg text-xs font-medium">
-            <Users className="h-4 w-4 text-emerald-400" />
-            Leads ({leads?.length || 0})
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0">
+          <TabsList className="flex-nowrap gap-1 rounded-xl border border-zinc-800 bg-zinc-900 p-1">
+            <TabsTrigger value="questions"
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
+              <ListOrdered className="h-4 w-4 text-indigo-400" />
+              Etapas ({steps.length})
+            </TabsTrigger>
+            <TabsTrigger value="settings"
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
+              <Settings className="h-4 w-4 text-cyan-400" />
+              Configurações
+            </TabsTrigger>
+            <TabsTrigger value="result"
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              Resultado
+            </TabsTrigger>
+            <TabsTrigger value="funnel"
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
+              <BarChart2 className="h-4 w-4 text-purple-400" />
+              Funil & Drop-off
+            </TabsTrigger>
+            <TabsTrigger value="leads"
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
+              <Users className="h-4 w-4 text-emerald-400" />
+              Leads ({leads?.length || 0})
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="questions" className="focus-visible:outline-none">
           <QuestionsTab

@@ -426,6 +426,12 @@ export function FunnelBuilder({
   const [published, setPublished] = useState(initialPublished)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  // The editor's own panels (Etapas/Paleta/Preview/Propriedades) assume a
+  // desktop-class pointer and width — the same reasoning that already gates
+  // the properties column behind `xl:flex` elsewhere in this file. Below
+  // that breakpoint we swap the whole editor for a read-only preview
+  // screen instead of trying to squeeze drag-and-drop panels into a phone.
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
   const copiedId = useRef<string | null>(null)
   const hydrated = useRef(false)
   const changeSequence = useRef(0)
@@ -450,6 +456,14 @@ export function FunnelBuilder({
     })
     return () => window.cancelAnimationFrame(frame)
   }, [activePageId, document.elements, document.pages, flowValidation.entryPageId, selectedId])
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)')
+    setIsMobileViewport(query.matches)
+    const handleChange = (event: MediaQueryListEvent) => setIsMobileViewport(event.matches)
+    query.addEventListener('change', handleChange)
+    return () => query.removeEventListener('change', handleChange)
+  }, [])
 
   const mutate = useCallback((updater: (current: FunnelDocument) => FunnelDocument) => {
     commit(updater)
@@ -809,6 +823,46 @@ export function FunnelBuilder({
     { id: 'layers', label: 'Camadas', icon: Layers3 },
     { id: 'variables', label: 'Variáveis', icon: Variable },
   ]
+
+  if (isMobileViewport) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col bg-[#050507] font-sans text-zinc-100">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-white/[0.08] bg-[#09090d] px-3">
+          <Link href="/dashboard" className="flex size-8 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/5 hover:text-white" aria-label="Voltar ao dashboard"><ArrowLeft className="size-4" /></Link>
+          <p className="min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-tight text-zinc-100">{document.title}</p>
+        </header>
+
+        {previewOpen ? (
+          <>
+            <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/10 bg-[#0a0a0e] px-3">
+              <span className="flex items-center gap-2 text-xs font-semibold text-zinc-300"><Eye className="size-3.5 text-violet-400" /> Preview</span>
+              <button type="button" onClick={() => setPreviewOpen(false)} className="flex h-7 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-[10px] text-zinc-300 hover:bg-white/5"><X className="size-3.5" /> Fechar</button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <FunnelPlayer key={`${document.funnelId}:mobile-preview`} document={document} preview forcedBreakpoint="mobile" initialPageId={activePage?.id} />
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
+            <span className="flex size-14 items-center justify-center rounded-2xl border border-violet-400/15 bg-violet-500/10 text-violet-300"><Monitor className="size-6" /></span>
+            <div className="space-y-1.5">
+              <p className="text-sm font-bold text-zinc-100">Edição disponível no computador</p>
+              <p className="max-w-xs text-xs leading-relaxed text-zinc-500">
+                O editor de funis usa arrastar-e-soltar e vários painéis lado a lado — funciona melhor numa tela maior. Aqui no celular você pode visualizar como o funil está.
+              </p>
+            </div>
+            <button type="button" onClick={() => setPreviewOpen(true)} className="flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-5 text-xs font-bold text-white shadow-lg shadow-violet-500/15">
+              <Eye className="size-4" /> Visualizar funil
+            </button>
+            <div className="flex flex-col gap-2 pt-2 text-xs">
+              <Link href={`/dashboard/funnels/${document.funnelId}/leads`} className="text-zinc-500 underline underline-offset-4 hover:text-zinc-300">Ver leads</Link>
+              <Link href={`/dashboard/funnels/${document.funnelId}/analytics`} className="text-zinc-500 underline underline-offset-4 hover:text-zinc-300">Ver analytics</Link>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex min-h-[600px] flex-col overflow-hidden bg-[#050507] font-sans text-zinc-100">
