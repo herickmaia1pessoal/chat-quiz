@@ -13,11 +13,16 @@ import {
   RotateCw,
   Save,
   Search,
+  Send,
   ShieldCheck,
   Webhook,
 } from 'lucide-react'
 import { saveFunnelDraftFromBuilder } from '@/app/dashboard/funnels/actions'
-import { saveFunnelIntegration } from '@/app/dashboard/funnels/integration-actions'
+import {
+  getFunnelWebhookDeliveryStatus,
+  saveFunnelIntegration,
+  sendTestWebhook,
+} from '@/app/dashboard/funnels/integration-actions'
 import type {
   FunnelIntegrationState,
   FunnelSettingsState,
@@ -455,6 +460,8 @@ function WebhookSettings({
   const [newSecret, setNewSecret] = useState('')
   const [saving, setSaving] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<{ type: 'success' | 'error' | 'pending'; message: string } | null>(null)
 
   const urlValid = !url || /^https:\/\/[A-Za-z0-9.-]+(?::\d{1,5})?(?:\/\S*)?$/.test(url)
   const secretValid = !secret || (secret.length >= 16 && secret.length <= 160)
@@ -498,6 +505,42 @@ function WebhookSettings({
       onDirtyChange(false)
       setFeedback({ type: 'success', message: 'Integração atualizada com sucesso.' })
       setSaving(false)
+    })
+  }
+
+  const runTest = () => {
+    if (testing) return
+    setTesting(true)
+    setTestResult(null)
+    startTransition(async () => {
+      const result = await sendTestWebhook(funnelId)
+      if (!result.ok || !result.deliveryId) {
+        setTestResult({ type: 'error', message: result.error || 'Não foi possível enviar o teste.' })
+        setTesting(false)
+        return
+      }
+
+      setTestResult({ type: 'pending', message: 'Teste enviado. Aguardando resposta do endpoint...' })
+
+      const deliveryId = result.deliveryId
+      const deadline = Date.now() + 20_000
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => window.setTimeout(resolve, 2000))
+        const status = await getFunnelWebhookDeliveryStatus(funnelId, deliveryId)
+        if (!status) break
+        if (status.status === 'succeeded') {
+          setTestResult({ type: 'success', message: `Sucesso — HTTP ${status.statusCode ?? '200'}.` })
+          setTesting(false)
+          return
+        }
+        if (status.status === 'failed') {
+          setTestResult({ type: 'error', message: status.lastError || `Falha${status.statusCode ? ` — HTTP ${status.statusCode}` : ''}.` })
+          setTesting(false)
+          return
+        }
+      }
+      setTestResult({ type: 'pending', message: 'Ainda processando. Confira novamente em instantes.' })
+      setTesting(false)
     })
   }
 
@@ -598,7 +641,24 @@ function WebhookSettings({
               <RotateCw className="size-4" /> Girar segredo
             </button>
           )}
+          {integration.webhookEnabled && integration.hasWebhookSecret && (
+            <button
+              type="button"
+              disabled={testing}
+              onClick={runTest}
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-violet-400/20 px-4 text-xs font-semibold text-violet-300 transition hover:bg-violet-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {testing ? <LoaderCircle className="size-4 animate-spin" /> : <Send className="size-4" />}
+              Enviar teste
+            </button>
+          )}
         </div>
+
+        {testResult && (
+          <p role="status" className={`rounded-xl border px-3.5 py-3 text-xs ${testResult.type === 'success' ? 'border-emerald-400/15 bg-emerald-400/[0.05] text-emerald-200/80' : testResult.type === 'error' ? 'border-red-400/15 bg-red-400/[0.05] text-red-200/80' : 'border-amber-400/15 bg-amber-400/[0.05] text-amber-200/80'}`}>
+            {testResult.message}
+          </p>
+        )}
 
         <div className="border-t border-white/[0.06] pt-5">
           <div className="mb-3 flex items-center justify-between gap-3">

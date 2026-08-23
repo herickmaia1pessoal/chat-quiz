@@ -121,6 +121,7 @@ export async function getFunnelWebhookDeliveries(
     .from('funnel_webhook_deliveries')
     .select('id, status, attempt_count, status_code, last_error, created_at, delivered_at')
     .eq('funnel_id', funnelId)
+    .eq('is_test', false)
     .order('created_at', { ascending: false })
     .limit(safeLimit)
   if (error) throw new Error(error.message)
@@ -134,4 +135,57 @@ export async function getFunnelWebhookDeliveries(
     createdAt: String(row.created_at),
     deliveredAt: row.delivered_at ? String(row.delivered_at) : null,
   }))
+}
+
+function normalizeDeliveryStatus(value: unknown): FunnelWebhookDeliveryRecord | null {
+  if (!value || typeof value !== 'object') return null
+  const raw = value as Record<string, unknown>
+  if (typeof raw.id !== 'string') return null
+  return {
+    id: raw.id,
+    status: raw.status as FunnelWebhookDeliveryRecord['status'],
+    attemptCount: Number(raw.attemptCount ?? 0),
+    statusCode: raw.statusCode === null || raw.statusCode === undefined ? null : Number(raw.statusCode),
+    lastError: typeof raw.lastError === 'string' ? raw.lastError : null,
+    createdAt: String(raw.createdAt ?? ''),
+    deliveredAt: raw.deliveredAt ? String(raw.deliveredAt) : null,
+  }
+}
+
+// Fires one synthetic "funnel.completed" payload through the real delivery
+// pipeline (outbox row -> dispatcher -> Edge worker) so a "Enviar teste"
+// click exercises the exact same path a real lead submission would.
+export async function sendTestWebhook(funnelId: string): Promise<{
+  ok: boolean
+  deliveryId?: string
+  error?: string
+}> {
+  try {
+    const supabase = await requireFunnelAccess(funnelId)
+    const { data, error } = await supabase.rpc('test_funnel_webhook', { p_funnel_id: funnelId })
+    if (error) throw new Error(error.message)
+    const deliveryId = data && typeof data === 'object' && typeof (data as Record<string, unknown>).deliveryId === 'string'
+      ? (data as Record<string, unknown>).deliveryId as string
+      : undefined
+    if (!deliveryId) throw new Error('Resposta inesperada ao agendar o teste.')
+    return { ok: true, deliveryId }
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Nao foi possivel enviar o teste de webhook.',
+    }
+  }
+}
+
+export async function getFunnelWebhookDeliveryStatus(
+  funnelId: string,
+  deliveryId: string,
+): Promise<FunnelWebhookDeliveryRecord | null> {
+  const supabase = await requireFunnelAccess(funnelId)
+  const { data, error } = await supabase.rpc('get_funnel_webhook_delivery', {
+    p_funnel_id: funnelId,
+    p_delivery_id: deliveryId,
+  })
+  if (error) throw new Error(error.message)
+  return normalizeDeliveryStatus(data)
 }

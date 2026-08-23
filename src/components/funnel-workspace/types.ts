@@ -76,7 +76,7 @@ export interface FunnelIntegrationState {
 
 export interface FunnelWebhookDeliveryRecord {
   id: string
-  status: 'pending' | 'retrying' | 'succeeded' | 'failed'
+  status: 'pending' | 'processing' | 'retrying' | 'succeeded' | 'failed'
   attemptCount: number
   statusCode: number | null
   lastError: string | null
