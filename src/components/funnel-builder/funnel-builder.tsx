@@ -761,10 +761,27 @@ export function FunnelBuilder({
       const next = removePage(current, pageId)
       const flow = getFunnelFlowDefinition(current)
       if (!flow) return next
+      // Deleting a page must not strand whatever pointed at it. Any
+      // connection that landed on the deleted page gets rewired to that
+      // page's own default destination (skipping over it), the same way a
+      // linked-list delete reconnects its neighbors — otherwise the source
+      // page silently loses its only way forward and starts behaving as a
+      // dead end (its "next page" button falls through to submit).
+      const deletedPageDefaultTarget = flow.connections?.find((connection) => (
+        connection.sourcePageId === pageId && connection.isDefault
+      ))?.targetPageId
+      const rewiredConnections = flow.connections
+        ?.filter((connection) => connection.sourcePageId !== pageId)
+        .map((connection) => (
+          connection.targetPageId === pageId && deletedPageDefaultTarget && deletedPageDefaultTarget !== pageId
+            ? { ...connection, targetPageId: deletedPageDefaultTarget }
+            : connection
+        ))
+        .filter((connection) => connection.targetPageId !== pageId)
       const nextFlow = {
         ...flow,
         entryPageId: flow.entryPageId === pageId ? next.pages[0]?.id : flow.entryPageId,
-        connections: flow.connections?.filter((connection) => connection.sourcePageId !== pageId && connection.targetPageId !== pageId),
+        connections: rewiredConnections,
         resultRanges: flow.resultRanges?.filter((range) => range.sourcePageId !== pageId && range.targetPageId !== pageId),
       }
       return { ...next, flow: nextFlow, settings: { ...next.settings, flow: nextFlow } }
