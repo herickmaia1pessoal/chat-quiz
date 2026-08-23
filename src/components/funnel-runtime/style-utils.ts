@@ -13,6 +13,16 @@ export function toReactStyle(style: StyleProperties): CSSProperties {
   const alignMap = { start: 'flex-start', center: 'center', end: 'flex-end', stretch: 'stretch' } as const
   const justifyMap = { start: 'flex-start', center: 'center', end: 'flex-end', between: 'space-between' } as const
 
+  // The builder's "Largura" field is a free-text input (no unit validation,
+  // no clamp) — someone can type "900px" and publish it. Without a safety
+  // ceiling that value renders literally, so on a narrow phone the element
+  // can spill past its parent and get clipped invisibly by the player's
+  // page-level overflow-x-hidden instead of shrinking to fit. Any absolute
+  // width (px/rem/etc — never a %, which is already relative) gets an
+  // implicit 100% ceiling unless the author already set their own maxWidth.
+  const widthNeedsCeiling = typeof style.width === 'string' && style.width.trim() !== '' && !style.width.trim().endsWith('%')
+  const safeMaxWidth = style.maxWidth ?? (widthNeedsCeiling ? '100%' : undefined)
+
   return {
     display: style.columns ? 'grid' : style.display,
     flexDirection: style.flexDirection,
@@ -21,7 +31,7 @@ export function toReactStyle(style: StyleProperties): CSSProperties {
     gridTemplateColumns: style.columns ? `repeat(${style.columns}, minmax(0, 1fr))` : undefined,
     gap: style.gap,
     width: style.width,
-    maxWidth: style.maxWidth,
+    maxWidth: safeMaxWidth,
     minHeight: style.minHeight,
     paddingInline: style.paddingX,
     paddingBlock: style.paddingY,

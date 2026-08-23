@@ -68,11 +68,13 @@ export function ScoredResultScreen({ result }: { result: ScoredResult }) {
             </div>
           </div>
 
-          <div className="flex justify-between text-[10px] text-zinc-500 px-0.5 pt-2 font-medium">
+          <div className="flex text-[10px] text-zinc-500 px-0.5 pt-2 font-medium">
             {allLevels.map((level) => (
               <span
                 key={level.name}
-                className={level.name === levelName ? 'text-zinc-200 font-semibold' : ''}
+                title={level.name}
+                className={`min-w-0 flex-1 truncate text-center first:text-left last:text-right ${level.name === levelName ? 'text-zinc-200 font-semibold' : ''}`}
+                style={{ flexBasis: `${((level.maxScore - level.minScore + 1) / (range + 1)) * 100}%` }}
               >
                 {level.name}
               </span>

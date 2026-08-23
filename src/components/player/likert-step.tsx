@@ -24,7 +24,7 @@ export function LikertStep({
   optionsLayout?: 'list' | 'grid'
 }) {
   return (
-    <div className={optionsLayout === 'grid' ? 'grid grid-cols-2 gap-2 pt-2' : 'space-y-2 pt-2'}>
+    <div className={optionsLayout === 'grid' ? 'grid grid-cols-1 gap-2 pt-2 sm:grid-cols-2' : 'space-y-2 pt-2'}>
       {options.map((opt, idx) => {
         const isSelected = selectedOptionId === opt.id
         // Tint from agreement (emerald) to disagreement (amber) across the

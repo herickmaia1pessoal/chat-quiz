@@ -398,7 +398,7 @@ export function FunnelElementRenderer({
     case 'rating': {
       const max = Math.max(1, Math.min(10, Math.round(number(content, 'max', 5))))
       const current = Math.max(0, Math.min(max, typeof value === 'number' ? value : 0))
-      body = <FieldShell element={element} variables={variables} error={errors[fieldKey]} group><div className="flex flex-wrap gap-2">{Array.from({ length: max }, (_, index) => index + 1).map((rating) => <button type="button" aria-pressed={rating === current} key={rating} aria-label={`${rating} de ${max} estrelas`} onClick={() => onValue(fieldKey, rating)} className="rounded-md p-0.5 transition focus-visible:outline-2 focus-visible:outline-offset-2" style={{ outlineColor: accentColor }}><Star className={`size-7 transition ${rating <= current ? '' : 'opacity-25'}`} style={{ color: rating <= current ? accentColor : undefined, fill: rating <= current ? accentColor : 'none' }} /></button>)}</div></FieldShell>
+      body = <FieldShell element={element} variables={variables} error={errors[fieldKey]} group><div className="flex flex-wrap gap-1">{Array.from({ length: max }, (_, index) => index + 1).map((rating) => <button type="button" aria-pressed={rating === current} key={rating} aria-label={`${rating} de ${max} estrelas`} onClick={() => onValue(fieldKey, rating)} className="flex size-11 items-center justify-center rounded-md transition focus-visible:outline-2 focus-visible:outline-offset-2" style={{ outlineColor: accentColor }}><Star className={`size-7 transition ${rating <= current ? '' : 'opacity-25'}`} style={{ color: rating <= current ? accentColor : undefined, fill: rating <= current ? accentColor : 'none' }} /></button>)}</div></FieldShell>
       break
     }
     case 'progress': {

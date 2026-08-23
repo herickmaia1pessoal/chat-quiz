@@ -771,7 +771,7 @@ export function QuizPlayer({
 
                     {/* Multiple Choice */}
                     {block.type === 'multiple_choice' && (
-                      <div className={block.settings?.style_options_layout === 'grid' ? 'grid grid-cols-2 gap-3 pt-2' : 'space-y-3 pt-2'}>
+                      <div className={block.settings?.style_options_layout === 'grid' ? 'grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2' : 'space-y-3 pt-2'}>
                         {block.options?.map((opt, optIdx) => {
                           const isSelected = answers[block.id]?.optionId === opt.id
                           return (

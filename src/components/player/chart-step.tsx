@@ -44,9 +44,9 @@ export function ChartStep({
           const widthPct = Math.max(4, Math.round((bar.value / maxValue) * 100))
           return (
             <div key={idx} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-300 font-medium">{bar.label}</span>
-                <span className="text-indigo-400 font-mono font-semibold tabular-nums" style={accentColor ? { color: accentColor } : undefined}>
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="min-w-0 truncate text-zinc-300 font-medium" title={bar.label}>{bar.label}</span>
+                <span className="shrink-0 text-indigo-400 font-mono font-semibold tabular-nums" style={accentColor ? { color: accentColor } : undefined}>
                   {bar.value}{unit}
                 </span>
               </div>
