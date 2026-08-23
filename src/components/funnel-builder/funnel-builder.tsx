@@ -88,6 +88,11 @@ export interface FunnelBuilderProps {
   initialRevision?: number
   initialMode?: BuilderMode
   initialPublished?: boolean
+  // Used only by the Inspector's media-library picker, to know which
+  // Storage prefix (`${workspaceId}/${funnelId}`) to browse. Undefined
+  // simply hides the "Escolher da Biblioteca" button — manual URL entry
+  // still works either way.
+  workspaceId?: string
   onSaveDraft?: (input: SaveDraftInput) => Promise<SaveDraftResult>
   onPublish?: (input: PublishFunnelInput) => Promise<PublishFunnelResult>
 }
@@ -403,6 +408,7 @@ export function FunnelBuilder({
   initialRevision = 0,
   initialMode = 'design',
   initialPublished = false,
+  workspaceId,
   onSaveDraft,
   onPublish,
 }: FunnelBuilderProps) {
@@ -915,7 +921,7 @@ export function FunnelBuilder({
           </div>
         </main>
 
-        <div className="hidden xl:flex"><Inspector element={selectedElement} breakpoint={breakpoint} pages={document.pages} onChange={updateSelectedElement} onClose={() => setSelectedId(null)} /></div>
+        <div className="hidden xl:flex"><Inspector element={selectedElement} breakpoint={breakpoint} pages={document.pages} onChange={updateSelectedElement} onClose={() => setSelectedId(null)} workspaceId={workspaceId} funnelId={document.funnelId} /></div>
       </div>
 
       {selectedElement && (
@@ -936,6 +942,8 @@ export function FunnelBuilder({
               pages={document.pages}
               onChange={updateSelectedElement}
               onClose={() => setSelectedId(null)}
+              workspaceId={workspaceId}
+              funnelId={document.funnelId}
             />
           </div>
         </div>

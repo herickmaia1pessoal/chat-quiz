@@ -23,6 +23,15 @@ interface MediaFunnel {
 interface MediaLibraryProps {
   workspaceId?: string
   funnels: MediaFunnel[]
+  // Picker mode is used when the library is opened from inside the element
+  // inspector to fill a single URL field, rather than as the standalone
+  // "media" dashboard view. `pickerFunnelId` fixes the funnel (the inspector
+  // already knows which funnel it's editing, so the funnel switcher is
+  // hidden) and `onSelect` is called with the asset's public URL instead of
+  // just copying it to the clipboard.
+  mode?: 'browse' | 'picker'
+  pickerFunnelId?: string
+  onSelect?: (url: string) => void
 }
 
 interface MediaAsset {
@@ -58,19 +67,22 @@ function AssetIcon({ mimeType }: { mimeType: string }) {
   return <File className="size-5" />
 }
 
-export function MediaLibrary({ workspaceId, funnels }: MediaLibraryProps) {
+export function MediaLibrary({ workspaceId, funnels, mode = 'browse', pickerFunnelId, onSelect }: MediaLibraryProps) {
+  const isPicker = mode === 'picker'
   const supabase = useMemo(() => createClient(), [])
   const inputRef = useRef<HTMLInputElement>(null)
-  const [funnelId, setFunnelId] = useState(funnels[0]?.id || '')
+  const [funnelId, setFunnelId] = useState(pickerFunnelId || funnels[0]?.id || '')
   const [assets, setAssets] = useState<MediaAsset[]>([])
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [copiedPath, setCopiedPath] = useState('')
   const [error, setError] = useState('')
-  const selectedFunnelId = funnels.some((funnel) => funnel.id === funnelId)
-    ? funnelId
-    : funnels[0]?.id || ''
+  const selectedFunnelId = isPicker
+    ? (pickerFunnelId || funnels[0]?.id || '')
+    : funnels.some((funnel) => funnel.id === funnelId)
+      ? funnelId
+      : funnels[0]?.id || ''
 
   const loadAssets = useCallback(async () => {
     if (!workspaceId || !selectedFunnelId) {
@@ -152,15 +164,17 @@ export function MediaLibrary({ workspaceId, funnels }: MediaLibraryProps) {
   }
 
   return (
-    <div className="space-y-5 pt-7">
+    <div className={isPicker ? 'space-y-4' : 'space-y-5 pt-7'}>
       <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.065] bg-[#0c0d13]/80 p-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="grid flex-1 gap-3 sm:grid-cols-2">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
-            Funil
-            <select value={selectedFunnelId} onChange={(event) => { setLoading(true); setError(''); setFunnelId(event.target.value) }} className="mt-2 h-10 w-full rounded-xl border border-white/[0.08] bg-[#0b0c12] px-3 text-xs normal-case tracking-normal text-zinc-200 outline-none focus:border-violet-400/40">
-              {funnels.map((funnel) => <option key={funnel.id} value={funnel.id}>{funnel.name}</option>)}
-            </select>
-          </label>
+        <div className={isPicker ? 'grid flex-1 gap-3' : 'grid flex-1 gap-3 sm:grid-cols-2'}>
+          {!isPicker && (
+            <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
+              Funil
+              <select value={selectedFunnelId} onChange={(event) => { setLoading(true); setError(''); setFunnelId(event.target.value) }} className="mt-2 h-10 w-full rounded-xl border border-white/[0.08] bg-[#0b0c12] px-3 text-xs normal-case tracking-normal text-zinc-200 outline-none focus:border-violet-400/40">
+                {funnels.map((funnel) => <option key={funnel.id} value={funnel.id}>{funnel.name}</option>)}
+              </select>
+            </label>
+          )}
           <label className="relative text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
             Buscar
             <Search className="pointer-events-none absolute bottom-3 left-3.5 size-4 text-zinc-700" />
@@ -176,7 +190,9 @@ export function MediaLibrary({ workspaceId, funnels }: MediaLibraryProps) {
         </div>
       </div>
 
-      <p className="text-[11px] text-zinc-600">Arquivos públicos do funil selecionado. Formatos permitidos: imagens, áudio, MP4/WebM e PDF, até 10 MB. A exclusão fica protegida para não quebrar versões publicadas, templates ou cópias.</p>
+      {!isPicker && (
+        <p className="text-[11px] text-zinc-600">Arquivos públicos do funil selecionado. Formatos permitidos: imagens, áudio, MP4/WebM e PDF, até 10 MB. A exclusão fica protegida para não quebrar versões publicadas, templates ou cópias.</p>
+      )}
       {error && <p role="alert" className="rounded-xl border border-red-400/15 bg-red-400/[0.05] px-4 py-3 text-xs text-red-200/80">{error}</p>}
 
       {loading ? (
@@ -202,10 +218,16 @@ export function MediaLibrary({ workspaceId, funnels }: MediaLibraryProps) {
                 <p className="truncate text-xs font-semibold text-zinc-200" title={displayName(asset.name)}>{displayName(asset.name)}</p>
                 <p className="mt-1 text-[10px] text-zinc-700">{formatBytes(asset.size)}{asset.createdAt ? ` · ${new Date(asset.createdAt).toLocaleDateString('pt-BR')}` : ''}</p>
                 <div className="mt-3 flex items-center gap-1 border-t border-white/[0.05] pt-3">
-                  <button type="button" onClick={() => void copyUrl(asset)} className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg text-[10px] font-semibold text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200">
-                    {copiedPath === asset.path ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
-                    {copiedPath === asset.path ? 'Copiado' : 'Copiar URL'}
-                  </button>
+                  {isPicker ? (
+                    <button type="button" onClick={() => onSelect?.(asset.url)} className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-violet-600 text-[10px] font-bold text-white hover:bg-violet-500">
+                      Usar este arquivo
+                    </button>
+                  ) : (
+                    <button type="button" onClick={() => void copyUrl(asset)} className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg text-[10px] font-semibold text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200">
+                      {copiedPath === asset.path ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                      {copiedPath === asset.path ? 'Copiado' : 'Copiar URL'}
+                    </button>
+                  )}
                   <a href={asset.url} target="_blank" rel="noreferrer" className="grid size-8 place-items-center rounded-lg text-zinc-600 hover:bg-white/[0.05] hover:text-zinc-200" aria-label={`Abrir ${displayName(asset.name)}`}><ExternalLink className="size-3.5" /></a>
                 </div>
               </div>

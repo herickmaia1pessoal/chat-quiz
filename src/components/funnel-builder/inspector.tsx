@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, RotateCcw, SlidersHorizontal, Trash2, X } from 'lucide-react'
+import { FolderOpen, Plus, RotateCcw, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import {
   ELEMENT_REGISTRY,
@@ -11,11 +11,25 @@ import {
   type InspectorFieldDefinition,
   type StyleProperties,
 } from '@/lib/funnel'
+import { MediaLibrary } from '@/components/dashboard-v2/media-library'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type InspectorTab = 'content' | 'style' | 'logic'
 
 const fieldClass = 'h-9 w-full rounded-lg border border-white/10 bg-[#111116] px-3 text-xs text-zinc-200 outline-none transition placeholder:text-zinc-600 focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/10'
 const labelClass = 'mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500'
+
+// Fields where a URL points at a media file, so the "Escolher da Biblioteca"
+// picker button is worth showing next to the manual input. Keyed by
+// `${elementType}.${fieldKey}` — anything else (e.g. a plain CTA link) stays
+// a bare URL input.
+const MEDIA_URL_FIELDS = new Set([
+  'image.src',
+  'video.src',
+  'audio.src',
+  'embed.url',
+  'testimonial.avatar',
+])
 
 function toInputValue(value: unknown) {
   if (typeof value === 'string' || typeof value === 'number') return value
@@ -26,12 +40,17 @@ function ContentField({
   field,
   element,
   onChange,
+  funnelId,
+  workspaceId,
 }: {
   field: InspectorFieldDefinition
   element: FunnelElement
   onChange: (value: unknown) => void
+  funnelId?: string
+  workspaceId?: string
 }) {
   const value = element.content[field.key]
+  const [pickerOpen, setPickerOpen] = useState(false)
   if (field.control === 'options') {
     if ((element.type === 'accordion' || element.type === 'faq') && field.key === 'items') {
       const items = Array.isArray(value)
@@ -147,16 +166,52 @@ function ContentField({
       </label>
     )
   }
+  const isMediaUrlField = field.control === 'url' && MEDIA_URL_FIELDS.has(`${element.type}.${field.key}`)
+
   return (
     <label className="block">
       <span className={labelClass}>{field.label}</span>
-      <input
-        type={field.control === 'number' ? 'number' : field.control === 'color' ? 'color' : field.control === 'url' ? 'url' : 'text'}
-        value={toInputValue(value)}
-        onChange={(event) => onChange(field.control === 'number' ? Number(event.target.value) : event.target.value)}
-        placeholder={field.placeholder}
-        className={field.control === 'color' ? 'h-9 w-full cursor-pointer rounded-lg border border-white/10 bg-[#111116] p-1' : fieldClass}
-      />
+      <div className="flex gap-1.5">
+        <input
+          type={field.control === 'number' ? 'number' : field.control === 'color' ? 'color' : field.control === 'url' ? 'url' : 'text'}
+          value={toInputValue(value)}
+          onChange={(event) => onChange(field.control === 'number' ? Number(event.target.value) : event.target.value)}
+          placeholder={field.placeholder}
+          className={field.control === 'color' ? 'h-9 w-full cursor-pointer rounded-lg border border-white/10 bg-[#111116] p-1' : fieldClass}
+        />
+        {isMediaUrlField && workspaceId && funnelId && (
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            title="Escolher da Biblioteca"
+            aria-label="Escolher da Biblioteca de mídia"
+            className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-[#111116] px-2.5 text-zinc-400 transition hover:border-violet-500/40 hover:text-violet-300"
+          >
+            <FolderOpen className="size-3.5" />
+          </button>
+        )}
+      </div>
+      {isMediaUrlField && workspaceId && funnelId && (
+        <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+          <DialogContent className="max-w-3xl border border-white/[0.08] bg-[#0a0a0e] p-0 text-zinc-200 sm:max-w-3xl">
+            <DialogHeader className="border-b border-white/[0.07] px-5 py-4">
+              <DialogTitle className="text-sm font-semibold text-zinc-100">Biblioteca de mídia</DialogTitle>
+            </DialogHeader>
+            <div className="max-h-[70vh] overflow-y-auto px-5 pb-5">
+              <MediaLibrary
+                workspaceId={workspaceId}
+                funnels={[{ id: funnelId, name: element.type }]}
+                mode="picker"
+                pickerFunnelId={funnelId}
+                onSelect={(url) => {
+                  onChange(url)
+                  setPickerOpen(false)
+                }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </label>
   )
 }
@@ -315,12 +370,16 @@ export function Inspector({
   pages,
   onChange,
   onClose,
+  funnelId,
+  workspaceId,
 }: {
   element: FunnelElement | null
   breakpoint: Breakpoint
   pages: FunnelPage[]
   onChange: (updater: (element: FunnelElement) => FunnelElement) => void
   onClose: () => void
+  funnelId?: string
+  workspaceId?: string
 }) {
   const [tab, setTab] = useState<InspectorTab>('content')
 
@@ -422,7 +481,7 @@ export function Inspector({
               </div>
             )}
             {contentFields.map((field) => (
-              <ContentField key={field.key} field={field} element={element} onChange={(value) => updateContentField(field.key, value)} />
+              <ContentField key={field.key} field={field} element={element} onChange={(value) => updateContentField(field.key, value)} funnelId={funnelId} workspaceId={workspaceId} />
             ))}
             {(element.type === 'button' || element.type === 'cta') && (
               <>
