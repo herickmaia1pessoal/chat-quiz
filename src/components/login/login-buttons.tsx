@@ -24,7 +24,7 @@ export function LoginButtons({
       <Button
         formAction={loginAction}
         disabled={pending}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+        className="h-11 w-full border-0 bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 font-bold text-white shadow-[0_12px_35px_rgba(99,102,241,.2)] hover:brightness-110"
       >
         {isLoggingIn ? 'Entrando...' : 'Entrar'}
       </Button>
@@ -32,7 +32,7 @@ export function LoginButtons({
         formAction={signupAction}
         disabled={pending}
         variant="outline"
-        className="w-full border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
+        className="h-11 w-full border-white/10 bg-white/[.025] text-zinc-300 hover:bg-white/[.06] hover:text-white"
       >
         {isSigningUp ? 'Criando conta...' : 'Criar nova conta'}
       </Button>

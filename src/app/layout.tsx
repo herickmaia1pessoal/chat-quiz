@@ -28,21 +28,21 @@ const fontMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "QuizFlow — Quizzes Interativos para Captura de Leads",
-    template: "%s | QuizFlow",
+    default: "FunnelFlow — Funis interativos que convertem",
+    template: "%s | FunnelFlow",
   },
   description:
-    "Crie quizzes interativos de alta conversão com captura de leads, UTMs, Meta Pixel e Webhooks em tempo real.",
+    "Crie páginas, formulários e experiências interativas, publique com segurança e acompanhe cada conversão.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
-      className={`${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable} h-full antialiased`}
+      className={`dark ${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#07080d]">{children}</body>
     </html>
   );
 }

@@ -1,0 +1,8 @@
+project_id = "chat-quizz"
+
+[functions.funnel-webhook-worker]
+verify_jwt = false
+
+# Comma-separated exact hosts or wildcard subdomains (for example,
+# "hooks.example.com,*.trusted-webhooks.example"). Configure this as an Edge
+# Function secret in production; an empty list intentionally blocks delivery.
