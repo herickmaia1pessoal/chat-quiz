@@ -52,9 +52,9 @@ export function ImportQuizButton({ workspaceId }: { workspaceId: string }) {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={loading}
-        className="py-2.5 px-4 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-medium transition flex items-center justify-center gap-2 disabled:opacity-50"
+        className="py-2.5 px-4 rounded-lg border border-border bg-card hover:bg-accent text-foreground text-sm font-medium transition flex items-center justify-center gap-2 disabled:opacity-50"
       >
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 text-indigo-400" />}
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 text-indigo-500" />}
         {loading ? 'Importando...' : 'Importar Quiz'}
       </button>
     </>

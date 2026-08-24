@@ -106,7 +106,7 @@ export function elementStyleToCss(style: StyleProperties): CSSProperties {
   }
 }
 
-const inputClass = 'w-full rounded-xl border border-white/10 bg-black/25 px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/15'
+const inputClass = 'w-full rounded-xl border border-border bg-muted/30 px-3.5 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/15'
 
 function FieldShell({ element, children, group = false }: { element: FunnelElement; children: ReactNode; group?: boolean }) {
   const label = (
@@ -120,18 +120,18 @@ function FieldShell({ element, children, group = false }: { element: FunnelEleme
   if (group) {
     return (
       <fieldset className="block w-full text-left">
-        <legend className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-zinc-200">{label}</legend>
+        <legend className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">{label}</legend>
         {children}
-        {help && <p className="mt-1.5 text-xs text-zinc-500">{help}</p>}
+        {help && <p className="mt-1.5 text-xs text-muted-foreground">{help}</p>}
       </fieldset>
     )
   }
 
   return (
     <label className="block w-full text-left">
-      <span className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-zinc-200">{label}</span>
+      <span className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">{label}</span>
       {children}
-      {help && <span className="mt-1.5 block text-xs text-zinc-500">{help}</span>}
+      {help && <span className="mt-1.5 block text-xs text-muted-foreground">{help}</span>}
     </label>
   )
 }
@@ -140,7 +140,7 @@ function EmptyMedia({ kind }: { kind: 'image' | 'video' | 'embed' | 'audio' }) {
   const Icon = kind === 'image' ? ImageIcon : kind === 'audio' ? AudioLines : kind === 'embed' ? Code2 : LayoutGrid
   const labels = { image: 'Adicione uma imagem', video: 'Adicione um vídeo', embed: 'Adicione uma URL', audio: 'Adicione um áudio' }
   return (
-    <div className="flex min-h-36 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/12 bg-white/[0.025] text-zinc-600">
+    <div className="flex min-h-36 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 text-muted-foreground">
       <Icon className="size-6" />
       <span className="text-xs font-medium">{labels[kind]}</span>
     </div>
@@ -234,7 +234,7 @@ export function ElementView({
         <FieldShell element={element} group>
           <div className="grid gap-2">
             {normalizeFunnelOptions(element.content.options).map((option) => (
-              <label key={option.value} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 py-3 text-sm text-zinc-300">
+              <label key={option.value} className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 px-3.5 py-3 text-sm text-muted-foreground">
                 <input type="checkbox" className="size-4 accent-violet-500" /> {option.label}
               </label>
             ))}
@@ -246,7 +246,7 @@ export function ElementView({
         <FieldShell element={element} group>
           <div className="grid gap-2">
             {normalizeFunnelOptions(element.content.options).map((option) => (
-              <label key={option.value} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 py-3 text-sm text-zinc-300">
+              <label key={option.value} className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 px-3.5 py-3 text-sm text-muted-foreground">
                 <input type="radio" name={element.id} className="size-4 accent-violet-500" /> {option.label}
               </label>
             ))}
@@ -256,7 +256,7 @@ export function ElementView({
     case 'upload':
       return (
         <FieldShell element={element}>
-          <div className="flex min-h-28 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/15 bg-black/20 p-4 text-zinc-500">
+          <div className="flex min-h-28 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-4 text-muted-foreground">
             <FileUp className="size-5" />
             <span className="text-xs">Clique ou arraste um arquivo</span>
             <input type="file" className="sr-only" accept={contentString(element, 'accept')} />
@@ -269,7 +269,7 @@ export function ElementView({
           <FieldShell element={element} group>
             <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={contentString(element, 'label', 'Escolha uma resposta')}>
               {normalizeFunnelOptions(element.content.options).map((option) => (
-                <label key={option.value} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3.5 text-sm text-zinc-300 transition hover:border-violet-400/30 hover:bg-violet-500/[0.06]">
+                <label key={option.value} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-muted/20 px-3.5 text-sm text-muted-foreground transition hover:border-violet-400/30 hover:bg-violet-500/[0.06]">
                   <input type="radio" name={element.id} value={option.value} className="size-4" style={{ accentColor: style.accentColor ?? '#8b5cf6' }} />
                   <span>{option.label}</span>
                 </label>
@@ -297,7 +297,7 @@ export function ElementView({
                 style={{ accentColor: style.accentColor ?? '#8b5cf6' }}
               />
               {contentBoolean(element, 'showValue', true) && (
-                <output className="min-w-12 rounded-lg border border-white/10 px-2 py-1 text-center font-mono text-sm">{min}</output>
+                <output className="min-w-12 rounded-lg border border-border px-2 py-1 text-center font-mono text-sm">{min}</output>
               )}
             </div>
           </FieldShell>
@@ -311,7 +311,7 @@ export function ElementView({
           <FieldShell element={element} group>
             <div className="flex flex-wrap gap-2">
               {Array.from({ length: max }, (_, index) => index + 1).map((rating) => (
-                <button type="button" key={rating} aria-pressed="false" aria-label={`${rating} de ${max} estrelas`} className="rounded-md p-0.5 text-zinc-600 transition hover:text-amber-400 focus-visible:outline-2 focus-visible:outline-amber-400">
+                <button type="button" key={rating} aria-pressed="false" aria-label={`${rating} de ${max} estrelas`} className="rounded-md p-0.5 text-muted-foreground/60 transition hover:text-amber-400 focus-visible:outline-2 focus-visible:outline-amber-400">
                   <Star className="size-7" style={{ color: style.accentColor ?? '#fbbf24' }} />
                 </button>
               ))}
@@ -331,7 +331,7 @@ export function ElementView({
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={progress}
-            className="h-2 overflow-hidden rounded-full bg-white/10"
+            className="h-2 overflow-hidden rounded-full bg-muted"
           >
             <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: style.accentColor ?? '#8b5cf6' }} />
           </div>
@@ -350,7 +350,7 @@ export function ElementView({
           {contentString(element, 'label') && <p className="mb-3 text-sm font-semibold">{contentString(element, 'label')}</p>}
           <div className="flex flex-wrap items-center justify-center gap-2" role="timer" aria-label={`${hours} horas, ${minutes} minutos e ${seconds} segundos restantes`}>
             {[hours, minutes, seconds].map((part, index) => (
-              <div key={index} className="min-w-16 rounded-xl border border-white/10 bg-white/[0.045] px-3 py-3 text-center">
+              <div key={index} className="min-w-16 rounded-xl border border-border bg-muted/40 px-3 py-3 text-center">
                 <strong className="font-mono text-xl tabular-nums">{String(part).padStart(2, '0')}</strong>
                 {contentBoolean(element, 'showLabels', true) && <span className="mt-1 block text-[9px] uppercase tracking-widest opacity-50">{['horas', 'min', 'seg'][index]}</span>}
               </div>
@@ -367,7 +367,7 @@ export function ElementView({
           {contentString(element, 'title') && <h2 className="mb-5 text-2xl font-bold">{contentString(element, 'title')}</h2>}
           <div className="grid w-full gap-2">
             {items.map((item, index) => (
-              <details key={`${item.title}-${index}`} className="group rounded-xl border border-white/10 bg-white/[0.025] p-4">
+              <details key={`${item.title}-${index}`} className="group rounded-xl border border-border bg-muted/20 p-4">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
                   {item.title || `Item ${index + 1}`}
                   <ChevronDown aria-hidden="true" className="size-4 shrink-0 transition group-open:rotate-180" />
@@ -469,7 +469,7 @@ export function ElementView({
             {logos.map((logo, index) => {
               const logoUrl = /^(?:https?:\/\/|data:image\/)/i.test(logo) ? logo : ''
               return (
-                <li key={`${logo}-${index}`} className="grid min-h-12 min-w-24 place-items-center rounded-xl border border-white/10 bg-white/[0.025] px-5 py-3 text-sm font-bold opacity-60">
+                <li key={`${logo}-${index}`} className="grid min-h-12 min-w-24 place-items-center rounded-xl border border-border bg-muted/20 px-5 py-3 text-sm font-bold opacity-60">
                   {logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={logoUrl} alt="" className="max-h-8 max-w-28 object-contain" />

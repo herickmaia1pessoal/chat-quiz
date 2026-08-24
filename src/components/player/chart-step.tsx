@@ -33,10 +33,10 @@ export function ChartStep({
   const isSolid = barStyle === 'solid' || !!accentColor
 
   return (
-    <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="space-y-1">
-        <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">{title}</h2>
-        {body && <p className="text-zinc-400 text-xs sm:text-sm">{body}</p>}
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">{title}</h2>
+        {body && <p className="text-muted-foreground text-xs sm:text-sm">{body}</p>}
       </div>
 
       <div className="space-y-4 pt-1">
@@ -45,12 +45,12 @@ export function ChartStep({
           return (
             <div key={idx} className="space-y-1.5">
               <div className="flex items-center justify-between gap-3 text-xs">
-                <span className="min-w-0 truncate text-zinc-300 font-medium" title={bar.label}>{bar.label}</span>
+                <span className="min-w-0 truncate text-foreground font-medium" title={bar.label}>{bar.label}</span>
                 <span className="shrink-0 text-indigo-400 font-mono font-semibold tabular-nums" style={accentColor ? { color: accentColor } : undefined}>
                   {bar.value}{unit}
                 </span>
               </div>
-              <div className="h-2.5 w-full rounded-full bg-zinc-950 border border-zinc-800 overflow-hidden">
+              <div className="h-2.5 w-full rounded-full bg-muted/30 border border-border overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${isSolid ? '' : 'bg-gradient-to-r from-indigo-500 to-cyan-400'}`}
                   style={{ width: `${widthPct}%`, ...(isSolid ? { background: accentColor || '#6366f1' } : {}) }}

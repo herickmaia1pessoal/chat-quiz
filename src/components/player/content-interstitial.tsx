@@ -27,21 +27,21 @@ export function ContentInterstitial({
   cardStyle?: 'flat' | 'quote'
 }) {
   return (
-    <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">{title}</h2>
+    <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">{title}</h2>
 
       {body && (
-        <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">{body}</p>
+        <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{body}</p>
       )}
 
       {testimonialText && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-2">
+        <div className="rounded-2xl border border-border bg-muted/40 p-4 space-y-2">
           {cardStyle !== 'flat' && (
             <Quote className="h-4 w-4 text-indigo-400" style={accentColor ? { color: accentColor } : undefined} />
           )}
-          <p className="text-zinc-300 text-sm italic leading-relaxed">{testimonialText}</p>
+          <p className="text-muted-foreground text-sm italic leading-relaxed">{testimonialText}</p>
           {testimonialAuthor && (
-            <p className="text-zinc-500 text-xs font-medium">— {testimonialAuthor}</p>
+            <p className="text-muted-foreground text-xs font-medium">— {testimonialAuthor}</p>
           )}
         </div>
       )}

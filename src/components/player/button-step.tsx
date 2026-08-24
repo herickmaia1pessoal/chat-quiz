@@ -32,10 +32,10 @@ export function ButtonStep({
     : (accentColor ? { backgroundColor: accentColor } : undefined)
 
   return (
-    <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300 text-center">
-      <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">{title}</h2>
+    <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300 text-center">
+      <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">{title}</h2>
 
-      {body && <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">{body}</p>}
+      {body && <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{body}</p>}
 
       {isExternal ? (
         <a

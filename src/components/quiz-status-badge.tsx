@@ -11,8 +11,8 @@ export function QuizStatusBadge({ status, className }: { status: string; classNa
     <Badge
       className={
         (isPublished
-          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-          : 'bg-zinc-800 text-zinc-400 border-zinc-700') +
+          ? 'border-emerald-300/30 bg-emerald-50 text-emerald-600'
+          : 'border-amber-300/30 bg-amber-50 text-amber-600') +
         (className ? ` ${className}` : '')
       }
     >

@@ -43,22 +43,22 @@ export function ComparisonStep({
   }, [])
 
   return (
-    <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <h2 className="text-lg sm:text-xl font-bold text-white leading-snug text-center">{title}</h2>
+    <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <h2 className="text-lg sm:text-xl font-bold text-foreground leading-snug text-center">{title}</h2>
 
-      <div className="rounded-2xl border border-zinc-800 overflow-hidden">
+      <div className="rounded-2xl border border-border overflow-hidden">
         <div className="grid grid-cols-2 text-center text-xs font-semibold py-2.5">
-          <div className="break-words px-2 text-red-400 bg-red-500/5 border-r border-zinc-800" style={leftColor ? { color: leftColor, backgroundColor: `${leftColor}0d` } : undefined}>{leftLabel}</div>
-          <div className="break-words px-2 text-emerald-400 bg-emerald-500/5" style={rightColor ? { color: rightColor, backgroundColor: `${rightColor}0d` } : undefined}>{rightLabel}</div>
+          <div className="break-words px-2 text-red-400 bg-red-500/5 border-r border-border" style={leftColor ? { color: leftColor, backgroundColor: `${leftColor}0d` } : undefined}>{leftLabel}</div>
+          <div className="break-words px-2 text-emerald-500 bg-emerald-500/5" style={rightColor ? { color: rightColor, backgroundColor: `${rightColor}0d` } : undefined}>{rightLabel}</div>
         </div>
-        <div className="divide-y divide-zinc-800">
+        <div className="divide-y divide-border">
           {rows.map((row, i) => (
             <div key={i}>
-              <p className="break-words px-2 text-[10px] uppercase tracking-wide text-zinc-500 text-center pt-2 font-semibold">
+              <p className="break-words px-2 text-[10px] uppercase tracking-wide text-muted-foreground text-center pt-2 font-semibold">
                 {row.label}
               </p>
               <div className="grid grid-cols-2 text-sm">
-                <div className="break-words px-3 pb-2.5 pt-1 text-red-300/90 border-r border-zinc-800 text-center" style={leftColor ? { color: leftColor } : undefined}>
+                <div className="break-words px-3 pb-2.5 pt-1 text-red-300/90 border-r border-border text-center" style={leftColor ? { color: leftColor } : undefined}>
                   {row.left_text}
                 </div>
                 <div className="break-words px-3 pb-2.5 pt-1 text-emerald-300/90 text-center" style={rightColor ? { color: rightColor } : undefined}>

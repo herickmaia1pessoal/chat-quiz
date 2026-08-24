@@ -193,21 +193,21 @@ export default async function QuizBuilderPage({
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 transition"
+            className="p-2 rounded-lg bg-card border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-bold tracking-tight text-white">{quiz.title}</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{quiz.title}</h1>
               <QuizStatusBadge status={quiz.status} />
             </div>
-            <p className="text-zinc-400 text-xs mt-0.5">
-              ID: <span className="font-mono text-zinc-500">{quiz.id}</span>
+            <p className="text-muted-foreground text-xs mt-0.5">
+              ID: <span className="font-mono text-muted-foreground">{quiz.id}</span>
             </p>
           </div>
         </div>
@@ -218,10 +218,10 @@ export default async function QuizBuilderPage({
           rel="noopener noreferrer"
           className={buttonVariants({
             variant: 'outline',
-            className: 'border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 gap-1.5',
+            className: 'border-border bg-card text-foreground hover:bg-accent gap-1.5',
           })}
         >
-          <ExternalLink className="h-4 w-4 text-indigo-400" />
+          <ExternalLink className="h-4 w-4 text-indigo-500" />
           Abrir Player
         </a>
       </div>
@@ -229,30 +229,30 @@ export default async function QuizBuilderPage({
       {/* Builder Tabs */}
       <Tabs defaultValue="questions" className="space-y-6">
         <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0">
-          <TabsList className="flex-nowrap gap-1 rounded-xl border border-zinc-800 bg-zinc-900 p-1">
+          <TabsList className="flex-nowrap gap-1 rounded-xl border border-border bg-card p-1">
             <TabsTrigger value="questions"
-              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
-              <ListOrdered className="h-4 w-4 text-indigo-400" />
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground">
+              <ListOrdered className="h-4 w-4 text-indigo-500" />
               Etapas ({steps.length})
             </TabsTrigger>
             <TabsTrigger value="settings"
-              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
-              <Settings className="h-4 w-4 text-cyan-400" />
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground">
+              <Settings className="h-4 w-4 text-cyan-500" />
               Configurações
             </TabsTrigger>
             <TabsTrigger value="result"
-              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
-              <Sparkles className="h-4 w-4 text-amber-400" />
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground">
+              <Sparkles className="h-4 w-4 text-amber-600" />
               Resultado
             </TabsTrigger>
             <TabsTrigger value="funnel"
-              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground">
               <BarChart2 className="h-4 w-4 text-purple-400" />
               Funil & Drop-off
             </TabsTrigger>
             <TabsTrigger value="leads"
-              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-zinc-400 data-[state=active]:bg-zinc-800 data-[state=active]:text-white">
-              <Users className="h-4 w-4 text-emerald-400" />
+              className="shrink-0 gap-2 rounded-lg text-xs font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground">
+              <Users className="h-4 w-4 text-emerald-500" />
               Leads ({leads?.length || 0})
             </TabsTrigger>
           </TabsList>

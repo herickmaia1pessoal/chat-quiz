@@ -61,12 +61,12 @@ export function ProcessingScreen({
 
   return (
     <div className="w-full text-center space-y-6 animate-in fade-in duration-300 py-10">
-      <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 backdrop-blur-2xl shadow-2xl space-y-5 max-w-md mx-auto">
-        <h2 className="text-lg sm:text-xl font-bold text-white leading-snug min-h-[3.5rem] flex items-center justify-center">
+      <div className="rounded-3xl border border-border bg-card p-8 backdrop-blur-2xl shadow-2xl space-y-5 max-w-md mx-auto">
+        <h2 className="text-lg sm:text-xl font-bold text-foreground leading-snug min-h-[3.5rem] flex items-center justify-center">
           {safeMessages[messageIndex]}
         </h2>
         <div className="space-y-2">
-          <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden border border-border">
             <div
               className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full transition-all duration-150 ease-linear"
               style={{ width: `${progress}%` }}

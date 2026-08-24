@@ -31,7 +31,7 @@ export function AlertStep({
   const { icon: Icon, classes, iconColor } = VARIANT_STYLES[variant] || VARIANT_STYLES.warning
 
   return (
-    <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className={`rounded-2xl border p-4 flex gap-3 ${classes}`}>
         <Icon className={`h-5 w-5 shrink-0 mt-0.5 ${iconColor}`} />
         <div className="space-y-1">

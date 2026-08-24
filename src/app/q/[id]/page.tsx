@@ -78,7 +78,7 @@ export default async function PublicQuizPage({
   }))
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500">Carregando quiz...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Carregando quiz...</div>}>
       <QuizPlayer quiz={quiz} steps={orderedSteps} />
     </Suspense>
   )

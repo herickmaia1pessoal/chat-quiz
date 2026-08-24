@@ -63,8 +63,8 @@ export function FunnelChart({
       value: views,
       icon: Eye,
       color: 'from-zinc-600 to-zinc-500',
-      bg: 'bg-zinc-500/10 border-zinc-500/20',
-      text: 'text-zinc-300',
+      bg: 'bg-muted/20 border-border',
+      text: 'text-muted-foreground',
     },
     {
       label: 'Iniciaram',
@@ -72,7 +72,7 @@ export function FunnelChart({
       icon: Play,
       color: 'from-indigo-600 to-indigo-500',
       bg: 'bg-indigo-500/10 border-indigo-500/20',
-      text: 'text-indigo-300',
+      text: 'text-indigo-500',
     },
     {
       label: 'Concluíram',
@@ -80,7 +80,7 @@ export function FunnelChart({
       icon: CheckCircle2,
       color: 'from-cyan-600 to-cyan-500',
       bg: 'bg-cyan-500/10 border-cyan-500/20',
-      text: 'text-cyan-300',
+      text: 'text-cyan-500',
     },
     {
       label: 'Leads Gerados',
@@ -88,7 +88,7 @@ export function FunnelChart({
       icon: Users,
       color: 'from-emerald-600 to-emerald-500',
       bg: 'bg-emerald-500/10 border-emerald-500/20',
-      text: 'text-emerald-300',
+      text: 'text-emerald-500',
     },
   ]
 
@@ -98,12 +98,12 @@ export function FunnelChart({
   return (
     <div className="space-y-6">
       {/* Funnel Visual */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-3">
+      <div className="rounded-2xl border border-border bg-card p-6 backdrop-blur-xl space-y-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-base font-semibold text-zinc-200">Funil de Conversão</h3>
-          <div className="flex items-center gap-4 text-xs text-zinc-400">
-            <span>Taxa geral: <strong className="text-emerald-400">{conversionRate}%</strong></span>
-            <span>Conclusão: <strong className="text-cyan-400">{completionRate}%</strong></span>
+          <h3 className="text-base font-semibold text-foreground">Funil de Conversão</h3>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span>Taxa geral: <strong className="text-emerald-500">{conversionRate}%</strong></span>
+            <span>Conclusão: <strong className="text-cyan-500">{completionRate}%</strong></span>
           </div>
         </div>
 
@@ -122,15 +122,15 @@ export function FunnelChart({
                   <Icon className={`h-3.5 w-3.5 ${stage.text}`} />
                   <span className={`font-medium ${stage.text}`}>{stage.label}</span>
                   {dropPct && Number(dropPct) > 0 && (
-                    <span className="flex items-center gap-0.5 text-red-400 font-mono">
+                    <span className="flex items-center gap-0.5 text-destructive font-mono">
                       <ArrowDownRight className="h-3 w-3" />
                       -{dropPct}%
                     </span>
                   )}
                 </div>
-                <span className="font-bold text-zinc-200 tabular-nums">{stage.value.toLocaleString('pt-BR')}</span>
+                <span className="font-bold text-foreground tabular-nums">{stage.value.toLocaleString('pt-BR')}</span>
               </div>
-              <div className="w-full h-6 bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800">
+              <div className="w-full h-6 bg-muted/40 rounded-lg overflow-hidden border border-border">
                 <div
                   className={`h-full bg-gradient-to-r ${stage.color} rounded-lg transition-all duration-700 flex items-center justify-end pr-2`}
                   style={{ width: `${Math.max(pct, 2)}%` }}
@@ -147,12 +147,12 @@ export function FunnelChart({
 
       {/* Drop-off por Pergunta */}
       {dropoffByQuestion.length > 0 && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-4">
+        <div className="rounded-2xl border border-border bg-card p-6 backdrop-blur-xl space-y-4">
           <div className="flex items-center gap-2 mb-1">
-            <TrendingDown className="h-4 w-4 text-red-400" />
-            <h3 className="text-base font-semibold text-zinc-200">Análise de Drop-off por Pergunta</h3>
+            <TrendingDown className="h-4 w-4 text-destructive" />
+            <h3 className="text-base font-semibold text-foreground">Análise de Drop-off por Pergunta</h3>
           </div>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             Identifique em qual etapa os usuários estão abandonando o quiz para otimizar o fluxo.
           </p>
 
@@ -162,23 +162,23 @@ export function FunnelChart({
               .map((item) => {
                 const maxDropoff = Math.max(...dropoffByQuestion.map((d) => d.count), 1)
                 const pct = Math.round((item.count / maxDropoff) * 100)
-                const severity = pct > 66 ? 'text-red-400' : pct > 33 ? 'text-amber-400' : 'text-zinc-400'
+                const severity = pct > 66 ? 'text-destructive' : pct > 33 ? 'text-amber-600' : 'text-muted-foreground'
 
                 return (
                   <div key={item.question_order} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-zinc-300 truncate max-w-[240px]">
-                        <span className="text-zinc-500 font-mono mr-2">Q{item.question_order + 1}</span>
+                      <span className="text-foreground truncate max-w-[240px]">
+                        <span className="text-muted-foreground font-mono mr-2">Q{item.question_order + 1}</span>
                         {item.question_title}
                       </span>
                       <span className={`font-bold tabular-nums ${severity}`}>
                         {item.count} abandono{item.count !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <div className="w-full h-4 bg-zinc-900 rounded-md overflow-hidden border border-zinc-800">
+                    <div className="w-full h-4 bg-muted/40 rounded-md overflow-hidden border border-border">
                       <div
                         className={`h-full rounded-md transition-all duration-500 ${
-                          pct > 66 ? 'bg-red-500/40' : pct > 33 ? 'bg-amber-500/40' : 'bg-zinc-600/40'
+                          pct > 66 ? 'bg-red-500/40' : pct > 33 ? 'bg-amber-500/40' : 'bg-muted-foreground/40'
                         }`}
                         style={{ width: `${Math.max(pct, 2)}%` }}
                       />
@@ -191,9 +191,9 @@ export function FunnelChart({
       )}
 
       {dropoffByQuestion.length === 0 && starts === 0 && (
-        <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20 p-8 text-center">
-          <TrendingDown className="h-8 w-8 text-zinc-600 mx-auto mb-3" />
-          <p className="text-sm text-zinc-500">
+        <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center">
+          <TrendingDown className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">
             Dados de drop-off aparecerão aqui assim que o quiz receber os primeiros visitantes.
           </p>
         </div>
@@ -203,10 +203,10 @@ export function FunnelChart({
       {(utmBreakdown.length > 0 || deviceBreakdown.length > 0) && (
         <div className="grid gap-4 sm:grid-cols-2">
           {utmBreakdown.length > 0 && (
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-3">
+            <div className="rounded-2xl border border-border bg-card p-6 backdrop-blur-xl space-y-3">
               <div className="flex items-center gap-2">
-                <Globe2 className="h-4 w-4 text-indigo-400" />
-                <h3 className="text-base font-semibold text-zinc-200">Origens (UTM)</h3>
+                <Globe2 className="h-4 w-4 text-indigo-500" />
+                <h3 className="text-base font-semibold text-foreground">Origens (UTM)</h3>
               </div>
               <div className="space-y-2.5">
                 {(() => {
@@ -214,10 +214,10 @@ export function FunnelChart({
                   return utmBreakdown.map((u) => (
                     <div key={u.source} className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-zinc-300 truncate max-w-[70%]">{u.source}</span>
-                        <span className="font-bold text-zinc-200 tabular-nums">{u.count}</span>
+                        <span className="text-foreground truncate max-w-[70%]">{u.source}</span>
+                        <span className="font-bold text-foreground tabular-nums">{u.count}</span>
                       </div>
-                      <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                      <div className="w-full h-2 bg-muted/40 rounded-full overflow-hidden border border-border">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-all duration-500"
                           style={{ width: `${Math.max(Math.round((u.count / maxUtm) * 100), 4)}%` }}
@@ -231,10 +231,10 @@ export function FunnelChart({
           )}
 
           {deviceBreakdown.length > 0 && (
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-3">
+            <div className="rounded-2xl border border-border bg-card p-6 backdrop-blur-xl space-y-3">
               <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4 text-cyan-400" />
-                <h3 className="text-base font-semibold text-zinc-200">Dispositivos</h3>
+                <Smartphone className="h-4 w-4 text-cyan-500" />
+                <h3 className="text-base font-semibold text-foreground">Dispositivos</h3>
               </div>
               <div className="space-y-2.5">
                 {(() => {
@@ -244,13 +244,13 @@ export function FunnelChart({
                     return (
                       <div key={d.device} className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-300 flex items-center gap-1.5">
-                            <Icon className="h-3.5 w-3.5 text-zinc-500" />
+                          <span className="text-foreground flex items-center gap-1.5">
+                            <Icon className="h-3.5 w-3.5 text-muted-foreground" />
                             {DEVICE_LABELS[d.device] || d.device}
                           </span>
-                          <span className="font-bold text-zinc-200 tabular-nums">{d.count}</span>
+                          <span className="font-bold text-foreground tabular-nums">{d.count}</span>
                         </div>
-                        <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                        <div className="w-full h-2 bg-muted/40 rounded-full overflow-hidden border border-border">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all duration-500"
                             style={{ width: `${Math.max(Math.round((d.count / maxDevice) * 100), 4)}%` }}
@@ -268,27 +268,27 @@ export function FunnelChart({
 
       {/* Respostas por Pergunta */}
       {responsesByQuestion.length > 0 && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl space-y-4">
+        <div className="rounded-2xl border border-border bg-card p-6 backdrop-blur-xl space-y-4">
           <div className="flex items-center gap-2">
-            <ListChecks className="h-4 w-4 text-emerald-400" />
-            <h3 className="text-base font-semibold text-zinc-200">Respostas por Pergunta</h3>
+            <ListChecks className="h-4 w-4 text-emerald-500" />
+            <h3 className="text-base font-semibold text-foreground">Respostas por Pergunta</h3>
           </div>
           <div className="space-y-5">
             {responsesByQuestion.map((q) => {
               const totalAnswers = q.options.reduce((sum, o) => sum + o.count, 0)
               return (
                 <div key={q.question_title} className="space-y-2">
-                  <p className="text-xs font-semibold text-zinc-300">{q.question_title}</p>
+                  <p className="text-xs font-semibold text-foreground">{q.question_title}</p>
                   <div className="space-y-1.5">
                     {q.options.map((opt) => {
                       const pct = totalAnswers > 0 ? Math.round((opt.count / totalAnswers) * 100) : 0
                       return (
                         <div key={opt.option_text} className="space-y-1">
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-zinc-400 truncate max-w-[70%]">{opt.option_text}</span>
-                            <span className="text-zinc-500 tabular-nums">{opt.count} ({pct}%)</span>
+                            <span className="text-muted-foreground truncate max-w-[70%]">{opt.option_text}</span>
+                            <span className="text-muted-foreground tabular-nums">{opt.count} ({pct}%)</span>
                           </div>
-                          <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                          <div className="w-full h-1.5 bg-muted/40 rounded-full overflow-hidden border border-border">
                             <div
                               className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500"
                               style={{ width: `${Math.max(pct, 2)}%` }}

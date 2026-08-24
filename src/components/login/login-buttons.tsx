@@ -32,7 +32,7 @@ export function LoginButtons({
         formAction={signupAction}
         disabled={pending}
         variant="outline"
-        className="h-11 w-full border-white/10 bg-white/[.025] text-zinc-300 hover:bg-white/[.06] hover:text-white"
+        className="h-11 w-full border-border bg-muted/25 text-muted-foreground hover:bg-accent hover:text-foreground"
       >
         {isSigningUp ? 'Criando conta...' : 'Criar nova conta'}
       </Button>

@@ -21,7 +21,7 @@ export function AudioStep({
   accentColor?: string
 }) {
   return (
-    <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="space-y-1 text-center">
         <div
           className="h-12 w-12 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-2"
@@ -29,8 +29,8 @@ export function AudioStep({
         >
           <Volume2 className="h-5 w-5" />
         </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">{title}</h2>
-        {body && <p className="text-zinc-400 text-xs sm:text-sm">{body}</p>}
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">{title}</h2>
+        {body && <p className="text-muted-foreground text-xs sm:text-sm">{body}</p>}
       </div>
 
       {audioUrl ? (
@@ -38,7 +38,7 @@ export function AudioStep({
           Seu navegador não suporta reprodução de áudio.
         </audio>
       ) : (
-        <p className="text-zinc-600 text-xs text-center italic">Nenhum áudio configurado.</p>
+        <p className="text-muted-foreground/60 text-xs text-center italic">Nenhum áudio configurado.</p>
       )}
 
       <Button

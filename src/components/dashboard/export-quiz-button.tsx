@@ -37,7 +37,7 @@ export function ExportQuizButton({ quizId, quizTitle }: { quizId: string; quizTi
       onClick={handleExport}
       disabled={loading}
       title="Exportar quiz (.json)"
-      className="py-2 px-3 rounded-lg border border-zinc-700 hover:bg-zinc-800 text-zinc-300 text-xs font-medium transition flex items-center justify-center gap-1 disabled:opacity-50"
+      className="py-2 px-3 rounded-lg border border-border hover:bg-accent text-foreground text-xs font-medium transition flex items-center justify-center gap-1 disabled:opacity-50"
     >
       {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
     </button>

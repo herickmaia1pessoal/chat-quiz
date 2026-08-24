@@ -35,29 +35,29 @@ export function QuadrantStep({
   showGrid?: boolean
 }) {
   return (
-    <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="space-y-1">
-        <h2 className="text-xl sm:text-2xl font-bold text-white leading-snug">{title}</h2>
-        {body && <p className="text-zinc-400 text-xs sm:text-sm">{body}</p>}
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">{title}</h2>
+        {body && <p className="text-muted-foreground text-xs sm:text-sm">{body}</p>}
       </div>
 
       <div className="flex items-stretch gap-2">
         {yLabel && (
           <div className="flex items-center justify-center shrink-0 w-5">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold [writing-mode:vertical-lr] rotate-180">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold [writing-mode:vertical-lr] rotate-180">
               {yLabel}
             </span>
           </div>
         )}
 
         <div className="flex-1 space-y-2">
-          <div className="relative aspect-square w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 overflow-hidden">
+          <div className="relative aspect-square w-full rounded-2xl border border-border bg-muted/30 overflow-hidden">
             {/* Grid lines */}
             {showGrid && (
               <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-                <div className="border-r border-b border-zinc-800/60" />
-                <div className="border-b border-zinc-800/60" />
-                <div className="border-r border-zinc-800/60" />
+                <div className="border-r border-b border-border/60" />
+                <div className="border-b border-border/60" />
+                <div className="border-r border-border/60" />
                 <div />
               </div>
             )}
@@ -75,13 +75,13 @@ export function QuadrantStep({
                   className={`h-3.5 w-3.5 rounded-full border-2 ${
                     point.highlighted
                       ? 'bg-indigo-500 border-indigo-300 shadow-lg shadow-indigo-500/40 ring-4 ring-indigo-500/20'
-                      : 'bg-zinc-700 border-zinc-600'
+                      : 'bg-muted-foreground/60 border-muted-foreground/40'
                   }`}
                   style={point.highlighted && accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : undefined}
                 />
                 {point.label && (
                   <span className={`text-[10px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded ${
-                    point.highlighted ? 'text-indigo-300 bg-indigo-950/80' : 'text-zinc-400 bg-zinc-900/80'
+                    point.highlighted ? 'text-indigo-300 bg-indigo-950/80' : 'text-muted-foreground bg-muted/50'
                   }`}>
                     {point.label}
                   </span>
@@ -93,7 +93,7 @@ export function QuadrantStep({
       </div>
 
       {xLabel && (
-        <p className="text-center text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
+        <p className="text-center text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
           {xLabel}
         </p>
       )}

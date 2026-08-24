@@ -28,14 +28,14 @@ export function ScoredResultScreen({ result }: { result: ScoredResult }) {
   const markerPercent = Math.min(100, Math.max(0, ((score - minPossible) / range) * 100))
 
   return (
-    <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-500">
+    <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-500">
       <div className="text-center space-y-1.5">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Seu resultado</p>
-        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Seu resultado</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
           Nível <span style={{ color: levelColor }}>{levelName}</span>
         </h2>
         {levelDescription && (
-          <p className="text-zinc-400 text-sm max-w-sm mx-auto pt-1">{levelDescription}</p>
+          <p className="text-muted-foreground text-sm max-w-sm mx-auto pt-1">{levelDescription}</p>
         )}
       </div>
 
@@ -47,13 +47,13 @@ export function ScoredResultScreen({ result }: { result: ScoredResult }) {
               className="absolute -top-7 -translate-x-1/2 flex flex-col items-center transition-all duration-700"
               style={{ left: `${markerPercent}%` }}
             >
-              <span className="text-[10px] font-bold uppercase tracking-wide text-zinc-950 bg-white px-2 py-0.5 rounded-full whitespace-nowrap">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-background bg-foreground px-2 py-0.5 rounded-full whitespace-nowrap">
                 Você
               </span>
-              <span className="h-2 w-2 rotate-45 bg-white -mt-1" />
+              <span className="h-2 w-2 rotate-45 bg-foreground -mt-1" />
             </div>
 
-            <div className="w-full h-3 rounded-full overflow-hidden border border-zinc-800 flex">
+            <div className="w-full h-3 rounded-full overflow-hidden border border-border flex">
               {allLevels.map((level) => (
                 <div
                   key={level.name}
@@ -68,12 +68,12 @@ export function ScoredResultScreen({ result }: { result: ScoredResult }) {
             </div>
           </div>
 
-          <div className="flex text-[10px] text-zinc-500 px-0.5 pt-2 font-medium">
+          <div className="flex text-[10px] text-muted-foreground px-0.5 pt-2 font-medium">
             {allLevels.map((level) => (
               <span
                 key={level.name}
                 title={level.name}
-                className={`min-w-0 flex-1 truncate text-center first:text-left last:text-right ${level.name === levelName ? 'text-zinc-200 font-semibold' : ''}`}
+                className={`min-w-0 flex-1 truncate text-center first:text-left last:text-right ${level.name === levelName ? 'text-foreground font-semibold' : ''}`}
                 style={{ flexBasis: `${((level.maxScore - level.minScore + 1) / (range + 1)) * 100}%` }}
               >
                 {level.name}

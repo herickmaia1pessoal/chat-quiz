@@ -44,16 +44,16 @@ export function SocialProofToast({
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'
       }`}
     >
-      <div className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/95 backdrop-blur-xl shadow-2xl px-4 py-3 max-w-xs">
-        <div className="h-8 w-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+      <div className="flex items-center gap-3 rounded-2xl border border-border bg-card backdrop-blur-xl shadow-2xl px-4 py-3 max-w-xs">
+        <div className="h-8 w-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
           <CheckCircle2 className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <p className="text-xs text-zinc-200 leading-snug">
+          <p className="text-xs text-foreground leading-snug">
             <span className="font-semibold">{name}</span>{' '}
-            <span className="text-zinc-400">{action}</span>
+            <span className="text-muted-foreground">{action}</span>
           </p>
-          {timeLabel && <p className="text-[10px] text-zinc-500 mt-0.5">{timeLabel}</p>}
+          {timeLabel && <p className="text-[10px] text-muted-foreground mt-0.5">{timeLabel}</p>}
         </div>
       </div>
     </div>

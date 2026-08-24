@@ -26,7 +26,7 @@ export function DuplicateQuizButton({ quizId }: { quizId: string }) {
       type="button"
       onClick={handleDuplicate}
       disabled={loading}
-      className="py-2 px-3 rounded-lg border border-zinc-700 hover:bg-zinc-800 text-zinc-300 text-xs font-medium transition flex items-center justify-center gap-1 disabled:opacity-50"
+      className="py-2 px-3 rounded-lg border border-border hover:bg-accent text-foreground text-xs font-medium transition flex items-center justify-center gap-1 disabled:opacity-50"
       title="Duplicar quiz"
     >
       {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}

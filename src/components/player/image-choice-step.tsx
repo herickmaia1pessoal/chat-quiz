@@ -38,10 +38,10 @@ export function ImageChoiceStep({
             className={`rounded-2xl border overflow-hidden transition-all text-left group ${
               isSelected
                 ? 'border-indigo-500 shadow-md shadow-indigo-500/10'
-                : 'border-zinc-800 hover:border-zinc-700'
+                : 'border-border hover:border-muted-foreground/40'
             }`}
           >
-            <div className={`aspect-square bg-zinc-900 overflow-hidden ${isCircle ? 'p-3' : ''}`}>
+            <div className={`aspect-square bg-muted overflow-hidden ${isCircle ? 'p-3' : ''}`}>
               {opt.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -50,14 +50,14 @@ export function ImageChoiceStep({
                   className={`h-full w-full object-cover transition ${isCircle ? 'rounded-full' : ''} ${isSelected ? '' : 'group-hover:scale-105'}`}
                 />
               ) : (
-                <div className="h-full w-full flex items-center justify-center text-zinc-700 text-xs">
+                <div className="h-full w-full flex items-center justify-center text-muted-foreground/60 text-xs">
                   Sem imagem
                 </div>
               )}
             </div>
             <div
               style={isSelected && accentColor ? { backgroundColor: `${accentColor}26` } : undefined}
-              className={`p-2.5 text-center text-sm font-medium ${isSelected ? 'bg-indigo-600/15 text-white' : 'bg-zinc-950/60 text-zinc-300'}`}
+              className={`p-2.5 text-center text-sm font-medium ${isSelected ? 'bg-indigo-600/15 text-foreground' : 'bg-muted/40 text-muted-foreground'}`}
             >
               {opt.text}
             </div>
