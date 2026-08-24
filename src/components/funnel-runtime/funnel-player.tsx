@@ -462,10 +462,16 @@ export function FunnelPlayer({
   const interactionStartPromiseRef = useRef<Promise<void> | null>(null)
   const initialViewEmittedRef = useRef(false)
   const documentRef = useRef(document)
-
-  useEffect(() => {
-    documentRef.current = document
-  }, [document])
+  // Single-choice auto-advance (see updateValue) fires handleAction from a
+  // setTimeout, which otherwise closes over the handleAction from the
+  // render where the click happened — built on the effectiveValues from
+  // BEFORE that click's setValues took effect. resolveFunnelDecision would
+  // then run against the stale, still-empty answer and validatePage would
+  // reject the page as incomplete even though the choice is visibly
+  // selected (only the *second* click would see the up-to-date value).
+  // Routing every call through this ref instead always reaches the latest
+  // closure, built on the latest effectiveValues.
+  const handleActionRef = useRef<(action: RuntimeAction) => void>(() => {})
 
   const currentPage = pages[pageIndex]
   const pageElements = useMemo(
@@ -627,7 +633,7 @@ export function FunnelPlayer({
     if (isSingleChoice) {
       const answerableOnPage = pageElements.filter((element) => fieldTypes.has(element.type) && isEffectivelyVisible(element))
       if (answerableOnPage.length === 1 && answerableOnPage[0].id === respondedElement.id) {
-        window.setTimeout(() => handleAction({ type: 'next_page' }), 200)
+        window.setTimeout(() => handleActionRef.current({ type: 'next_page' }), 200)
       }
     }
   }
@@ -876,6 +882,7 @@ export function FunnelPlayer({
       }
     }
   }
+  handleActionRef.current = handleAction
 
   const renderBranch = (parentId: string | null) =>
     getChildren(pageElements, currentPage.id, parentId).map((element) => (
