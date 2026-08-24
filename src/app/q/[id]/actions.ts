@@ -24,6 +24,19 @@ interface SubmitPayload {
 }
 
 export async function submitQuizResponse(payload: SubmitPayload) {
+  // The client already checks this (quiz-player.tsx's handleSubmitLead),
+  // but that's just UX — this is a public server action anyone can call
+  // directly with a forged fetch, bypassing the form entirely. Without a
+  // server-side check, leads_responses could end up with a phone like "a"
+  // or an unparseable email, silently corrupting export/webhook data.
+  const phoneDigits = (payload.phone || '').replace(/\D/g, '')
+  if (!payload.name?.trim() || phoneDigits.length < 10 || phoneDigits.length > 15) {
+    throw new Error('Nome e telefone válidos são obrigatórios.')
+  }
+  if (payload.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email.trim())) {
+    throw new Error('Informe um e-mail válido.')
+  }
+
   const supabase = await createClient()
 
   // 1. Fetch Quiz config (for webhook_url, redirect_url, the scored-result

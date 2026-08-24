@@ -378,7 +378,9 @@ export function QuizPlayer({
 
   const handleSubmitLead = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!leadName.trim() || !leadPhone.trim()) return
+    const phoneDigits = leadPhone.replace(/\D/g, '')
+    if (!leadName.trim() || phoneDigits.length < 10) return
+    if (leadEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadEmail.trim())) return
 
     setIsSubmitting(true)
     try {
@@ -594,6 +596,8 @@ export function QuizPlayer({
                   onChange={(e) => setLeadPhone(formatPhone(e.target.value))}
                   placeholder="(11) 99999-9999"
                   maxLength={15}
+                  minLength={14}
+                  title="Informe um telefone válido com DDD"
                   className="h-11 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 font-mono"
                   required
                 />
@@ -634,6 +638,19 @@ export function QuizPlayer({
              several elements into one step" model. Any interactive block
              (a question, a CTA) advances straight to the next step. */
           <div key={currentStepIndex} className="w-full space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+            {/* social_proof renders as a floating toast, not inline — if a
+                step is built with only social_proof blocks (or none
+                visible at all), there'd be nothing to click and no way to
+                ever leave the step. Give that edge case a plain way
+                forward instead of stranding the visitor on a blank
+                screen. */}
+            {currentStep.blocks.filter(isBlockVisible).every((block) => block.type === 'social_proof') && (
+              <ButtonStep
+                title="Continue quando quiser"
+                ctaLabel="Continuar"
+                onContinue={() => advance()}
+              />
+            )}
             {currentStep.blocks.filter(isBlockVisible).map((block) => {
               const accentColor = block.settings?.style_accent_color || undefined
               const textAlign = block.settings?.style_text_align
@@ -712,7 +729,7 @@ export function QuizPlayer({
                     buttonStyle={block.settings?.style_button_style}
                   />
                 ) : block.type === 'spacer' ? (
-                  <div style={{ height: block.settings?.duration_seconds || 24 }} aria-hidden="true" />
+                  <SpacerStep heightPx={block.settings?.duration_seconds || 24} onContinue={() => advance()} />
                 ) : block.type === 'chart' ? (
                   <ChartStep
                     title={interpolate(block.title)}
