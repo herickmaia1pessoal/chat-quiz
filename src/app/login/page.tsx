@@ -90,7 +90,10 @@ export default async function LoginPage({
               <Input id="email" name="email" type="email" autoComplete="email" placeholder="voce@empresa.com" required className="h-11 rounded-xl border-white/10 bg-white/[.035] px-4 text-zinc-100 placeholder:text-zinc-600 hover:bg-white/[.05] focus:border-violet-500/50" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-xs font-semibold text-zinc-300">Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-xs font-semibold text-zinc-300">Senha</Label>
+                <Link href="/login/esqueci-senha" className="text-xs font-semibold text-violet-400 transition hover:text-violet-300">Esqueceu a senha?</Link>
+              </div>
               <Input id="password" name="password" type="password" autoComplete="current-password" minLength={6} required className="h-11 rounded-xl border-white/10 bg-white/[.035] px-4 text-zinc-100 hover:bg-white/[.05] focus:border-violet-500/50" />
               <p className="text-[11px] text-zinc-600">Use pelo menos 6 caracteres.</p>
             </div>
