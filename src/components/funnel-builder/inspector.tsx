@@ -39,6 +39,18 @@ const MEDIA_URL_FIELDS = new Set([
 // price.features) — these get the richer label+tag editor.
 const CHOICE_ELEMENT_TYPES = new Set<ElementType>(['select', 'checkbox', 'radio', 'quiz_choice'])
 
+// Only 'section' and 'container' ever hold multiple positionable children
+// (every other type is a leaf) — so container-layout style fields (flex
+// direction/alignment/distribution/columns/gap) have no visible effect
+// anywhere else. Hiding them for leaf types avoids showing controls like
+// "Colunas" or "Distribuir conteúdo" on a Rating or a Progress bar, where
+// editing them silently does nothing perceptible.
+const CONTAINER_LAYOUT_TYPES = new Set<ElementType>(['section', 'container'])
+
+// 'object-fit' only affects elements that render an actual <img>/<video> —
+// everything else ignores it.
+const MEDIA_FIT_TYPES = new Set<ElementType>(['image', 'video'])
+
 function toInputValue(value: unknown) {
   if (typeof value === 'string' || typeof value === 'number') return value
   return ''
@@ -571,7 +583,9 @@ export function Inspector({
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">
-              <StyleField label="Espaço" property="gap" value={responsiveStyle.gap ?? 0} overridden={overridden('gap')} onChange={(value) => updateStyle('gap', value)} onClear={() => clearStyle('gap')} />
+              {CONTAINER_LAYOUT_TYPES.has(element.type) && (
+                <StyleField label="Espaço" property="gap" value={responsiveStyle.gap ?? 0} overridden={overridden('gap')} onChange={(value) => updateStyle('gap', value)} onClear={() => clearStyle('gap')} />
+              )}
               <StyleField label="Raio" property="borderRadius" value={responsiveStyle.borderRadius ?? 0} overridden={overridden('borderRadius')} onChange={(value) => updateStyle('borderRadius', value)} onClear={() => clearStyle('borderRadius')} />
               <StyleField label="Padding X" property="paddingX" value={responsiveStyle.paddingX ?? 0} overridden={overridden('paddingX')} onChange={(value) => updateStyle('paddingX', value)} onClear={() => clearStyle('paddingX')} />
               <StyleField label="Padding Y" property="paddingY" value={responsiveStyle.paddingY ?? 0} overridden={overridden('paddingY')} onChange={(value) => updateStyle('paddingY', value)} onClear={() => clearStyle('paddingY')} />
@@ -582,18 +596,26 @@ export function Inspector({
               <StyleField label="Largura" property="width" type="text" value={responsiveStyle.width ?? '100%'} overridden={overridden('width')} onChange={(value) => updateStyle('width', value)} onClear={() => clearStyle('width')} />
               <StyleField label="Largura máx." property="maxWidth" type="text" value={responsiveStyle.maxWidth ?? ''} overridden={overridden('maxWidth')} onChange={(value) => updateStyle('maxWidth', value)} onClear={() => clearStyle('maxWidth')} />
               <StyleField label="Altura mín." property="minHeight" value={responsiveStyle.minHeight ?? 0} overridden={overridden('minHeight')} onChange={(value) => updateStyle('minHeight', value)} onClear={() => clearStyle('minHeight')} />
-              <StyleField label="Colunas" property="columns" value={responsiveStyle.columns ?? 1} overridden={overridden('columns')} onChange={(value) => updateStyle('columns', value)} onClear={() => clearStyle('columns')} />
+              {CONTAINER_LAYOUT_TYPES.has(element.type) && (
+                <StyleField label="Colunas" property="columns" value={responsiveStyle.columns ?? 1} overridden={overridden('columns')} onChange={(value) => updateStyle('columns', value)} onClear={() => clearStyle('columns')} />
+              )}
               <StyleField label="Margem acima" property="marginTop" value={responsiveStyle.marginTop ?? 0} overridden={overridden('marginTop')} onChange={(value) => updateStyle('marginTop', value)} onClear={() => clearStyle('marginTop')} />
               <StyleField label="Margem abaixo" property="marginBottom" value={responsiveStyle.marginBottom ?? 0} overridden={overridden('marginBottom')} onChange={(value) => updateStyle('marginBottom', value)} onClear={() => clearStyle('marginBottom')} />
               <StyleField label="Espessura borda" property="borderWidth" value={responsiveStyle.borderWidth ?? 0} overridden={overridden('borderWidth')} onChange={(value) => updateStyle('borderWidth', value)} onClear={() => clearStyle('borderWidth')} />
               <StyleField label="Opacidade" property="opacity" value={responsiveStyle.opacity ?? 1} overridden={overridden('opacity')} onChange={(value) => updateStyle('opacity', value)} onClear={() => clearStyle('opacity')} />
             </div>
-            <StyleField label="Direção" property="flexDirection" type="select" value={responsiveStyle.flexDirection ?? 'column'} overridden={overridden('flexDirection')} onChange={(value) => updateStyle('flexDirection', value)} onClear={() => clearStyle('flexDirection')} options={[{ label: 'Vertical', value: 'column' }, { label: 'Horizontal', value: 'row' }]} />
-            <StyleField label="Alinhar itens" property="alignItems" type="select" value={responsiveStyle.alignItems ?? 'stretch'} overridden={overridden('alignItems')} onChange={(value) => updateStyle('alignItems', value)} onClear={() => clearStyle('alignItems')} options={[{ label: 'Início', value: 'start' }, { label: 'Centro', value: 'center' }, { label: 'Fim', value: 'end' }, { label: 'Esticar', value: 'stretch' }]} />
-            <StyleField label="Distribuir conteúdo" property="justifyContent" type="select" value={responsiveStyle.justifyContent ?? 'start'} overridden={overridden('justifyContent')} onChange={(value) => updateStyle('justifyContent', value)} onClear={() => clearStyle('justifyContent')} options={[{ label: 'Início', value: 'start' }, { label: 'Centro', value: 'center' }, { label: 'Fim', value: 'end' }, { label: 'Entre itens', value: 'between' }]} />
+            {CONTAINER_LAYOUT_TYPES.has(element.type) && (
+              <>
+                <StyleField label="Direção" property="flexDirection" type="select" value={responsiveStyle.flexDirection ?? 'column'} overridden={overridden('flexDirection')} onChange={(value) => updateStyle('flexDirection', value)} onClear={() => clearStyle('flexDirection')} options={[{ label: 'Vertical', value: 'column' }, { label: 'Horizontal', value: 'row' }]} />
+                <StyleField label="Alinhar itens" property="alignItems" type="select" value={responsiveStyle.alignItems ?? 'stretch'} overridden={overridden('alignItems')} onChange={(value) => updateStyle('alignItems', value)} onClear={() => clearStyle('alignItems')} options={[{ label: 'Início', value: 'start' }, { label: 'Centro', value: 'center' }, { label: 'Fim', value: 'end' }, { label: 'Esticar', value: 'stretch' }]} />
+                <StyleField label="Distribuir conteúdo" property="justifyContent" type="select" value={responsiveStyle.justifyContent ?? 'start'} overridden={overridden('justifyContent')} onChange={(value) => updateStyle('justifyContent', value)} onClear={() => clearStyle('justifyContent')} options={[{ label: 'Início', value: 'start' }, { label: 'Centro', value: 'center' }, { label: 'Fim', value: 'end' }, { label: 'Entre itens', value: 'between' }]} />
+              </>
+            )}
             <StyleField label="Alinhamento do texto" property="textAlign" type="select" value={responsiveStyle.textAlign ?? 'left'} overridden={overridden('textAlign')} onChange={(value) => updateStyle('textAlign', value)} onClear={() => clearStyle('textAlign')} options={[{ label: 'Esquerda', value: 'left' }, { label: 'Centro', value: 'center' }, { label: 'Direita', value: 'right' }]} />
             <StyleField label="Sombra" property="shadow" type="select" value={responsiveStyle.shadow ?? 'none'} overridden={overridden('shadow')} onChange={(value) => updateStyle('shadow', value)} onClear={() => clearStyle('shadow')} options={[{ label: 'Nenhuma', value: 'none' }, { label: 'Pequena', value: 'sm' }, { label: 'Média', value: 'md' }, { label: 'Grande', value: 'lg' }, { label: 'Glow', value: 'glow' }]} />
-            <StyleField label="Ajuste da mídia" property="objectFit" type="select" value={responsiveStyle.objectFit ?? 'cover'} overridden={overridden('objectFit')} onChange={(value) => updateStyle('objectFit', value)} onClear={() => clearStyle('objectFit')} options={[{ label: 'Cobrir', value: 'cover' }, { label: 'Conter', value: 'contain' }]} />
+            {MEDIA_FIT_TYPES.has(element.type) && (
+              <StyleField label="Ajuste da mídia" property="objectFit" type="select" value={responsiveStyle.objectFit ?? 'cover'} overridden={overridden('objectFit')} onChange={(value) => updateStyle('objectFit', value)} onClear={() => clearStyle('objectFit')} options={[{ label: 'Cobrir', value: 'cover' }, { label: 'Conter', value: 'contain' }]} />
+            )}
             <div className="grid grid-cols-2 gap-3">
               <StyleField label="Fundo" property="backgroundColor" type="color" value={responsiveStyle.backgroundColor ?? '#09090b'} overridden={overridden('backgroundColor')} onChange={(value) => updateStyle('backgroundColor', value)} onClear={() => clearStyle('backgroundColor')} />
               <StyleField label="Texto" property="textColor" type="color" value={responsiveStyle.textColor ?? '#fafafa'} overridden={overridden('textColor')} onChange={(value) => updateStyle('textColor', value)} onClear={() => clearStyle('textColor')} />

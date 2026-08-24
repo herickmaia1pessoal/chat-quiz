@@ -10,27 +10,6 @@ const ROOT_ONLY: ElementType[] = []
 const LAYOUT_PARENTS: ElementType[] = ['section', 'container']
 const CONTENT_PARENTS: ElementType[] = ['section', 'container']
 
-const typographyInspector: InspectorDefinition = {
-  id: 'typography',
-  label: 'Tipografia',
-  fields: [
-    { key: 'fontSize', label: 'Tamanho', control: 'number', target: 'style' },
-    { key: 'fontWeight', label: 'Peso', control: 'number', target: 'style' },
-    {
-      key: 'textAlign',
-      label: 'Alinhamento',
-      control: 'select',
-      target: 'style',
-      options: [
-        { label: 'Esquerda', value: 'left' },
-        { label: 'Centro', value: 'center' },
-        { label: 'Direita', value: 'right' },
-      ],
-    },
-    { key: 'textColor', label: 'Cor', control: 'color', target: 'style' },
-  ],
-}
-
 const textContent = (label = 'Texto'): InspectorDefinition => ({
   id: 'content',
   label: 'Conteúdo',
@@ -126,8 +105,8 @@ export const ELEMENT_DEFINITIONS: ElementDefinition[] = [
   definition('spacer', 'layout', 'Espaçamento', 'Respiro vertical', 'BetweenVerticalStart', { height: 40 }, { minHeight: 40 }),
   definition('divider', 'layout', 'Divider', 'Linha separadora', 'Minus', {}, { borderColor: '#3f3f46', borderWidth: 1 }),
 
-  definition('heading', 'content', 'Título', 'Headline de impacto', 'Heading1', { text: 'Seu título de impacto' }, { fontSize: 42, fontWeight: 800, lineHeight: 1.1, textAlign: 'center', textColor: '#fafafa' }, CONTENT_PARENTS, [textContent('Título'), typographyInspector]),
-  definition('text', 'content', 'Texto', 'Parágrafo de apoio', 'AlignLeft', { text: 'Escreva aqui um texto de apoio curto e direto.' }, { fontSize: 18, lineHeight: 1.6, textAlign: 'center', textColor: '#a1a1aa' }, CONTENT_PARENTS, [textContent(), typographyInspector]),
+  definition('heading', 'content', 'Título', 'Headline de impacto', 'Heading1', { text: 'Seu título de impacto' }, { fontSize: 42, fontWeight: 800, lineHeight: 1.1, textAlign: 'center', textColor: '#fafafa' }, CONTENT_PARENTS, [textContent('Título')]),
+  definition('text', 'content', 'Texto', 'Parágrafo de apoio', 'AlignLeft', { text: 'Escreva aqui um texto de apoio curto e direto.' }, { fontSize: 18, lineHeight: 1.6, textAlign: 'center', textColor: '#a1a1aa' }, CONTENT_PARENTS, [textContent()]),
   definition('image', 'content', 'Imagem', 'Foto ou ilustração', 'Image', { src: '', alt: 'Imagem', caption: '' }, { width: '100%', minHeight: 240, borderRadius: 16, objectFit: 'cover' }, CONTENT_PARENTS, [{ id: 'image', label: 'Imagem', fields: [{ key: 'src', label: 'URL da imagem', control: 'url', target: 'content' }, { key: 'alt', label: 'Texto alternativo', control: 'text', target: 'content' }] }]),
   definition('video', 'content', 'Vídeo', 'YouTube, Vimeo ou MP4', 'Video', { src: '', title: 'Vídeo' }, { width: '100%', minHeight: 320, borderRadius: 16 }, CONTENT_PARENTS, [{ id: 'video', label: 'Vídeo', fields: [{ key: 'src', label: 'URL do vídeo', control: 'url', target: 'content' }, { key: 'title', label: 'Título acessível', control: 'text', target: 'content' }] }]),
   definition('button', 'content', 'Botão', 'Ação principal', 'MousePointerClick', { text: 'Continuar', action: 'next_page', target: '' }, { backgroundColor: '#7c3aed', textColor: '#ffffff', paddingX: 24, paddingY: 14, borderRadius: 12, fontWeight: 700, textAlign: 'center' }, CONTENT_PARENTS, [textContent('Rótulo'), actionContent], true),
@@ -147,7 +126,7 @@ export const ELEMENT_DEFINITIONS: ElementDefinition[] = [
       ] },
       { key: 'label', label: 'Legenda', control: 'text', target: 'content' },
     ],
-  }, typographyInspector]),
+  }]),
   definition('embed', 'content', 'Embed', 'Conteúdo externo', 'Code2', { url: '', title: 'Conteúdo incorporado' }, { width: '100%', minHeight: 180, borderRadius: 12 }, CONTENT_PARENTS, [{ id: 'embed', label: 'Embed', fields: [{ key: 'url', label: 'URL', control: 'url', target: 'content' }, { key: 'title', label: 'Título', control: 'text', target: 'content' }] }]),
   definition('audio', 'content', 'Áudio', 'Player de áudio', 'AudioLines', { src: '', title: 'Áudio' }, { width: '100%' }, CONTENT_PARENTS, [{ id: 'audio', label: 'Áudio', fields: [{ key: 'src', label: 'URL do áudio', control: 'url', target: 'content' }, { key: 'title', label: 'Título', control: 'text', target: 'content' }] }]),
 
