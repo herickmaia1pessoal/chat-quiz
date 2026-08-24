@@ -96,11 +96,11 @@ export function CreateQuizDialog({
           </Button>
         }
       />
-      <DialogContent className="border-zinc-800 bg-zinc-900 text-zinc-100 sm:max-w-[480px]">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-[480px]">
         <form onSubmit={handleCreate}>
           <DialogHeader>
             <DialogTitle>Criar Novo Quiz</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogDescription className="text-muted-foreground">
               Comece do zero ou clone um quiz já existente como ponto de partida.
             </DialogDescription>
           </DialogHeader>
@@ -108,12 +108,12 @@ export function CreateQuizDialog({
           <div className="py-4 space-y-4">
             {/* Mode toggle — only shown when there's actually something to clone */}
             {existingQuizzes.length > 0 && (
-              <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-950/60 p-0.5">
+              <div className="flex items-center rounded-lg border border-border bg-muted/30 p-0.5">
                 <button
                   type="button"
                   onClick={() => setMode('scratch')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition ${
-                    mode === 'scratch' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                    mode === 'scratch' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <Sparkles className="h-3.5 w-3.5" /> Do zero
@@ -122,7 +122,7 @@ export function CreateQuizDialog({
                   type="button"
                   onClick={() => setMode('clone')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition ${
-                    mode === 'clone' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                    mode === 'clone' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <Copy className="h-3.5 w-3.5" /> Clonar existente
@@ -133,7 +133,7 @@ export function CreateQuizDialog({
             {mode === 'scratch' ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="quizTitle" className="text-zinc-300">
+                  <Label htmlFor="quizTitle" className="text-foreground">
                     Título do Quiz
                   </Label>
                   <Input
@@ -141,13 +141,13 @@ export function CreateQuizDialog({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Ex: Descubra o tratamento ideal para sua pele"
-                    className="border-zinc-700 bg-zinc-950 text-zinc-100"
+                    className="border-border bg-background text-foreground"
                     required
                     autoFocus
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="quizDesc" className="text-zinc-300">
+                  <Label htmlFor="quizDesc" className="text-foreground">
                     Descrição ou Objetivo (opcional)
                   </Label>
                   <Textarea
@@ -155,14 +155,14 @@ export function CreateQuizDialog({
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Ex: Funil focado em campanha de Meta Ads com foco em CPL reduzido."
-                    className="border-zinc-700 bg-zinc-950 text-zinc-100 resize-none h-20"
+                    className="border-border bg-background text-foreground resize-none h-20"
                   />
                 </div>
               </>
             ) : (
               <div className="space-y-2">
-                <Label className="text-zinc-300">Escolha o quiz para clonar</Label>
-                <div className="max-h-64 overflow-y-auto space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-950/40 p-1.5">
+                <Label className="text-foreground">Escolha o quiz para clonar</Label>
+                <div className="max-h-64 overflow-y-auto space-y-1.5 rounded-lg border border-border bg-muted/20 p-1.5">
                   {existingQuizzes.map((q) => (
                     <button
                       key={q.id}
@@ -170,21 +170,21 @@ export function CreateQuizDialog({
                       onClick={() => setCloneSourceId(q.id)}
                       className={`w-full text-left px-3 py-2 rounded-md text-sm transition ${
                         cloneSourceId === q.id
-                          ? 'bg-indigo-600/15 border border-indigo-500/30 text-white'
-                          : 'border border-transparent text-zinc-300 hover:bg-zinc-800/60'
+                          ? 'bg-indigo-600/15 border border-indigo-500/30 text-foreground'
+                          : 'border border-transparent text-muted-foreground hover:bg-accent'
                       }`}
                     >
                       {q.title}
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] text-zinc-500">
+                <p className="text-[11px] text-muted-foreground">
                   Cria uma cópia completa (etapas, blocos, ramificação e níveis de resultado) como rascunho novo.
                 </p>
               </div>
             )}
 
-            {error && <p className="text-xs text-red-400">{error}</p>}
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
 
           <DialogFooter>
@@ -192,7 +192,7 @@ export function CreateQuizDialog({
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="border-border text-foreground hover:bg-accent"
             >
               Cancelar
             </Button>

@@ -106,9 +106,9 @@ const iconMap: Record<string, LucideIcon> = {
 
 function PanelHeader({ title, onCollapse }: { title: string; onCollapse?: () => void }) {
   return (
-    <div className="flex h-12 shrink-0 items-center justify-between border-b border-white/[0.07] px-3">
-      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">{title}</span>
-      {onCollapse && <button type="button" onClick={onCollapse} className="rounded p-1 text-zinc-600 hover:bg-white/5 hover:text-zinc-300"><ChevronRight className="size-3.5" /></button>}
+    <div className="flex h-12 shrink-0 items-center justify-between border-b border-border px-3">
+      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{title}</span>
+      {onCollapse && <button type="button" onClick={onCollapse} className="rounded p-1 text-muted-foreground/60 hover:bg-accent hover:text-foreground"><ChevronRight className="size-3.5" /></button>}
     </div>
   )
 }
@@ -126,9 +126,9 @@ function ComponentsPanel({ onAdd }: { onAdd: (type: ElementType) => void }) {
     <>
       <PanelHeader title="Componentes" />
       <div className="p-3 pb-2">
-        <label className="flex h-9 items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.035] px-3 text-zinc-600 focus-within:border-violet-500/40">
+        <label className="flex h-9 items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 text-muted-foreground/60 focus-within:border-violet-500/40">
           <Search className="size-3.5" />
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar componente" className="min-w-0 flex-1 bg-transparent text-xs text-zinc-200 outline-none placeholder:text-zinc-600" />
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar componente" className="min-w-0 flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground/60" />
         </label>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-5 [scrollbar-color:#3f3f46_transparent] [scrollbar-width:thin]">
@@ -137,7 +137,7 @@ function ComponentsPanel({ onAdd }: { onAdd: (type: ElementType) => void }) {
           if (!items.length) return null
           return (
             <section key={category} className="pt-3">
-              <h3 className="mb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-600">{CATEGORY_LABELS[category]}</h3>
+              <h3 className="mb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{CATEGORY_LABELS[category]}</h3>
               <div className="grid grid-cols-2 gap-2">
                 {items.map((item) => {
                   const Icon = iconMap[item.icon] ?? Sparkles
@@ -152,12 +152,12 @@ function ComponentsPanel({ onAdd }: { onAdd: (type: ElementType) => void }) {
                       }}
                       onClick={() => onAdd(item.type)}
                       title={item.description}
-                      className="group relative min-h-[92px] rounded-xl border border-white/[0.08] bg-white/[0.018] p-2.5 text-left transition hover:-translate-y-0.5 hover:border-violet-400/35 hover:bg-violet-500/[0.055]"
+                      className="group relative min-h-[92px] rounded-xl border border-border bg-muted/20 p-2.5 text-left transition hover:-translate-y-0.5 hover:border-violet-400/35 hover:bg-violet-500/[0.055]"
                     >
                       {!item.implementedInV1 && <span className="absolute right-2 top-2 size-1.5 rounded-full bg-amber-400" title="Próxima etapa" />}
-                      <span className="mb-2 flex size-7 items-center justify-center rounded-lg bg-white/[0.055] text-zinc-500 transition group-hover:bg-violet-500/10 group-hover:text-violet-300"><Icon className="size-3.5" /></span>
-                      <span className="block text-[11px] font-semibold text-zinc-200">{item.label}</span>
-                      <span className="mt-1 block text-[9px] leading-tight text-zinc-600">{item.description}</span>
+                      <span className="mb-2 flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground transition group-hover:bg-violet-500/10 group-hover:text-violet-600"><Icon className="size-3.5" /></span>
+                      <span className="block text-[11px] font-semibold text-foreground">{item.label}</span>
+                      <span className="mt-1 block text-[9px] leading-tight text-muted-foreground/60">{item.description}</span>
                     </button>
                   )
                 })}
@@ -197,25 +197,25 @@ function PagesPanel({
       <PanelHeader title={`Páginas · ${pages.length}`} />
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3 [scrollbar-color:#3f3f46_transparent] [scrollbar-width:thin]">
         {activePage && (
-          <div className="mb-3 space-y-2 rounded-xl border border-violet-400/20 bg-violet-500/[0.055] p-3">
+          <div className="mb-3 space-y-2 rounded-xl border border-violet-300/40 bg-violet-500/[0.055] p-3">
             <label className="block">
-              <span className="mb-1 block text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-600">Nome</span>
+              <span className="mb-1 block text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground/60">Nome</span>
               <input
                 value={activePage.name}
                 onChange={(event) => onUpdate(activePage.id, { name: event.target.value })}
                 onBlur={() => !activePage.name.trim() && onUpdate(activePage.id, { name: 'Página sem nome' })}
-                className="h-8 w-full rounded-lg border border-white/[0.08] bg-black/20 px-2.5 text-[11px] text-zinc-200 outline-none focus:border-violet-400/40"
+                className="h-8 w-full rounded-lg border border-border bg-muted/40 px-2.5 text-[11px] text-foreground outline-none focus:border-violet-400/40"
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-600">Slug interno</span>
-              <span className="flex h-8 items-center rounded-lg border border-white/[0.08] bg-black/20 px-2.5 focus-within:border-violet-400/40">
-                <span className="text-[11px] text-zinc-600">/</span>
+              <span className="mb-1 block text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground/60">Slug interno</span>
+              <span className="flex h-8 items-center rounded-lg border border-border bg-muted/40 px-2.5 focus-within:border-violet-400/40">
+                <span className="text-[11px] text-muted-foreground/60">/</span>
                 <input
                   value={activePage.slug}
                   onChange={(event) => onUpdate(activePage.id, { slug: event.target.value })}
                   onBlur={() => !activePage.slug.trim() && onUpdate(activePage.id, { slug: `pagina-${activePage.order + 1}` })}
-                  className="min-w-0 flex-1 bg-transparent text-[11px] text-zinc-200 outline-none"
+                  className="min-w-0 flex-1 bg-transparent text-[11px] text-foreground outline-none"
                 />
               </span>
             </label>
@@ -223,21 +223,21 @@ function PagesPanel({
         )}
         <div className="space-y-2">
           {orderedPages.map((page, index) => (
-            <div key={page.id} className={`group flex items-center gap-2 rounded-xl border p-2 transition ${activePageId === page.id ? 'border-violet-400/35 bg-violet-500/10' : 'border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.04]'}`}>
+            <div key={page.id} className={`group flex items-center gap-2 rounded-xl border p-2 transition ${activePageId === page.id ? 'border-violet-400/35 bg-violet-500/10' : 'border-border bg-muted/20 hover:bg-accent'}`}>
               <button type="button" onClick={() => onSelect(page.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-                <span className={`flex size-6 shrink-0 items-center justify-center rounded-md text-[10px] font-bold ${activePageId === page.id ? 'bg-violet-500 text-white' : 'bg-white/[0.05] text-zinc-600'}`}>{index + 1}</span>
-                <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-zinc-200">{page.name || 'Página sem nome'}</span><span className="block truncate text-[9px] text-zinc-600">/{page.slug || 'sem-slug'}</span></span>
+                <span className={`flex size-6 shrink-0 items-center justify-center rounded-md text-[10px] font-bold ${activePageId === page.id ? 'bg-violet-500 text-white' : 'bg-muted text-muted-foreground/60'}`}>{index + 1}</span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-foreground">{page.name || 'Página sem nome'}</span><span className="block truncate text-[9px] text-muted-foreground/60">/{page.slug || 'sem-slug'}</span></span>
               </button>
               <span className="flex shrink-0 items-center gap-0.5 opacity-40 transition group-focus-within:opacity-100 group-hover:opacity-100">
-                <button type="button" disabled={index === 0} onClick={() => onReorder(page.id, index - 1)} className="rounded p-1 text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-20" aria-label={`Mover ${page.name} para cima`}><ArrowUp className="size-3" /></button>
-                <button type="button" disabled={index === orderedPages.length - 1} onClick={() => onReorder(page.id, index + 1)} className="rounded p-1 text-zinc-500 hover:bg-white/10 hover:text-zinc-200 disabled:opacity-20" aria-label={`Mover ${page.name} para baixo`}><ArrowDown className="size-3" /></button>
-                <button type="button" onClick={() => onDuplicate(page.id)} className="rounded p-1 text-zinc-500 hover:bg-white/10 hover:text-zinc-200" aria-label={`Duplicar ${page.name}`}><Copy className="size-3" /></button>
-                <button type="button" disabled={orderedPages.length <= 1} onClick={() => onDelete(page.id)} className="rounded p-1 text-zinc-500 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-20" aria-label={`Excluir ${page.name}`}><Trash2 className="size-3" /></button>
+                <button type="button" disabled={index === 0} onClick={() => onReorder(page.id, index - 1)} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-20" aria-label={`Mover ${page.name} para cima`}><ArrowUp className="size-3" /></button>
+                <button type="button" disabled={index === orderedPages.length - 1} onClick={() => onReorder(page.id, index + 1)} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-20" aria-label={`Mover ${page.name} para baixo`}><ArrowDown className="size-3" /></button>
+                <button type="button" onClick={() => onDuplicate(page.id)} className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label={`Duplicar ${page.name}`}><Copy className="size-3" /></button>
+                <button type="button" disabled={orderedPages.length <= 1} onClick={() => onDelete(page.id)} className="rounded p-1 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 disabled:opacity-20" aria-label={`Excluir ${page.name}`}><Trash2 className="size-3" /></button>
               </span>
             </div>
           ))}
         </div>
-        <button type="button" onClick={onAdd} className="mt-3 flex h-9 items-center justify-center gap-2 rounded-lg border border-dashed border-white/10 text-[11px] font-semibold text-zinc-500 transition hover:border-violet-400/35 hover:text-violet-300"><Plus className="size-3.5" /> Nova página</button>
+        <button type="button" onClick={onAdd} className="mt-3 flex h-9 items-center justify-center gap-2 rounded-lg border border-dashed border-border text-[11px] font-semibold text-muted-foreground transition hover:border-violet-300/40 hover:text-violet-600"><Plus className="size-3.5" /> Nova página</button>
       </div>
     </>
   )
@@ -286,7 +286,7 @@ function LayerItem({
             onMove(movingId, element.id)
           }
         }}
-        className={`group flex h-8 items-center gap-1.5 rounded-lg pr-2 text-[11px] transition ${selectedId === element.id ? 'bg-violet-500/12 text-violet-200' : 'text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300'}`}
+        className={`group flex h-8 items-center gap-1.5 rounded-lg pr-2 text-[11px] transition ${selectedId === element.id ? 'bg-violet-500/12 text-violet-700' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
         style={{ paddingLeft: 6 + depth * 12 }}
       >
         <button type="button" onClick={() => setOpen((value) => !value)} className={`p-0.5 ${children.length ? '' : 'invisible'}`}>{open ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}</button>
@@ -294,8 +294,8 @@ function LayerItem({
           <Icon className="size-3 shrink-0" /><span className="truncate">{definition.label}</span>
         </button>
         <span className="flex items-center opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
-          <button type="button" disabled={siblingIndex <= 0} onClick={() => onMove(element.id, element.parentId, siblingIndex - 1)} className="rounded p-0.5 hover:bg-white/10 disabled:opacity-20" aria-label={`Mover ${definition.label} para cima`}><ArrowUp className="size-3" /></button>
-          <button type="button" disabled={siblingIndex < 0 || siblingIndex >= siblings.length - 1} onClick={() => onMove(element.id, element.parentId, siblingIndex + 1)} className="rounded p-0.5 hover:bg-white/10 disabled:opacity-20" aria-label={`Mover ${definition.label} para baixo`}><ArrowDown className="size-3" /></button>
+          <button type="button" disabled={siblingIndex <= 0} onClick={() => onMove(element.id, element.parentId, siblingIndex - 1)} className="rounded p-0.5 hover:bg-accent disabled:opacity-20" aria-label={`Mover ${definition.label} para cima`}><ArrowUp className="size-3" /></button>
+          <button type="button" disabled={siblingIndex < 0 || siblingIndex >= siblings.length - 1} onClick={() => onMove(element.id, element.parentId, siblingIndex + 1)} className="rounded p-0.5 hover:bg-accent disabled:opacity-20" aria-label={`Mover ${definition.label} para baixo`}><ArrowDown className="size-3" /></button>
         </span>
       </div>
       {open && children.map((child) => <LayerItem key={child.id} element={child} document={document} activePageId={activePageId} selectedId={selectedId} depth={depth + 1} onSelect={onSelect} onMove={onMove} />)}
@@ -311,17 +311,17 @@ function LayersPanel({ document, activePageId, selectedId, onSelect, onMove, onM
     <>
       <PanelHeader title="Camadas" />
       <div className="min-h-0 flex-1 overflow-y-auto p-2 [scrollbar-color:#3f3f46_transparent] [scrollbar-width:thin]">
-        {roots.length ? roots.map((element) => <LayerItem key={element.id} element={element} document={document} activePageId={activePageId} selectedId={selectedId} depth={0} onSelect={onSelect} onMove={onMove} />) : <p className="px-4 py-8 text-center text-xs text-zinc-600">Esta página ainda não possui camadas.</p>}
+        {roots.length ? roots.map((element) => <LayerItem key={element.id} element={element} document={document} activePageId={activePageId} selectedId={selectedId} depth={0} onSelect={onSelect} onMove={onMove} />) : <p className="px-4 py-8 text-center text-xs text-muted-foreground/60">Esta página ainda não possui camadas.</p>}
       </div>
       {selected && pages.length > 1 && (
-        <div className="border-t border-white/[0.07] p-3">
+        <div className="border-t border-border p-3">
           <label className="block">
-            <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-600">Mover ramo para</span>
-            <select value={selected.pageId} onChange={(event) => event.target.value !== selected.pageId && onMoveToPage(selected.id, event.target.value)} className="h-9 w-full rounded-lg border border-white/[0.08] bg-[#111116] px-2 text-[11px] text-zinc-300 outline-none focus:border-violet-400/40">
+            <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground/60">Mover ramo para</span>
+            <select value={selected.pageId} onChange={(event) => event.target.value !== selected.pageId && onMoveToPage(selected.id, event.target.value)} className="h-9 w-full rounded-lg border border-border bg-card px-2 text-[11px] text-foreground outline-none focus:border-violet-400/40">
               {pages.map((page) => <option key={page.id} value={page.id} disabled={page.id !== selected.pageId && !canMoveElementToPage(document, selected.id, page.id)}>{page.name}</option>)}
             </select>
           </label>
-          <p className="mt-1.5 text-[9px] leading-4 text-zinc-600">O elemento e todos os seus filhos serão movidos juntos.</p>
+          <p className="mt-1.5 text-[9px] leading-4 text-muted-foreground/60">O elemento e todos os seus filhos serão movidos juntos.</p>
         </div>
       )}
     </>
@@ -393,14 +393,14 @@ function VariablesPanel({ document, onAdd, onUpdate, onDelete }: { document: Fun
   return (
     <>
       <PanelHeader title="Variáveis" />
-      <div className="border-b border-white/[0.07] p-3">
+      <div className="border-b border-border p-3">
         {creating ? (
-          <div className="space-y-2 rounded-xl border border-violet-400/20 bg-violet-500/[0.055] p-2.5">
-            <input value={draft.label} onChange={(event) => setDraft((current) => ({ ...current, label: event.target.value }))} placeholder="Nome da variável" aria-label="Nome da variável" className="h-8 w-full rounded-lg border border-white/[0.08] bg-black/20 px-2.5 text-[11px] text-zinc-200 outline-none focus:border-violet-400/40" />
-            <input value={draft.key} onChange={(event) => setDraft((current) => ({ ...current, key: event.target.value }))} placeholder="chave_da_variavel" aria-label="Chave da variável" className="h-8 w-full rounded-lg border border-white/[0.08] bg-black/20 px-2.5 font-mono text-[10px] text-violet-300 outline-none focus:border-violet-400/40" />
-            <input value={draft.value} onChange={(event) => setDraft((current) => ({ ...current, value: event.target.value }))} placeholder="Valor inicial (opcional)" aria-label="Valor inicial da variável" className="h-8 w-full rounded-lg border border-white/[0.08] bg-black/20 px-2.5 text-[11px] text-zinc-200 outline-none focus:border-violet-400/40" />
+          <div className="space-y-2 rounded-xl border border-violet-300/40 bg-violet-500/[0.055] p-2.5">
+            <input value={draft.label} onChange={(event) => setDraft((current) => ({ ...current, label: event.target.value }))} placeholder="Nome da variável" aria-label="Nome da variável" className="h-8 w-full rounded-lg border border-border bg-muted/40 px-2.5 text-[11px] text-foreground outline-none focus:border-violet-400/40" />
+            <input value={draft.key} onChange={(event) => setDraft((current) => ({ ...current, key: event.target.value }))} placeholder="chave_da_variavel" aria-label="Chave da variável" className="h-8 w-full rounded-lg border border-border bg-muted/40 px-2.5 font-mono text-[10px] text-violet-600 outline-none focus:border-violet-400/40" />
+            <input value={draft.value} onChange={(event) => setDraft((current) => ({ ...current, value: event.target.value }))} placeholder="Valor inicial (opcional)" aria-label="Valor inicial da variável" className="h-8 w-full rounded-lg border border-border bg-muted/40 px-2.5 text-[11px] text-foreground outline-none focus:border-violet-400/40" />
             <div className="flex gap-1.5">
-              <button type="button" onClick={() => setCreating(false)} className="h-8 flex-1 rounded-lg border border-white/[0.08] text-[10px] font-semibold text-zinc-500 hover:bg-white/5">Cancelar</button>
+              <button type="button" onClick={() => setCreating(false)} className="h-8 flex-1 rounded-lg border border-border text-[10px] font-semibold text-muted-foreground hover:bg-accent">Cancelar</button>
               <button type="button" disabled={!draft.key.trim()} onClick={submitVariable} className="h-8 flex-1 rounded-lg bg-violet-500 text-[10px] font-semibold text-white hover:bg-violet-400 disabled:opacity-40">Criar</button>
             </div>
           </div>
@@ -414,29 +414,29 @@ function VariablesPanel({ document, onAdd, onUpdate, onDelete }: { document: Fun
           if (!items.length) return null
           return (
             <section key={kind} className="mb-5">
-              <h3 className="mb-2 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">{labels[kind]}</h3>
+              <h3 className="mb-2 text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground/60">{labels[kind]}</h3>
               <div className="space-y-1.5">
                 {items.map((variable) => variable.kind === 'custom' ? (
-                  <div key={variable.id} className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-2.5">
+                  <div key={variable.id} className="rounded-xl border border-border bg-muted/20 p-2.5">
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-600">Personalizada</span>
+                      <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-muted-foreground/60">Personalizada</span>
                       <span className="flex items-center gap-0.5">
-                        <button type="button" onClick={() => void navigator.clipboard?.writeText(`{{${variable.key}}}`)} className="rounded p-1 text-zinc-600 hover:bg-white/10 hover:text-violet-300" aria-label={`Copiar variável ${variable.key}`}><Copy className="size-3" /></button>
-                        <button type="button" onClick={() => window.confirm(`Excluir a variável “${variable.label || variable.key}”?`) && onDelete(variable.id)} className="rounded p-1 text-zinc-600 hover:bg-red-500/10 hover:text-red-400" aria-label={`Excluir variável ${variable.key}`}><Trash2 className="size-3" /></button>
+                        <button type="button" onClick={() => void navigator.clipboard?.writeText(`{{${variable.key}}}`)} className="rounded p-1 text-muted-foreground/60 hover:bg-accent hover:text-violet-600" aria-label={`Copiar variável ${variable.key}`}><Copy className="size-3" /></button>
+                        <button type="button" onClick={() => window.confirm(`Excluir a variável “${variable.label || variable.key}”?`) && onDelete(variable.id)} className="rounded p-1 text-muted-foreground/60 hover:bg-red-500/10 hover:text-red-500" aria-label={`Excluir variável ${variable.key}`}><Trash2 className="size-3" /></button>
                       </span>
                     </div>
-                    <input value={variable.label ?? ''} onChange={(event) => onUpdate(variable.id, { label: event.target.value })} placeholder="Nome" aria-label={`Nome de ${variable.key}`} className="mb-1.5 h-7 w-full rounded-md border border-white/[0.07] bg-black/20 px-2 text-[10px] text-zinc-300 outline-none focus:border-violet-400/35" />
-                    <span className="mb-1.5 flex h-7 items-center rounded-md border border-white/[0.07] bg-black/20 px-2 focus-within:border-violet-400/35">
-                      <span className="font-mono text-[9px] text-zinc-600">{'{{'}</span>
-                      <input value={variable.key} onChange={(event) => onUpdate(variable.id, { key: event.target.value })} onBlur={() => !variable.key.trim() && onUpdate(variable.id, { key: 'variavel' })} aria-label="Chave da variável" className="min-w-0 flex-1 bg-transparent text-center font-mono text-[9px] text-violet-300 outline-none" />
-                      <span className="font-mono text-[9px] text-zinc-600">{'}}'}</span>
+                    <input value={variable.label ?? ''} onChange={(event) => onUpdate(variable.id, { label: event.target.value })} placeholder="Nome" aria-label={`Nome de ${variable.key}`} className="mb-1.5 h-7 w-full rounded-md border border-border bg-muted/40 px-2 text-[10px] text-foreground outline-none focus:border-violet-400/35" />
+                    <span className="mb-1.5 flex h-7 items-center rounded-md border border-border bg-muted/40 px-2 focus-within:border-violet-400/35">
+                      <span className="font-mono text-[9px] text-muted-foreground/60">{'{{'}</span>
+                      <input value={variable.key} onChange={(event) => onUpdate(variable.id, { key: event.target.value })} onBlur={() => !variable.key.trim() && onUpdate(variable.id, { key: 'variavel' })} aria-label="Chave da variável" className="min-w-0 flex-1 bg-transparent text-center font-mono text-[9px] text-violet-600 outline-none" />
+                      <span className="font-mono text-[9px] text-muted-foreground/60">{'}}'}</span>
                     </span>
-                    <input value={String(variable.value ?? '')} onChange={(event) => onUpdate(variable.id, { value: event.target.value })} placeholder="Valor inicial" aria-label={`Valor inicial de ${variable.key}`} className="h-7 w-full rounded-md border border-white/[0.07] bg-black/20 px-2 text-[10px] text-zinc-300 outline-none focus:border-violet-400/35" />
+                    <input value={String(variable.value ?? '')} onChange={(event) => onUpdate(variable.id, { value: event.target.value })} placeholder="Valor inicial" aria-label={`Valor inicial de ${variable.key}`} className="h-7 w-full rounded-md border border-border bg-muted/40 px-2 text-[10px] text-foreground outline-none focus:border-violet-400/35" />
                   </div>
                 ) : (
-                  <button type="button" key={variable.id} onClick={() => void navigator.clipboard?.writeText(`{{${variable.key}}}`)} className="w-full rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-left transition hover:border-violet-400/25 hover:bg-violet-500/[0.04]" title="Copiar variável">
-                    <span className="block text-[10px] text-zinc-400">{variable.label || variable.key}</span>
-                    <code className="mt-0.5 block truncate text-[9px] text-violet-400">{'{{'}{variable.key}{'}}'}</code>
+                  <button type="button" key={variable.id} onClick={() => void navigator.clipboard?.writeText(`{{${variable.key}}}`)} className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-left transition hover:border-violet-300/35 hover:bg-violet-500/[0.04]" title="Copiar variável">
+                    <span className="block text-[10px] text-muted-foreground">{variable.label || variable.key}</span>
+                    <code className="mt-0.5 block truncate text-[9px] text-violet-500">{'{{'}{variable.key}{'}}'}</code>
                   </button>
                 ))}
               </div>
@@ -486,7 +486,7 @@ export function SidePanel({
   onDeleteVariable: (id: string) => void
 }) {
   return (
-    <aside className="flex h-full w-[244px] shrink-0 flex-col border-r border-white/[0.07] bg-[#0a0a0e]">
+    <aside className="flex h-full w-[244px] shrink-0 flex-col border-r border-border bg-card">
       {panel === 'components' && <ComponentsPanel onAdd={onAddElement} />}
       {panel === 'pages' && <PagesPanel pages={document.pages} activePageId={activePageId} onSelect={onSelectPage} onAdd={onAddPage} onDuplicate={onDuplicatePage} onDelete={onDeletePage} onUpdate={onUpdatePage} onReorder={onReorderPage} />}
       {panel === 'layers' && <LayersPanel document={document} activePageId={activePageId} selectedId={selectedId} onSelect={onSelectElement} onMove={onMoveElement} onMoveToPage={onMoveElementToPage} />}

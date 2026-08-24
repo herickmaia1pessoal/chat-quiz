@@ -84,21 +84,21 @@ export function CreateFunnelDialog({
         }
       />
 
-      <DialogContent className="overflow-hidden border-white/10 bg-[#0e0f16] p-0 text-zinc-100 shadow-2xl sm:max-w-[520px]">
+      <DialogContent className="overflow-hidden border-border bg-card p-0 text-foreground shadow-2xl sm:max-w-[520px]">
         <form onSubmit={handleSubmit}>
-          <div className="relative border-b border-white/[0.07] px-6 pb-5 pt-6">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(124,58,237,0.16),transparent_48%)]" />
+          <div className="relative border-b border-border px-6 pb-5 pt-6">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(124,58,237,0.1),transparent_48%)]" />
             <DialogHeader className="relative">
               <div className="mb-3 flex items-center gap-2">
-                <span className="grid h-9 w-9 place-items-center rounded-xl border border-violet-400/20 bg-violet-500/10 text-violet-300">
+                <span className="grid h-9 w-9 place-items-center rounded-xl border border-violet-400/20 bg-violet-500/10 text-violet-600">
                   <Layers3 className="h-4 w-4" />
                 </span>
-                <span className="rounded-full border border-cyan-400/15 bg-cyan-400/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-300">
+                <span className="rounded-full border border-cyan-400/15 bg-cyan-400/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-600">
                   Builder V2
                 </span>
               </div>
-              <DialogTitle className="text-xl font-bold tracking-tight text-white">Crie um novo funil</DialogTitle>
-              <DialogDescription className="max-w-md text-sm leading-relaxed text-zinc-400">
+              <DialogTitle className="text-xl font-bold tracking-tight text-foreground">Crie um novo funil</DialogTitle>
+              <DialogDescription className="max-w-md text-sm leading-relaxed text-muted-foreground">
                 Comece com uma página responsiva em branco. Depois, adicione seções, campos e regras no editor visual.
               </DialogDescription>
             </DialogHeader>
@@ -106,7 +106,7 @@ export function CreateFunnelDialog({
 
           <div className="space-y-5 px-6 py-6">
             <div className="space-y-2">
-              <Label htmlFor="funnel-name" className="text-xs font-semibold text-zinc-300">
+              <Label htmlFor="funnel-name" className="text-xs font-semibold text-muted-foreground">
                 Nome do funil
               </Label>
               <Input
@@ -114,7 +114,7 @@ export function CreateFunnelDialog({
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Ex.: Diagnóstico da clínica"
-                className="h-11 border-white/10 bg-black/25 text-zinc-100 placeholder:text-zinc-700 focus-visible:border-violet-400/50"
+                className="h-11 border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus-visible:border-violet-400/50"
                 required
                 autoFocus
                 maxLength={100}
@@ -123,41 +123,41 @@ export function CreateFunnelDialog({
 
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="funnel-description" className="text-xs font-semibold text-zinc-300">
+                <Label htmlFor="funnel-description" className="text-xs font-semibold text-muted-foreground">
                   Objetivo
                 </Label>
-                <span className="text-[10px] uppercase tracking-wider text-zinc-700">Opcional</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">Opcional</span>
               </div>
               <Textarea
                 id="funnel-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Descreva a campanha ou o resultado esperado."
-                className="min-h-24 resize-none border-white/10 bg-black/25 text-zinc-100 placeholder:text-zinc-700 focus-visible:border-violet-400/50"
+                className="min-h-24 resize-none border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus-visible:border-violet-400/50"
                 maxLength={280}
               />
             </div>
 
-            <div className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.025] p-3.5">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-violet-300" />
-              <p className="text-xs leading-relaxed text-zinc-400">
+            <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-3.5">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 O rascunho fica separado da versão publicada. Você pode experimentar à vontade antes de colocar alterações no ar.
               </p>
             </div>
 
             {error && (
-              <p role="alert" className="rounded-lg border border-red-500/20 bg-red-500/[0.07] px-3 py-2 text-xs text-red-300">
+              <p role="alert" className="rounded-lg border border-red-500/20 bg-red-500/[0.07] px-3 py-2 text-xs text-red-600">
                 {error}
               </p>
             )}
           </div>
 
-          <DialogFooter className="border-t border-white/[0.07] bg-black/15 px-6 py-4">
+          <DialogFooter className="border-t border-border bg-muted/20 px-6 py-4">
             <Button
               type="button"
               variant="ghost"
               onClick={() => handleOpenChange(false)}
-              className="text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200"
+              className="text-muted-foreground hover:bg-accent hover:text-foreground"
             >
               Cancelar
             </Button>

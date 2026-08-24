@@ -231,10 +231,10 @@ const BLOCK_PALETTE: Array<{ type: string; label: string; icon: typeof ListCheck
   { type: 'alert', label: 'Alerta', icon: AlertTriangle, color: 'text-amber-400' },
   { type: 'testimonial', label: 'Depoimento', icon: Quote, color: 'text-fuchsia-400' },
   { type: 'social_proof', label: 'Notificação', icon: BellRing, color: 'text-sky-400' },
-  { type: 'button', label: 'Botão', icon: MousePointerClick, color: 'text-indigo-300' },
-  { type: 'spacer', label: 'Espaço', icon: MoveVertical, color: 'text-zinc-400' },
+  { type: 'button', label: 'Botão', icon: MousePointerClick, color: 'text-indigo-400' },
+  { type: 'spacer', label: 'Espaço', icon: MoveVertical, color: 'text-muted-foreground' },
   { type: 'chart', label: 'Gráfico', icon: BarChart3, color: 'text-emerald-400' },
-  { type: 'quadrant', label: 'Cartesiano', icon: Move, color: 'text-cyan-300' },
+  { type: 'quadrant', label: 'Cartesiano', icon: Move, color: 'text-cyan-400' },
   { type: 'audio', label: 'Áudio', icon: Music, color: 'text-purple-400' },
 ]
 
@@ -748,19 +748,19 @@ export function QuestionsTab({
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white">Etapas & Blocos</h2>
-          <p className="text-zinc-400 text-xs mt-0.5">
+          <h2 className="text-xl font-bold text-foreground">Etapas & Blocos</h2>
+          <p className="text-muted-foreground text-xs mt-0.5">
             Cada etapa é uma tela do quiz e pode conter vários blocos empilhados. Use a ramificação para criar caminhos entre etapas.
           </p>
         </div>
         <div className="flex items-center gap-3">
           {/* Design/Fluxo toggle */}
-          <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900/60 p-0.5">
+          <div className="flex items-center rounded-lg border border-border bg-card/60 p-0.5">
             <button
               type="button"
               onClick={() => setViewMode('design')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                viewMode === 'design' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                viewMode === 'design' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> Design
@@ -769,7 +769,7 @@ export function QuestionsTab({
               type="button"
               onClick={() => setViewMode('flow')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                viewMode === 'flow' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'
+                viewMode === 'flow' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Workflow className="h-3.5 w-3.5" /> Fluxo
@@ -782,14 +782,14 @@ export function QuestionsTab({
               <Check className="h-4 w-4" /> Alterações salvas!
             </span>
           ) : (
-            <span className={`text-xs flex items-center gap-1.5 ${isDirty ? 'text-amber-400' : 'text-zinc-500'}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${isDirty ? 'bg-amber-400' : 'bg-zinc-600'}`} />
+            <span className={`text-xs flex items-center gap-1.5 ${isDirty ? 'text-amber-400' : 'text-muted-foreground'}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${isDirty ? 'bg-amber-400' : 'bg-muted-foreground/40'}`} />
               {isDirty ? 'Alterações não salvas' : 'Salvo'}
             </span>
           )}
 
           <Button type="button" variant="outline" onClick={() => setShowPreview(true)}
-            className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 gap-2">
+            className="border-border bg-card text-foreground hover:bg-accent gap-2">
             <PlayCircle className="h-4 w-4 text-indigo-400" />
             Preview
           </Button>
@@ -808,10 +808,10 @@ export function QuestionsTab({
           the database. Warns when there are unsaved changes so the user
           doesn't mistake a stale preview for a broken save. */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="!max-w-md bg-zinc-950 border border-zinc-800 text-zinc-100 p-0 overflow-hidden">
+        <DialogContent className="!max-w-md bg-muted/50 border border-border text-foreground p-0 overflow-hidden">
           <DialogHeader className="p-4 pb-0">
-            <DialogTitle className="text-white">Pré-visualização</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogTitle className="text-foreground">Pré-visualização</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               {quizStatus !== 'published'
                 ? 'Este quiz está como rascunho — o link público só fica acessível depois de publicar.'
                 : isDirty
@@ -819,12 +819,12 @@ export function QuestionsTab({
                 : 'Exatamente como o quiz aparece para quem acessa o link público.'}
             </DialogDescription>
           </DialogHeader>
-          <div className="h-[70vh] w-full bg-zinc-900">
+          <div className="h-[70vh] w-full bg-card">
             {showPreview && quizStatus !== 'published' ? (
               <div className="h-full w-full flex flex-col items-center justify-center gap-3 text-center px-8">
-                <EyeOff className="h-8 w-8 text-zinc-600" />
-                <p className="text-sm text-zinc-400 max-w-xs">
-                  Publique o quiz na aba <strong className="text-zinc-200">Configurações</strong> para poder pré-visualizar como ele aparece pros visitantes.
+                <EyeOff className="h-8 w-8 text-muted-foreground/60" />
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Publique o quiz na aba <strong className="text-foreground">Configurações</strong> para poder pré-visualizar como ele aparece pros visitantes.
                 </p>
               </div>
             ) : showPreview ? (
@@ -864,22 +864,22 @@ export function QuestionsTab({
                 <button
                   type="button"
                   onClick={() => { selectStep(stepIdx); setViewMode('design') }}
-                  className="w-full text-left rounded-2xl border border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/70 backdrop-blur-xl p-4 transition"
+                  className="w-full text-left rounded-2xl border border-border bg-card hover:border-border hover:bg-accent backdrop-blur-xl p-4 transition"
                 >
                   <div className="flex items-center gap-3">
                     <span className="h-7 w-7 shrink-0 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center">
                       {stepIdx + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-zinc-200 truncate">{label}</p>
-                      <p className="text-[11px] text-zinc-500">
+                      <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+                      <p className="text-[11px] text-muted-foreground">
                         {step.blocks.length} {step.blocks.length === 1 ? 'bloco' : 'blocos'}
                       </p>
                     </div>
                     {capturedPositions.length > 0 && (
                       <div className="flex flex-wrap gap-1 justify-end max-w-[40%]">
                         {capturedPositions.map((pos) => (
-                          <span key={pos} className="text-[10px] font-mono text-zinc-500 bg-zinc-950/60 border border-zinc-800 rounded px-1.5 py-0.5">
+                          <span key={pos} className="text-[10px] font-mono text-muted-foreground bg-muted/40 border border-border rounded px-1.5 py-0.5">
                             {`{{resposta_${pos}}}`}
                           </span>
                         ))}
@@ -895,17 +895,17 @@ export function QuestionsTab({
                       {step.branching_rules!.map((rule, ri) => (
                         <div key={ri} className="flex items-center gap-1.5 text-[11px] text-purple-400">
                           <CornerDownRight className="h-3 w-3 shrink-0" />
-                          <span className="text-zinc-500">SE ramificação →</span>
+                          <span className="text-muted-foreground">SE ramificação →</span>
                           <span className="font-medium">{targetLabelFor(rule.go_to_order)}</span>
                         </div>
                       ))}
-                      <div className="flex items-center gap-1.5 text-[11px] text-zinc-600">
+                      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
                         <ArrowDown className="h-3 w-3 shrink-0" />
                         <span>senão, {isLast ? 'Captura de Lead (Final)' : 'próxima etapa'}</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-600">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
                       <ArrowDown className="h-3.5 w-3.5 shrink-0" />
                       <span>{isLast ? 'Captura de Lead (Final)' : `${targetLabelFor(stepIdx + 1)}`}</span>
                     </div>
@@ -921,10 +921,10 @@ export function QuestionsTab({
           below xl, point people at a wider screen rather than cramming
           etapas/paleta/preview/propriedades into a column that can't fit
           any of them usefully. */}
-      <div className="xl:hidden rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20 p-8 text-center space-y-2">
-        <Layers className="h-6 w-6 text-zinc-600 mx-auto" />
-        <p className="text-sm text-zinc-300 font-medium">Use uma tela maior para editar as etapas</p>
-        <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+      <div className="xl:hidden rounded-2xl border border-dashed border-border bg-muted/30 p-8 text-center space-y-2">
+        <Layers className="h-6 w-6 text-muted-foreground/60 mx-auto" />
+        <p className="text-sm text-muted-foreground font-medium">Use uma tela maior para editar as etapas</p>
+        <p className="text-xs text-muted-foreground max-w-sm mx-auto">
           O construtor de etapas e blocos foi desenhado para telas de desktop. Abra esta página numa janela mais larga para continuar editando.
         </p>
       </div>
@@ -932,7 +932,7 @@ export function QuestionsTab({
       <div className="hidden xl:grid gap-3 xl:grid-cols-[64px_180px_1fr_320px] items-start">
         {/* ─── Column 1: Steps (compact, numbered) ─── */}
         <div className="space-y-2 sticky top-4">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-xl p-1.5 space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto">
+          <div className="rounded-2xl border border-border bg-card backdrop-blur-xl p-1.5 space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto">
             {steps.map((step, stepIdx) => {
               const label = step.title || step.blocks[0]?.title || `Etapa ${stepIdx + 1}`
               const isSelected = stepIdx === selectedStepIndex
@@ -944,17 +944,17 @@ export function QuestionsTab({
                   title={label}
                   className={`w-full rounded-xl py-2 flex flex-col items-center gap-0.5 transition group relative ${
                     isSelected
-                      ? 'bg-indigo-600/15 border border-indigo-500/30 text-white'
-                      : 'border border-transparent text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
+                      ? 'bg-indigo-600/15 border border-indigo-500/30 text-foreground'
+                      : 'border border-transparent text-muted-foreground hover:bg-accent hover:text-foreground'
                   }`}
                 >
                   <span className={`h-6 w-6 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                    isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-zinc-400'
+                    isSelected ? 'bg-indigo-600 text-white' : 'bg-muted text-muted-foreground'
                   }`}>
                     {stepIdx + 1}
                   </span>
                   <div className="flex items-center gap-0.5 h-3">
-                    {step.blocks.length > 1 && <Layers className="h-2.5 w-2.5 text-zinc-500" />}
+                    {step.blocks.length > 1 && <Layers className="h-2.5 w-2.5 text-muted-foreground" />}
                     {(step.branching_rules?.length ?? 0) > 0 && <GitBranch className="h-2.5 w-2.5 text-purple-400" />}
                   </div>
                 </button>
@@ -963,21 +963,21 @@ export function QuestionsTab({
           </div>
           <Button type="button" variant="outline" size="icon" onClick={addStep}
             title="Nova Etapa"
-            className="w-full border-dashed border-zinc-700 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800 h-9">
+            className="w-full border-dashed border-border bg-card text-muted-foreground hover:bg-accent h-9">
             <FileStack className="h-3.5 w-3.5 text-indigo-400" />
           </Button>
         </div>
 
         {/* ─── Column 2: Block palette — always visible, click to insert
              into the selected step ─── */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-xl p-2 space-y-0.5 max-h-[calc(100vh-220px)] overflow-y-auto sticky top-4">
+        <div className="rounded-2xl border border-border bg-card backdrop-blur-xl p-2 space-y-0.5 max-h-[calc(100vh-220px)] overflow-y-auto sticky top-4">
           {BLOCK_PALETTE.map(({ type, label, icon: Icon, color }) => (
             <button
               key={type}
               type="button"
               onClick={() => addBlock(type)}
               disabled={!selectedStep}
-              className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-zinc-300 hover:bg-zinc-800/70 hover:text-white transition text-left disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition text-left disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Icon className={`h-4 w-4 shrink-0 ${color}`} />
               <span className="truncate">{label}</span>
@@ -989,22 +989,22 @@ export function QuestionsTab({
         <div className="space-y-3 min-w-0">
           {selectedStep && (
             <>
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 backdrop-blur-xl">
+              <div className="rounded-2xl border border-border bg-card p-4 backdrop-blur-xl">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <Label className="text-zinc-400 text-xs">Nome interno da etapa (opcional, só para organização)</Label>
+                    <Label className="text-muted-foreground text-xs">Nome interno da etapa (opcional, só para organização)</Label>
                     <Input
                       value={selectedStep.title || ''}
                       onChange={(e) => updateStepTitle(selectedStepIndex, e.target.value)}
                       placeholder={selectedStep.blocks[0]?.title || `Etapa ${selectedStepIndex + 1}`}
-                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs mt-1.5"
+                      className="border-border bg-muted/40 text-muted-foreground text-xs mt-1.5"
                     />
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 mt-4">
                     <Button type="button" variant="outline" size="sm"
                       onClick={() => duplicateStep(selectedStepIndex)}
                       title="Duplicar esta etapa"
-                      className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 gap-1.5">
+                      className="border-border bg-card text-muted-foreground hover:bg-accent gap-1.5">
                       <Copy className="h-3.5 w-3.5 text-indigo-400" />
                       Duplicar Etapa
                     </Button>
@@ -1025,7 +1025,7 @@ export function QuestionsTab({
                         </Button>
                         <Button type="button" variant="ghost" size="sm"
                           onClick={() => setConfirmingStepDelete(false)}
-                          className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800">
+                          className="text-muted-foreground hover:text-foreground hover:bg-accent">
                           <X className="h-3.5 w-3.5" />
                         </Button>
                       </>
@@ -1033,7 +1033,7 @@ export function QuestionsTab({
                       <Button type="button" variant="outline" size="sm"
                         onClick={() => setConfirmingStepDelete(true)}
                         title="Excluir esta etapa"
-                        className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400 gap-1.5">
+                        className="border-border bg-card text-muted-foreground hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 gap-1.5">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     )}
@@ -1054,7 +1054,7 @@ export function QuestionsTab({
                     className={`w-full text-left rounded-2xl border p-4 backdrop-blur-xl transition space-y-2 ${
                       isBlockSelected
                         ? 'border-indigo-500/50 bg-indigo-600/10 shadow-md shadow-indigo-500/10'
-                        : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/70'
+                        : 'border-border bg-card hover:border-border hover:bg-accent'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -1064,14 +1064,14 @@ export function QuestionsTab({
                         }`}>
                           {blockIdx + 1}
                         </span>
-                        <span className="text-sm font-semibold text-zinc-200 truncate">{q.title || TYPE_LABELS[q.type]}</span>
+                        <span className="text-sm font-semibold text-foreground truncate">{q.title || TYPE_LABELS[q.type]}</span>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <span
                           role="button"
                           tabIndex={-1}
                           onClick={(e) => { e.stopPropagation(); moveBlock(blockIdx, 'up') }}
-                          className={`p-1 rounded hover:bg-zinc-700 ${blockIdx === 0 ? 'text-zinc-700 pointer-events-none' : 'text-zinc-500 hover:text-zinc-200'}`}
+                          className={`p-1 rounded hover:bg-accent ${blockIdx === 0 ? 'text-muted-foreground/50 pointer-events-none' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           <ChevronUp className="h-3.5 w-3.5" />
                         </span>
@@ -1079,7 +1079,7 @@ export function QuestionsTab({
                           role="button"
                           tabIndex={-1}
                           onClick={(e) => { e.stopPropagation(); moveBlock(blockIdx, 'down') }}
-                          className={`p-1 rounded hover:bg-zinc-700 ${blockIdx === selectedStep.blocks.length - 1 ? 'text-zinc-700 pointer-events-none' : 'text-zinc-500 hover:text-zinc-200'}`}
+                          className={`p-1 rounded hover:bg-accent ${blockIdx === selectedStep.blocks.length - 1 ? 'text-muted-foreground/50 pointer-events-none' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                           <ChevronDown className="h-3.5 w-3.5" />
                         </span>
@@ -1087,18 +1087,18 @@ export function QuestionsTab({
                           role="button"
                           tabIndex={-1}
                           onClick={(e) => { e.stopPropagation(); if (selectedStep.blocks.length > 1) removeBlock(blockIdx) }}
-                          className={`p-1 rounded hover:bg-zinc-700 ${selectedStep.blocks.length > 1 ? 'text-zinc-500 hover:text-red-400' : 'text-zinc-700 cursor-not-allowed'}`}
+                          className={`p-1 rounded hover:bg-accent ${selectedStep.blocks.length > 1 ? 'text-muted-foreground hover:text-red-500' : 'text-muted-foreground/50 cursor-not-allowed'}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 pl-8">
-                      <Badge className="bg-zinc-800/80 border-zinc-700 text-zinc-400 text-[10px]">
+                      <Badge className="bg-muted/50 border-border text-muted-foreground text-[10px]">
                         {TYPE_LABELS[q.type] || q.type}
                       </Badge>
                       {isAnswerable && (
-                        <span className="text-[10px] font-mono text-zinc-500">
+                        <span className="text-[10px] font-mono text-muted-foreground">
                           {`{{resposta_${answerablePosition}}}`}
                         </span>
                       )}
@@ -1108,18 +1108,18 @@ export function QuestionsTab({
               })}
 
               <Button type="button" variant="outline" size="sm" onClick={() => addBlock('multiple_choice')}
-                className="w-full border-dashed border-zinc-700 bg-zinc-900/20 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 text-xs gap-2">
+                className="w-full border-dashed border-border bg-muted/30 text-muted-foreground hover:bg-accent hover:text-foreground text-xs gap-2">
                 <Plus className="h-3.5 w-3.5" />
                 Adicionar bloco a esta etapa
               </Button>
 
               {/* ─── Step-level Branching Rules Panel ─── */}
               {optionBlocksInSelectedStep.length > 0 && steps.length > 1 && (
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 backdrop-blur-xl space-y-3">
+                <div className="rounded-2xl border border-border bg-card p-4 backdrop-blur-xl space-y-3">
                   <button
                     type="button"
                     onClick={() => setExpandedBranching(!expandedBranching)}
-                    className="flex items-center gap-2 text-xs font-semibold text-purple-400 hover:text-purple-300 transition"
+                    className="flex items-center gap-2 text-xs font-semibold text-purple-500 hover:text-purple-600 transition"
                   >
                     <GitBranch className="h-3.5 w-3.5" />
                     Ramificação da Etapa
@@ -1131,22 +1131,22 @@ export function QuestionsTab({
                   </button>
 
                   {expandedBranching && (
-                    <div className="space-y-2 bg-zinc-950/40 rounded-xl border border-zinc-800/60 p-4">
-                      <p className="text-[11px] text-zinc-500">
+                    <div className="space-y-2 bg-muted/30 rounded-xl border border-border/60 p-4">
+                      <p className="text-[11px] text-muted-foreground">
                         Defina para qual etapa o usuário deve ser enviado dependendo da resposta escolhida nesta etapa. Sem regra = próxima etapa em sequência.
                       </p>
 
                       {(selectedStep.branching_rules || []).map((rule, rIdx) => (
-                        <div key={rIdx} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 py-2 border-b border-zinc-800/40 last:border-0">
-                          <span className="text-[11px] text-zinc-500 uppercase font-semibold w-6">SE</span>
+                        <div key={rIdx} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 py-2 border-b border-border/40 last:border-0">
+                          <span className="text-[11px] text-muted-foreground uppercase font-semibold w-6">SE</span>
                           <Select
                             value={rule.option_id}
                             onValueChange={(val) => updateBranchingRule(rIdx, 'option_id', val)}
                           >
-                            <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-8 flex-1">
+                            <SelectTrigger className="border-border bg-card text-foreground text-xs h-8 flex-1">
                               <SelectValue placeholder="Escolher opção..." />
                             </SelectTrigger>
-                            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                            <SelectContent className="border-border bg-card text-foreground">
                               {optionBlocksInSelectedStep.flatMap((block) =>
                                 (block.options || []).map((opt, oi) => (
                                   <SelectItem key={opt.id || `${block.title}-${oi}`} value={opt.id || `opt-${oi}`}>
@@ -1157,15 +1157,15 @@ export function QuestionsTab({
                               )}
                             </SelectContent>
                           </Select>
-                          <span className="text-[11px] text-zinc-500 uppercase font-semibold">IR PARA</span>
+                          <span className="text-[11px] text-muted-foreground uppercase font-semibold">IR PARA</span>
                           <Select
                             value={String(rule.go_to_order)}
                             onValueChange={(val) => updateBranchingRule(rIdx, 'go_to_order', val)}
                           >
-                            <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-8 flex-1">
+                            <SelectTrigger className="border-border bg-card text-foreground text-xs h-8 flex-1">
                               <SelectValue placeholder="Etapa destino..." />
                             </SelectTrigger>
-                            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                            <SelectContent className="border-border bg-card text-foreground">
                               {steps
                                 .filter((_, i) => i !== selectedStepIndex)
                                 .map((destStep, di) => (
@@ -1180,7 +1180,7 @@ export function QuestionsTab({
                           </Select>
                           <Button type="button" variant="ghost" size="icon"
                             onClick={() => removeBranchingRule(rIdx)}
-                            className="h-8 w-8 text-zinc-500 hover:text-red-400 shrink-0">
+                            className="h-8 w-8 text-muted-foreground hover:text-red-500 shrink-0">
                             <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -1188,7 +1188,7 @@ export function QuestionsTab({
 
                       <Button type="button" variant="outline" size="sm"
                         onClick={addBranchingRule}
-                        className="border-dashed border-purple-800 bg-purple-950/20 text-purple-400 hover:bg-purple-900/20 text-xs mt-1">
+                        className="border-dashed border-purple-300 bg-purple-50 text-purple-600 hover:bg-purple-100 text-xs mt-1">
                         <Plus className="h-3.5 w-3.5 mr-1" />
                         Adicionar Regra de Ramificação
                       </Button>
@@ -1201,7 +1201,7 @@ export function QuestionsTab({
         </div>
 
         {/* ─── Column 4: Properties panel for the selected block ─── */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-xl sticky top-4 max-h-[calc(100vh-220px)] overflow-y-auto">
+        <div className="rounded-2xl border border-border bg-card backdrop-blur-xl sticky top-4 max-h-[calc(100vh-220px)] overflow-y-auto">
           {selectedBlock && (() => {
             const q = selectedBlock
             const blockIdx = effectiveBlockIndex
@@ -1209,7 +1209,7 @@ export function QuestionsTab({
             return (
               <div className="space-y-4 p-5">
                 {/* Properties tabs */}
-                <div className="flex items-center gap-1 border-b border-zinc-800 -mx-5 px-5 pb-3">
+                <div className="flex items-center gap-1 border-b border-border -mx-5 px-5 pb-3">
                   {(['component', 'style', 'display'] as const).map((tab) => (
                     <button
                       key={tab}
@@ -1217,8 +1217,8 @@ export function QuestionsTab({
                       onClick={() => setPropertiesTab(tab)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
                         propertiesTab === tab
-                          ? 'bg-zinc-800 text-white'
-                          : 'text-zinc-400 hover:text-zinc-200'
+                          ? 'bg-card text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       <span>{tab === 'component' ? 'Componente' : tab === 'style' ? 'Estilo' : 'Exibição'}</span>
@@ -1230,10 +1230,10 @@ export function QuestionsTab({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-zinc-300">{TYPE_LABELS[q.type] || q.type}</span>
+                  <span className="text-sm font-semibold text-muted-foreground">{TYPE_LABELS[q.type] || q.type}</span>
                   {!isNarrativeBlock(q.type) && (
                     <span
-                      className="text-[10px] font-mono text-zinc-500 bg-zinc-950/60 border border-zinc-800 rounded px-1.5 py-0.5"
+                      className="text-[10px] font-mono text-muted-foreground bg-muted/40 border border-border rounded px-1.5 py-0.5"
                       title="Use este código em textos de perguntas ou telas posteriores para repetir a resposta desta pergunta"
                     >
                       {`{{resposta_${answerablePosition}}}`}
@@ -1243,42 +1243,42 @@ export function QuestionsTab({
 
                 {propertiesTab === 'style' ? (
                   q.type === 'spacer' ? (
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-muted-foreground">
                       Este bloco não tem elementos visuais para estilizar além da altura, já configurada na aba Componente.
                     </p>
                   ) : (
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <Label className="text-zinc-300 text-xs">Cor de Destaque</Label>
+                      <Label className="text-muted-foreground text-xs">Cor de Destaque</Label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
                           value={q.settings?.style_accent_color || '#6366f1'}
                           onChange={(e) => updateSettings(blockIdx, 'style_accent_color', e.target.value)}
-                          className="h-9 w-11 rounded-lg border border-zinc-700 bg-zinc-950 cursor-pointer shrink-0"
+                          className="h-9 w-11 rounded-lg border border-border bg-muted/50 cursor-pointer shrink-0"
                         />
                         <Input
                           value={q.settings?.style_accent_color || ''}
                           onChange={(e) => updateSettings(blockIdx, 'style_accent_color', e.target.value)}
                           placeholder="#6366f1 (padrão do tema)"
-                          className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 font-mono flex-1"
+                          className="border-border bg-muted/50 text-foreground text-xs h-9 font-mono flex-1"
                         />
                         {q.settings?.style_accent_color && (
                           <Button type="button" variant="ghost" size="icon"
                             onClick={() => updateSettings(blockIdx, 'style_accent_color', '')}
                             title="Voltar para a cor padrão"
-                            className="h-9 w-9 text-zinc-500 hover:text-red-400 shrink-0">
+                            className="h-9 w-9 text-muted-foreground hover:text-red-500 shrink-0">
                             <X className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </div>
-                      <p className="text-[11px] text-zinc-500">
+                      <p className="text-[11px] text-muted-foreground">
                         Substitui a cor padrão (índigo) nos elementos de destaque deste bloco — botões, bordas selecionadas, barras.
                       </p>
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-zinc-300 text-xs">Alinhamento do Texto</Label>
+                      <Label className="text-muted-foreground text-xs">Alinhamento do Texto</Label>
                       <div className="flex items-center gap-1.5">
                         {([
                           { value: 'left' as const, icon: AlignLeft, label: 'Esquerda' },
@@ -1295,7 +1295,7 @@ export function QuestionsTab({
                               className={`h-9 w-9 rounded-lg border flex items-center justify-center transition ${
                                 isActive
                                   ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
-                                  : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                  : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:border-border'
                               }`}
                             >
                               <Icon className="h-4 w-4" />
@@ -1309,8 +1309,8 @@ export function QuestionsTab({
                          types they're actually relevant to ─── */}
 
                     {(q.type === 'multiple_choice' || q.type === 'likert') && (
-                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
-                        <Label className="text-zinc-300 text-xs">Layout das Opções</Label>
+                      <div className="space-y-1.5 border-t border-border/60 pt-4">
+                        <Label className="text-muted-foreground text-xs">Layout das Opções</Label>
                         <div className="flex items-center gap-1.5">
                           {([
                             { value: 'list' as const, label: 'Lista' },
@@ -1325,7 +1325,7 @@ export function QuestionsTab({
                                 className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
                                   isActive
                                     ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
-                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                    : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:border-border'
                                 }`}
                               >
                                 {label}
@@ -1333,15 +1333,15 @@ export function QuestionsTab({
                             )
                           })}
                         </div>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           Grade organiza as opções em 2 colunas — útil quando os textos são curtos.
                         </p>
                       </div>
                     )}
 
                     {q.type === 'image_choice' && (
-                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
-                        <Label className="text-zinc-300 text-xs">Formato da Imagem</Label>
+                      <div className="space-y-1.5 border-t border-border/60 pt-4">
+                        <Label className="text-muted-foreground text-xs">Formato da Imagem</Label>
                         <div className="flex items-center gap-1.5">
                           {([
                             { value: 'square' as const, label: 'Quadrado' },
@@ -1356,7 +1356,7 @@ export function QuestionsTab({
                                 className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
                                   isActive
                                     ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
-                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                    : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:border-border'
                                 }`}
                               >
                                 {label}
@@ -1368,8 +1368,8 @@ export function QuestionsTab({
                     )}
 
                     {(q.type === 'content' || q.type === 'testimonial') && (
-                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
-                        <Label className="text-zinc-300 text-xs">Estilo do Card</Label>
+                      <div className="space-y-1.5 border-t border-border/60 pt-4">
+                        <Label className="text-muted-foreground text-xs">Estilo do Card</Label>
                         <div className="flex items-center gap-1.5">
                           {([
                             { value: 'quote' as const, label: 'Com aspas' },
@@ -1384,7 +1384,7 @@ export function QuestionsTab({
                                 className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
                                   isActive
                                     ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
-                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                    : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:border-border'
                                 }`}
                               >
                                 {label}
@@ -1396,73 +1396,73 @@ export function QuestionsTab({
                     )}
 
                     {q.type === 'comparison' && (
-                      <div className="space-y-3 border-t border-zinc-800/60 pt-4">
-                        <Label className="text-zinc-300 text-xs">Cores das Colunas</Label>
+                      <div className="space-y-3 border-t border-border/60 pt-4">
+                        <Label className="text-muted-foreground text-xs">Cores das Colunas</Label>
                         <div className="grid grid-cols-2 gap-2">
                           <div className="space-y-1">
-                            <Label className="text-zinc-500 text-[11px]">Esquerda</Label>
+                            <Label className="text-muted-foreground text-[11px]">Esquerda</Label>
                             <div className="flex items-center gap-1.5">
                               <input
                                 type="color"
                                 value={q.settings?.style_left_color || '#f87171'}
                                 onChange={(e) => updateSettings(blockIdx, 'style_left_color', e.target.value)}
-                                className="h-8 w-9 rounded-lg border border-zinc-700 bg-zinc-950 cursor-pointer shrink-0"
+                                className="h-8 w-9 rounded-lg border border-border bg-muted/50 cursor-pointer shrink-0"
                               />
                               <Input
                                 value={q.settings?.style_left_color || ''}
                                 onChange={(e) => updateSettings(blockIdx, 'style_left_color', e.target.value)}
                                 placeholder="#f87171"
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8 font-mono"
+                                className="border-border bg-muted/50 text-foreground text-xs h-8 font-mono"
                               />
                             </div>
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-zinc-500 text-[11px]">Direita</Label>
+                            <Label className="text-muted-foreground text-[11px]">Direita</Label>
                             <div className="flex items-center gap-1.5">
                               <input
                                 type="color"
                                 value={q.settings?.style_right_color || '#34d399'}
                                 onChange={(e) => updateSettings(blockIdx, 'style_right_color', e.target.value)}
-                                className="h-8 w-9 rounded-lg border border-zinc-700 bg-zinc-950 cursor-pointer shrink-0"
+                                className="h-8 w-9 rounded-lg border border-border bg-muted/50 cursor-pointer shrink-0"
                               />
                               <Input
                                 value={q.settings?.style_right_color || ''}
                                 onChange={(e) => updateSettings(blockIdx, 'style_right_color', e.target.value)}
                                 placeholder="#34d399"
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8 font-mono"
+                                className="border-border bg-muted/50 text-foreground text-xs h-8 font-mono"
                               />
                             </div>
                           </div>
                         </div>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           Por padrão é vermelho/verde (risco vs. solução) — troque se o seu comparativo não for esse tipo de contraste.
                         </p>
                       </div>
                     )}
 
                     {q.type === 'timer' && (
-                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
-                        <Label className="text-zinc-300 text-xs">Cor de Urgência (últimos 60s)</Label>
+                      <div className="space-y-1.5 border-t border-border/60 pt-4">
+                        <Label className="text-muted-foreground text-xs">Cor de Urgência (últimos 60s)</Label>
                         <div className="flex items-center gap-2">
                           <input
                             type="color"
                             value={q.settings?.style_urgency_color || '#f87171'}
                             onChange={(e) => updateSettings(blockIdx, 'style_urgency_color', e.target.value)}
-                            className="h-9 w-11 rounded-lg border border-zinc-700 bg-zinc-950 cursor-pointer shrink-0"
+                            className="h-9 w-11 rounded-lg border border-border bg-muted/50 cursor-pointer shrink-0"
                           />
                           <Input
                             value={q.settings?.style_urgency_color || ''}
                             onChange={(e) => updateSettings(blockIdx, 'style_urgency_color', e.target.value)}
                             placeholder="#f87171 (vermelho padrão)"
-                            className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 font-mono flex-1"
+                            className="border-border bg-muted/50 text-foreground text-xs h-9 font-mono flex-1"
                           />
                         </div>
                       </div>
                     )}
 
                     {q.type === 'social_proof' && (
-                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
-                        <Label className="text-zinc-300 text-xs">Posição do Popup</Label>
+                      <div className="space-y-1.5 border-t border-border/60 pt-4">
+                        <Label className="text-muted-foreground text-xs">Posição do Popup</Label>
                         <div className="flex items-center gap-1.5">
                           {([
                             { value: 'bottom-left' as const, label: 'Inferior esquerda' },
@@ -1477,7 +1477,7 @@ export function QuestionsTab({
                                 className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
                                   isActive
                                     ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
-                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                    : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:border-border'
                                 }`}
                               >
                                 {label}
@@ -1489,8 +1489,8 @@ export function QuestionsTab({
                     )}
 
                     {q.type === 'button' && (
-                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
-                        <Label className="text-zinc-300 text-xs">Estilo do Botão</Label>
+                      <div className="space-y-1.5 border-t border-border/60 pt-4">
+                        <Label className="text-muted-foreground text-xs">Estilo do Botão</Label>
                         <div className="flex items-center gap-1.5">
                           {([
                             { value: 'solid' as const, label: 'Preenchido' },
@@ -1505,7 +1505,7 @@ export function QuestionsTab({
                                 className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
                                   isActive
                                     ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
-                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                    : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:border-border'
                                 }`}
                               >
                                 {label}
@@ -1517,8 +1517,8 @@ export function QuestionsTab({
                     )}
 
                     {q.type === 'chart' && (
-                      <div className="space-y-1.5 border-t border-zinc-800/60 pt-4">
-                        <Label className="text-zinc-300 text-xs">Estilo das Barras</Label>
+                      <div className="space-y-1.5 border-t border-border/60 pt-4">
+                        <Label className="text-muted-foreground text-xs">Estilo das Barras</Label>
                         <div className="flex items-center gap-1.5">
                           {([
                             { value: 'gradient' as const, label: 'Gradiente' },
@@ -1533,7 +1533,7 @@ export function QuestionsTab({
                                 className={`flex-1 h-9 rounded-lg border text-xs font-medium transition ${
                                   isActive
                                     ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
-                                    : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                                    : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground hover:border-border'
                                 }`}
                               >
                                 {label}
@@ -1545,13 +1545,13 @@ export function QuestionsTab({
                     )}
 
                     {q.type === 'quadrant' && (
-                      <div className="border-t border-zinc-800/60 pt-4">
-                        <label className="flex items-center gap-2 text-xs text-zinc-300">
+                      <div className="border-t border-border/60 pt-4">
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground">
                           <input
                             type="checkbox"
                             checked={q.settings?.style_show_grid ?? true}
                             onChange={(e) => updateSettings(blockIdx, 'style_show_grid', e.target.checked)}
-                            className="rounded border-zinc-700 bg-zinc-950"
+                            className="rounded border-border bg-muted/50"
                           />
                           Mostrar linhas de grade no plano
                         </label>
@@ -1573,7 +1573,7 @@ export function QuestionsTab({
                           className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition ${
                             !condition
                               ? 'border-indigo-500 bg-indigo-600/15 text-indigo-400'
-                              : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-zinc-200'
+                              : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground'
                           }`}
                         >
                           <Eye className="h-3.5 w-3.5" /> Sempre visível
@@ -1593,7 +1593,7 @@ export function QuestionsTab({
                           className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed ${
                             condition
                               ? 'border-purple-500 bg-purple-600/15 text-purple-400'
-                              : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-zinc-200'
+                              : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground'
                           }`}
                         >
                           <EyeOff className="h-3.5 w-3.5" /> Condicional
@@ -1601,15 +1601,15 @@ export function QuestionsTab({
                       </div>
 
                       {candidates.length === 0 && (
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           Não há nenhum bloco respondível antes deste na etapa atual ou em etapas anteriores — a exibição condicional depende de uma resposta já dada.
                         </p>
                       )}
 
                       {condition && candidates.length > 0 && (
-                        <div className="space-y-3 bg-zinc-950/40 rounded-xl border border-zinc-800/60 p-4">
+                        <div className="space-y-3 bg-muted/30 rounded-xl border border-border/60 p-4">
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Mostrar SE a resposta de</Label>
+                            <Label className="text-muted-foreground text-xs">Mostrar SE a resposta de</Label>
                             <Select
                               value={String(condition.source_position)}
                               onValueChange={(val) => {
@@ -1621,10 +1621,10 @@ export function QuestionsTab({
                                 })
                               }}
                             >
-                              <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-9">
+                              <SelectTrigger className="border-border bg-card text-foreground text-xs h-9">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                              <SelectContent className="border-border bg-card text-foreground">
                                 {candidates.map(({ block, position }) => (
                                   <SelectItem key={position} value={String(position)}>
                                     {`{{resposta_${position}}}`} — {block.title.slice(0, 40)}
@@ -1639,10 +1639,10 @@ export function QuestionsTab({
                               value={condition.operator}
                               onValueChange={(val) => updateSettings(blockIdx, 'display_condition', { ...condition, operator: val as 'equals' | 'not_equals' })}
                             >
-                              <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-9">
+                              <SelectTrigger className="border-border bg-card text-foreground text-xs h-9">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                              <SelectContent className="border-border bg-card text-foreground">
                                 <SelectItem value="equals">é</SelectItem>
                                 <SelectItem value="not_equals">não é</SelectItem>
                               </SelectContent>
@@ -1653,10 +1653,10 @@ export function QuestionsTab({
                                 value={condition.value}
                                 onValueChange={(val) => updateSettings(blockIdx, 'display_condition', { ...condition, value: val })}
                               >
-                                <SelectTrigger className="border-zinc-700 bg-zinc-900 text-zinc-200 text-xs h-9">
+                                <SelectTrigger className="border-border bg-card text-foreground text-xs h-9">
                                   <SelectValue placeholder="Escolher opção..." />
                                 </SelectTrigger>
-                                <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                                <SelectContent className="border-border bg-card text-foreground">
                                   {sourceBlock.options.map((opt, oi) => (
                                     <SelectItem key={oi} value={opt.text}>{opt.text}</SelectItem>
                                   ))}
@@ -1667,12 +1667,12 @@ export function QuestionsTab({
                                 value={condition.value}
                                 onChange={(e) => updateSettings(blockIdx, 'display_condition', { ...condition, value: e.target.value })}
                                 placeholder="Valor esperado"
-                                className="border-zinc-800 bg-zinc-900 text-zinc-200 text-xs h-9"
+                                className="border-border bg-card text-foreground text-xs h-9"
                               />
                             )}
                           </div>
 
-                          <p className="text-[11px] text-purple-300/80 bg-purple-950/20 border border-purple-900/30 rounded-lg px-3 py-2">
+                          <p className="text-[11px] text-purple-700 bg-purple-50 border border-purple-200/60 rounded-lg px-3 py-2">
                             Este bloco só aparece no player quando {`{{resposta_${condition.source_position}}}`} {condition.operator === 'equals' ? 'for' : 'não for'} <strong>&ldquo;{condition.value}&rdquo;</strong>.
                           </p>
                         </div>
@@ -1684,19 +1684,19 @@ export function QuestionsTab({
                 {/* Title + Type */}
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label className="text-zinc-300 text-xs">Título do Bloco</Label>
+                    <Label className="text-muted-foreground text-xs">Título do Bloco</Label>
                     <Input value={q.title}
                       onChange={(e) => updateBlock(blockIdx, 'title', e.target.value)}
                       placeholder="Enunciado da pergunta"
-                      className="border-zinc-700 bg-zinc-950 text-zinc-100 font-medium" />
+                      className="border-border bg-muted/50 text-foreground font-medium" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-zinc-300 text-xs">Tipo</Label>
+                    <Label className="text-muted-foreground text-xs">Tipo</Label>
                     <Select value={q.type} onValueChange={(val) => updateBlock(blockIdx, 'type', val)}>
-                      <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
+                      <SelectTrigger className="border-border bg-muted/50 text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                      <SelectContent className="border-border bg-card text-foreground">
                         {BLOCK_PALETTE.map(({ type, label }) => (
                           <SelectItem key={type} value={type}>{label}</SelectItem>
                         ))}
@@ -1707,11 +1707,11 @@ export function QuestionsTab({
 
                 {!isNarrativeBlock(q.type) && (
                   <div className="space-y-1.5">
-                    <Label className="text-zinc-400 text-xs">Descrição ou Subtítulo (opcional)</Label>
+                    <Label className="text-muted-foreground text-xs">Descrição ou Subtítulo (opcional)</Label>
                     <Input value={q.description || ''}
                       onChange={(e) => updateBlock(blockIdx, 'description', e.target.value)}
                       placeholder="Ex: Selecione apenas uma opção para continuar"
-                      className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs" />
+                      className="border-border bg-muted/40 text-muted-foreground text-xs" />
                   </div>
                 )}
 
@@ -1719,29 +1719,29 @@ export function QuestionsTab({
                     {(q.type === 'multiple_choice' || q.type === 'image_choice') && (
                       <div className="space-y-2 pt-2">
                         <div className="flex items-center justify-between">
-                          <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">Opções</Label>
+                          <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Opções</Label>
                           {scoringEnabled && (
-                            <span className="text-[11px] text-zinc-500">Pontos e tag por opção</span>
+                            <span className="text-[11px] text-muted-foreground">Pontos e tag por opção</span>
                           )}
                         </div>
                         {q.options?.map((opt, optIndex) => (
                           <div key={optIndex} className="flex items-center gap-2">
-                            <span className="text-xs text-zinc-500 font-mono w-4">{String.fromCharCode(65 + optIndex)}</span>
+                            <span className="text-xs text-muted-foreground font-mono w-4">{String.fromCharCode(65 + optIndex)}</span>
                             {q.type === 'image_choice' && (
                               <Input value={opt.image_url || ''}
                                 onChange={(e) => updateOptionImage(blockIdx, optIndex, e.target.value)}
                                 placeholder="URL da imagem"
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 w-32 shrink-0 font-mono" />
+                                className="border-border bg-muted/50 text-foreground text-xs h-9 w-32 shrink-0 font-mono" />
                             )}
                             <Input value={opt.text}
                               onChange={(e) => updateOption(blockIdx, optIndex, e.target.value)}
                               placeholder={`Opção ${optIndex + 1}`}
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9" />
+                              className="border-border bg-muted/50 text-foreground text-sm h-9" />
                             <Input
                               value={opt.tag || ''}
                               onChange={(e) => updateOptionTag(blockIdx, optIndex, e.target.value)}
                               placeholder="tag"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 w-20 shrink-0"
+                              className="border-border bg-muted/50 text-foreground text-xs h-9 w-20 shrink-0"
                               title="Marca o lead com esta tag quando ele escolhe esta opção"
                             />
                             {scoringEnabled && (
@@ -1749,21 +1749,21 @@ export function QuestionsTab({
                                 type="number"
                                 value={opt.score_value ?? 0}
                                 onChange={(e) => updateOptionScore(blockIdx, optIndex, Number(e.target.value))}
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9 w-16 text-center shrink-0"
+                                className="border-border bg-muted/50 text-foreground text-sm h-9 w-16 text-center shrink-0"
                                 title="Pontos que esta opção soma ao resultado final"
                               />
                             )}
                             <Button type="button" variant="ghost" size="icon"
                               disabled={q.options!.length <= 1}
                               onClick={() => removeOption(blockIdx, optIndex)}
-                              className="h-8 w-8 text-zinc-500 hover:text-red-400">
+                              className="h-8 w-8 text-muted-foreground hover:text-red-500">
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         ))}
                         <Button type="button" variant="outline" size="sm"
                           onClick={() => addOption(blockIdx)}
-                          className="mt-2 border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-800 text-xs">
+                          className="mt-2 border-dashed border-border bg-muted/30 text-muted-foreground hover:bg-accent text-xs">
                           <Plus className="h-3.5 w-3.5 mr-1 text-indigo-400" />
                           Adicionar Opção
                         </Button>
@@ -1773,18 +1773,18 @@ export function QuestionsTab({
                     {/* Likert — fixed 5-point agreement scale, only scoring is editable */}
                     {q.type === 'likert' && (
                       <div className="space-y-2 pt-2">
-                        <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">
+                        <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">
                           Escala de Concordância (fixa)
                         </Label>
                         <div className="space-y-1.5">
                           {(q.options || []).map((opt, optIndex) => (
-                            <div key={optIndex} className="flex items-center gap-2 text-sm text-zinc-300 bg-zinc-950/40 rounded-lg px-3 py-2 border border-zinc-800">
+                            <div key={optIndex} className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 rounded-lg px-3 py-2 border border-border">
                               <span className="flex-1">{opt.text}</span>
                               <Input
                                 value={opt.tag || ''}
                                 onChange={(e) => updateOptionTag(blockIdx, optIndex, e.target.value)}
                                 placeholder="tag"
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8 w-20 shrink-0"
+                                className="border-border bg-muted/50 text-foreground text-xs h-8 w-20 shrink-0"
                                 title="Marca o lead com esta tag quando ele escolhe esta opção"
                               />
                               {scoringEnabled && (
@@ -1792,14 +1792,14 @@ export function QuestionsTab({
                                   type="number"
                                   value={opt.score_value ?? 0}
                                   onChange={(e) => updateOptionScore(blockIdx, optIndex, Number(e.target.value))}
-                                  className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-8 w-16 text-center shrink-0"
+                                  className="border-border bg-muted/50 text-foreground text-sm h-8 w-16 text-center shrink-0"
                                   title="Pontos que esta resposta soma ao resultado final"
                                 />
                               )}
                             </div>
                           ))}
                         </div>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           Os 5 níveis são padronizados. Use a pontuação para inverter o peso de afirmações negativas, se necessário.
                         </p>
                       </div>
@@ -1809,38 +1809,38 @@ export function QuestionsTab({
                     {q.type === 'content' && (
                       <div className="space-y-3 pt-1">
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-300 text-xs">Texto Principal</Label>
+                          <Label className="text-muted-foreground text-xs">Texto Principal</Label>
                           <Textarea
                             value={q.settings?.body || ''}
                             onChange={(e) => updateSettings(blockIdx, 'body', e.target.value)}
                             placeholder="Explique o padrão identificado ou reforce a continuidade..."
-                            className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-24"
+                            className="border-border bg-muted/50 text-foreground text-sm resize-none h-24"
                           />
                         </div>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Depoimento (opcional)</Label>
+                            <Label className="text-muted-foreground text-xs">Depoimento (opcional)</Label>
                             <Textarea
                               value={q.settings?.testimonial_text || ''}
                               onChange={(e) => updateSettings(blockIdx, 'testimonial_text', e.target.value)}
                               placeholder='"Frase de um cliente real ou fictício..."'
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs resize-none h-20"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs resize-none h-20"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Autor do Depoimento</Label>
+                            <Label className="text-muted-foreground text-xs">Autor do Depoimento</Label>
                             <Input
                               value={q.settings?.testimonial_author || ''}
                               onChange={(e) => updateSettings(blockIdx, 'testimonial_author', e.target.value)}
                               placeholder="Ex: Fernanda, (31) 9****-**08"
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs"
                             />
-                            <Label className="text-zinc-400 text-xs pt-2 block">Texto do Botão</Label>
+                            <Label className="text-muted-foreground text-xs pt-2 block">Texto do Botão</Label>
                             <Input
                               value={q.settings?.cta_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'cta_label', e.target.value)}
                               placeholder="Continuar →"
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs"
                             />
                           </div>
                         </div>
@@ -1852,45 +1852,45 @@ export function QuestionsTab({
                       <div className="space-y-3 pt-1">
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Rótulo da Coluna Esquerda (estado atual)</Label>
+                            <Label className="text-muted-foreground text-xs">Rótulo da Coluna Esquerda (estado atual)</Label>
                             <Input
                               value={q.settings?.left_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'left_label', e.target.value)}
                               placeholder="Sozinho (hoje)"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                              className="border-border bg-muted/50 text-foreground text-sm h-9"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Rótulo da Coluna Direita (solução)</Label>
+                            <Label className="text-muted-foreground text-xs">Rótulo da Coluna Direita (solução)</Label>
                             <Input
                               value={q.settings?.right_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'right_label', e.target.value)}
                               placeholder="Com a solução"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                              className="border-border bg-muted/50 text-foreground text-sm h-9"
                             />
                           </div>
                         </div>
 
-                        <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">Linhas de Comparação</Label>
+                        <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Linhas de Comparação</Label>
                         <div className="space-y-2">
                           {(q.settings?.rows || []).map((row, rowIdx) => (
                             <div key={rowIdx} className="grid grid-cols-[minmax(0,0.7fr)_1fr_1fr_auto] gap-2 items-center">
                               <Input value={row.label}
                                 onChange={(e) => updateComparisonRow(blockIdx, rowIdx, 'label', e.target.value)}
                                 placeholder="Ex: Tempo"
-                                className="border-zinc-800 bg-zinc-950/70 text-zinc-400 text-xs h-9" />
+                                className="border-border bg-muted/40 text-muted-foreground text-xs h-9" />
                               <Input value={row.left_text}
                                 onChange={(e) => updateComparisonRow(blockIdx, rowIdx, 'left_text', e.target.value)}
                                 placeholder="Ex: Madrugadas perdidas"
-                                className="border-red-900/40 bg-zinc-950 text-red-300 text-xs h-9" />
+                                className="border-red-300/40 bg-muted/50 text-red-700 text-xs h-9" />
                               <Input value={row.right_text}
                                 onChange={(e) => updateComparisonRow(blockIdx, rowIdx, 'right_text', e.target.value)}
                                 placeholder="Ex: Direto ao ponto"
-                                className="border-emerald-900/40 bg-zinc-950 text-emerald-300 text-xs h-9" />
+                                className="border-emerald-300/40 bg-muted/50 text-emerald-700 text-xs h-9" />
                               <Button type="button" variant="ghost" size="icon"
                                 disabled={(q.settings?.rows?.length ?? 0) <= 1}
                                 onClick={() => removeComparisonRow(blockIdx, rowIdx)}
-                                className="h-8 w-8 text-zinc-500 hover:text-red-400 shrink-0">
+                                className="h-8 w-8 text-muted-foreground hover:text-red-500 shrink-0">
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
@@ -1898,7 +1898,7 @@ export function QuestionsTab({
                         </div>
                         <Button type="button" variant="outline" size="sm"
                           onClick={() => addComparisonRow(blockIdx)}
-                          className="border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-800 text-xs">
+                          className="border-dashed border-border bg-muted/30 text-muted-foreground hover:bg-accent text-xs">
                           <Plus className="h-3.5 w-3.5 mr-1 text-indigo-400" />
                           Adicionar Linha
                         </Button>
@@ -1909,36 +1909,36 @@ export function QuestionsTab({
                     {q.type === 'timer' && (
                       <div className="space-y-3 pt-1">
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-300 text-xs">Texto de Urgência</Label>
+                          <Label className="text-muted-foreground text-xs">Texto de Urgência</Label>
                           <Textarea
                             value={q.settings?.body || ''}
                             onChange={(e) => updateSettings(blockIdx, 'body', e.target.value)}
                             placeholder="Ex: Essa condição especial expira quando o tempo acabar."
-                            className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-20"
+                            className="border-border bg-muted/50 text-foreground text-sm resize-none h-20"
                           />
                         </div>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Duração (minutos)</Label>
+                            <Label className="text-muted-foreground text-xs">Duração (minutos)</Label>
                             <Input
                               type="number"
                               min={1}
                               value={Math.round((q.settings?.duration_seconds || 300) / 60)}
                               onChange={(e) => updateSettings(blockIdx, 'duration_seconds', Math.max(1, Number(e.target.value)) * 60)}
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                              className="border-border bg-muted/50 text-foreground text-sm h-9"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Texto do Botão</Label>
+                            <Label className="text-muted-foreground text-xs">Texto do Botão</Label>
                             <Input
                               value={q.settings?.cta_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'cta_label', e.target.value)}
                               placeholder="Continuar"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                              className="border-border bg-muted/50 text-foreground text-sm h-9"
                             />
                           </div>
                         </div>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           A contagem recomeça do início toda vez que um visitante chega nesta etapa — não é um prazo fixo compartilhado entre visitantes.
                         </p>
                       </div>
@@ -1948,15 +1948,15 @@ export function QuestionsTab({
                     {q.type === 'numeric_calc' && (
                       <div className="space-y-3 pt-1">
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-400 text-xs">Fórmula</Label>
+                          <Label className="text-muted-foreground text-xs">Fórmula</Label>
                           <Select
                             value={q.settings?.formula || 'bmi'}
                             onValueChange={(val) => updateSettings(blockIdx, 'formula', val)}
                           >
-                            <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
+                            <SelectTrigger className="border-border bg-muted/50 text-foreground">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                            <SelectContent className="border-border bg-card text-foreground">
                               <SelectItem value="bmi">IMC (peso ÷ altura²)</SelectItem>
                               <SelectItem value="difference">Diferença entre os dois valores</SelectItem>
                               <SelectItem value="none">Nenhuma (só coletar o primeiro valor)</SelectItem>
@@ -1964,40 +1964,40 @@ export function QuestionsTab({
                           </Select>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
-                            <Label className="text-zinc-300 text-xs font-semibold">Campo 1</Label>
+                          <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
+                            <Label className="text-muted-foreground text-xs font-semibold">Campo 1</Label>
                             <Input
                               value={q.settings?.field_a_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'field_a_label', e.target.value)}
                               placeholder="Rótulo, ex: Peso (kg)"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8"
+                              className="border-border bg-muted/50 text-foreground text-xs h-8"
                             />
                             <Input
                               value={q.settings?.field_a_placeholder || ''}
                               onChange={(e) => updateSettings(blockIdx, 'field_a_placeholder', e.target.value)}
                               placeholder="Exemplo, ex: 70"
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-400 text-xs h-8"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs h-8"
                             />
                           </div>
-                          <div className="space-y-1.5 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
-                            <Label className="text-zinc-300 text-xs font-semibold">
+                          <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
+                            <Label className="text-muted-foreground text-xs font-semibold">
                               Campo 2 {q.settings?.formula === 'none' && '(deixe vazio para ocultar)'}
                             </Label>
                             <Input
                               value={q.settings?.field_b_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'field_b_label', e.target.value)}
                               placeholder="Rótulo, ex: Altura (m)"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-8"
+                              className="border-border bg-muted/50 text-foreground text-xs h-8"
                             />
                             <Input
                               value={q.settings?.field_b_placeholder || ''}
                               onChange={(e) => updateSettings(blockIdx, 'field_b_placeholder', e.target.value)}
                               placeholder="Exemplo, ex: 1.75"
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-400 text-xs h-8"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs h-8"
                             />
                           </div>
                         </div>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           O resultado calculado fica disponível como {`{{resposta_${answerablePosition}}}`} em telas posteriores.
                         </p>
                       </div>
@@ -2007,15 +2007,15 @@ export function QuestionsTab({
                     {q.type === 'alert' && (
                       <div className="space-y-3 pt-1">
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-400 text-xs">Variante</Label>
+                          <Label className="text-muted-foreground text-xs">Variante</Label>
                           <Select
                             value={q.settings?.alert_variant || 'warning'}
                             onValueChange={(val) => updateSettings(blockIdx, 'alert_variant', val)}
                           >
-                            <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
+                            <SelectTrigger className="border-border bg-muted/50 text-foreground">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                            <SelectContent className="border-border bg-card text-foreground">
                               <SelectItem value="info">Informativo (azul)</SelectItem>
                               <SelectItem value="warning">Atenção (âmbar)</SelectItem>
                               <SelectItem value="success">Positivo (verde)</SelectItem>
@@ -2024,12 +2024,12 @@ export function QuestionsTab({
                           </Select>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-300 text-xs">Texto do Alerta</Label>
+                          <Label className="text-muted-foreground text-xs">Texto do Alerta</Label>
                           <Textarea
                             value={q.settings?.body || ''}
                             onChange={(e) => updateSettings(blockIdx, 'body', e.target.value)}
                             placeholder="Ex: Esse padrão de sono pode estar afetando seu metabolismo."
-                            className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-20"
+                            className="border-border bg-muted/50 text-foreground text-sm resize-none h-20"
                           />
                         </div>
                       </div>
@@ -2039,50 +2039,50 @@ export function QuestionsTab({
                     {q.type === 'testimonial' && (
                       <div className="space-y-3 pt-1">
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-300 text-xs">Depoimento</Label>
+                          <Label className="text-muted-foreground text-xs">Depoimento</Label>
                           <Textarea
                             value={q.settings?.testimonial_text || ''}
                             onChange={(e) => updateSettings(blockIdx, 'testimonial_text', e.target.value)}
                             placeholder='"Frase de um cliente real ou fictício..."'
-                            className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-20"
+                            className="border-border bg-muted/50 text-foreground text-sm resize-none h-20"
                           />
                         </div>
                         <div className="grid gap-3 sm:grid-cols-3">
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Autor</Label>
+                            <Label className="text-muted-foreground text-xs">Autor</Label>
                             <Input
                               value={q.settings?.testimonial_author || ''}
                               onChange={(e) => updateSettings(blockIdx, 'testimonial_author', e.target.value)}
                               placeholder="Ex: Fernanda M."
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Cargo/Contexto</Label>
+                            <Label className="text-muted-foreground text-xs">Cargo/Contexto</Label>
                             <Input
                               value={q.settings?.author_role || ''}
                               onChange={(e) => updateSettings(blockIdx, 'author_role', e.target.value)}
                               placeholder="Ex: Aluna há 3 meses"
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Nota (1 a 5)</Label>
+                            <Label className="text-muted-foreground text-xs">Nota (1 a 5)</Label>
                             <Input
                               type="number" min={1} max={5}
                               value={q.settings?.rating ?? 5}
                               onChange={(e) => updateSettings(blockIdx, 'rating', Number(e.target.value))}
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs"
                             />
                           </div>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-400 text-xs">URL do Avatar (opcional)</Label>
+                          <Label className="text-muted-foreground text-xs">URL do Avatar (opcional)</Label>
                           <Input
                             value={q.settings?.avatar_url || ''}
                             onChange={(e) => updateSettings(blockIdx, 'avatar_url', e.target.value)}
                             placeholder="https://..."
-                            className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs font-mono"
+                            className="border-border bg-muted/40 text-muted-foreground text-xs font-mono"
                           />
                         </div>
                       </div>
@@ -2093,34 +2093,34 @@ export function QuestionsTab({
                       <div className="space-y-3 pt-1">
                         <div className="grid gap-3 sm:grid-cols-3">
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Nome</Label>
+                            <Label className="text-muted-foreground text-xs">Nome</Label>
                             <Input
                               value={q.settings?.notification_name || ''}
                               onChange={(e) => updateSettings(blockIdx, 'notification_name', e.target.value)}
                               placeholder="Ex: Maria S."
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                              className="border-border bg-muted/50 text-foreground text-xs h-9"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Ação</Label>
+                            <Label className="text-muted-foreground text-xs">Ação</Label>
                             <Input
                               value={q.settings?.notification_action || ''}
                               onChange={(e) => updateSettings(blockIdx, 'notification_action', e.target.value)}
                               placeholder="Ex: acabou de garantir sua vaga"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                              className="border-border bg-muted/50 text-foreground text-xs h-9"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Tempo</Label>
+                            <Label className="text-muted-foreground text-xs">Tempo</Label>
                             <Input
                               value={q.settings?.notification_time_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'notification_time_label', e.target.value)}
                               placeholder="Ex: há 2 minutos"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                              className="border-border bg-muted/50 text-foreground text-xs h-9"
                             />
                           </div>
                         </div>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           Aparece como um popup flutuante no canto da tela enquanto esta etapa estiver visível, simulando atividade recente de outros usuários.
                         </p>
                       </div>
@@ -2130,41 +2130,41 @@ export function QuestionsTab({
                     {q.type === 'button' && (
                       <div className="space-y-3 pt-1">
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-300 text-xs">Texto de Apoio (opcional)</Label>
+                          <Label className="text-muted-foreground text-xs">Texto de Apoio (opcional)</Label>
                           <Textarea
                             value={q.settings?.body || ''}
                             onChange={(e) => updateSettings(blockIdx, 'body', e.target.value)}
                             placeholder="Texto acima do botão, se necessário."
-                            className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-16"
+                            className="border-border bg-muted/50 text-foreground text-sm resize-none h-16"
                           />
                         </div>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Texto do Botão</Label>
+                            <Label className="text-muted-foreground text-xs">Texto do Botão</Label>
                             <Input
                               value={q.settings?.cta_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'cta_label', e.target.value)}
                               placeholder="Continuar"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                              className="border-border bg-muted/50 text-foreground text-sm h-9"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Link Externo (opcional)</Label>
+                            <Label className="text-muted-foreground text-xs">Link Externo (opcional)</Label>
                             <Input
                               value={q.settings?.button_url || ''}
                               onChange={(e) => updateSettings(blockIdx, 'button_url', e.target.value)}
                               placeholder="Deixe vazio para ir à próxima etapa"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9 font-mono"
+                              className="border-border bg-muted/50 text-foreground text-sm h-9 font-mono"
                             />
                           </div>
                         </div>
                         {q.settings?.button_url && (
-                          <label className="flex items-center gap-2 text-xs text-zinc-400">
+                          <label className="flex items-center gap-2 text-xs text-muted-foreground">
                             <input
                               type="checkbox"
                               checked={q.settings?.button_open_new_tab ?? false}
                               onChange={(e) => updateSettings(blockIdx, 'button_open_new_tab', e.target.checked)}
-                              className="rounded border-zinc-700 bg-zinc-950"
+                              className="rounded border-border bg-muted/50"
                             />
                             Abrir em nova aba
                           </label>
@@ -2175,14 +2175,14 @@ export function QuestionsTab({
                     {/* Spacer — pure layout gap, no visible content */}
                     {q.type === 'spacer' && (
                       <div className="space-y-1.5 pt-1">
-                        <Label className="text-zinc-400 text-xs">Altura (px)</Label>
+                        <Label className="text-muted-foreground text-xs">Altura (px)</Label>
                         <Input
                           type="number" min={4} max={200}
                           value={q.settings?.duration_seconds ?? 24}
                           onChange={(e) => updateSettings(blockIdx, 'duration_seconds', Number(e.target.value))}
-                          className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9 w-32"
+                          className="border-border bg-muted/50 text-foreground text-sm h-9 w-32"
                         />
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           Use para dar respiro entre outros blocos empilhados nesta mesma etapa.
                         </p>
                       </div>
@@ -2193,39 +2193,39 @@ export function QuestionsTab({
                       <div className="space-y-3 pt-1">
                         <div className="grid gap-3 sm:grid-cols-3">
                           <div className="sm:col-span-2 space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Texto de Apoio (opcional)</Label>
+                            <Label className="text-muted-foreground text-xs">Texto de Apoio (opcional)</Label>
                             <Input
                               value={q.settings?.body || ''}
                               onChange={(e) => updateSettings(blockIdx, 'body', e.target.value)}
                               placeholder="Ex: Baseado em 12.000 respostas"
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs h-9"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs h-9"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Unidade</Label>
+                            <Label className="text-muted-foreground text-xs">Unidade</Label>
                             <Input
                               value={q.settings?.chart_unit || ''}
                               onChange={(e) => updateSettings(blockIdx, 'chart_unit', e.target.value)}
                               placeholder="%"
-                              className="border-zinc-800 bg-zinc-950/70 text-zinc-300 text-xs h-9"
+                              className="border-border bg-muted/40 text-muted-foreground text-xs h-9"
                             />
                           </div>
                         </div>
-                        <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">Barras</Label>
+                        <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Barras</Label>
                         <div className="space-y-2">
                           {(q.settings?.chart_bars || []).map((bar, barIdx) => (
                             <div key={barIdx} className="grid grid-cols-[1fr_100px_auto] gap-2 items-center">
                               <Input value={bar.label}
                                 onChange={(e) => updateChartBar(blockIdx, barIdx, 'label', e.target.value)}
                                 placeholder="Ex: Pessoas como você"
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9" />
+                                className="border-border bg-muted/50 text-foreground text-xs h-9" />
                               <Input type="number" value={bar.value}
                                 onChange={(e) => updateChartBar(blockIdx, barIdx, 'value', e.target.value)}
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 text-center" />
+                                className="border-border bg-muted/50 text-foreground text-xs h-9 text-center" />
                               <Button type="button" variant="ghost" size="icon"
                                 disabled={(q.settings?.chart_bars?.length ?? 0) <= 1}
                                 onClick={() => removeChartBar(blockIdx, barIdx)}
-                                className="h-8 w-8 text-zinc-500 hover:text-red-400 shrink-0">
+                                className="h-8 w-8 text-muted-foreground hover:text-red-500 shrink-0">
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
@@ -2233,7 +2233,7 @@ export function QuestionsTab({
                         </div>
                         <Button type="button" variant="outline" size="sm"
                           onClick={() => addChartBar(blockIdx)}
-                          className="border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-800 text-xs">
+                          className="border-dashed border-border bg-muted/30 text-muted-foreground hover:bg-accent text-xs">
                           <Plus className="h-3.5 w-3.5 mr-1 text-indigo-400" />
                           Adicionar Barra
                         </Button>
@@ -2245,52 +2245,52 @@ export function QuestionsTab({
                       <div className="space-y-3 pt-1">
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Rótulo do Eixo X</Label>
+                            <Label className="text-muted-foreground text-xs">Rótulo do Eixo X</Label>
                             <Input
                               value={q.settings?.quadrant_x_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'quadrant_x_label', e.target.value)}
                               placeholder="Ex: Introvertido → Extrovertido"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                              className="border-border bg-muted/50 text-foreground text-xs h-9"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-zinc-400 text-xs">Rótulo do Eixo Y</Label>
+                            <Label className="text-muted-foreground text-xs">Rótulo do Eixo Y</Label>
                             <Input
                               value={q.settings?.quadrant_y_label || ''}
                               onChange={(e) => updateSettings(blockIdx, 'quadrant_y_label', e.target.value)}
                               placeholder="Ex: Reativo → Estratégico"
-                              className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9"
+                              className="border-border bg-muted/50 text-foreground text-xs h-9"
                             />
                           </div>
                         </div>
-                        <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">Pontos no Plano</Label>
+                        <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Pontos no Plano</Label>
                         <div className="space-y-2">
                           {(q.settings?.quadrant_points || []).map((point, pointIdx) => (
                             <div key={pointIdx} className="grid grid-cols-[1fr_70px_70px_auto_auto] gap-2 items-center">
                               <Input value={point.label}
                                 onChange={(e) => updateQuadrantPoint(blockIdx, pointIdx, 'label', e.target.value)}
                                 placeholder="Ex: Você"
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9" />
+                                className="border-border bg-muted/50 text-foreground text-xs h-9" />
                               <Input type="number" min={0} max={100} value={point.x}
                                 onChange={(e) => updateQuadrantPoint(blockIdx, pointIdx, 'x', Number(e.target.value))}
                                 title="Posição X (0-100)"
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 text-center" />
+                                className="border-border bg-muted/50 text-foreground text-xs h-9 text-center" />
                               <Input type="number" min={0} max={100} value={point.y}
                                 onChange={(e) => updateQuadrantPoint(blockIdx, pointIdx, 'y', Number(e.target.value))}
                                 title="Posição Y (0-100)"
-                                className="border-zinc-800 bg-zinc-950 text-zinc-100 text-xs h-9 text-center" />
+                                className="border-border bg-muted/50 text-foreground text-xs h-9 text-center" />
                               <label className="flex items-center justify-center" title="Destacar este ponto">
                                 <input
                                   type="checkbox"
                                   checked={point.highlighted ?? false}
                                   onChange={(e) => updateQuadrantPoint(blockIdx, pointIdx, 'highlighted', e.target.checked)}
-                                  className="rounded border-zinc-700 bg-zinc-950"
+                                  className="rounded border-border bg-muted/50"
                                 />
                               </label>
                               <Button type="button" variant="ghost" size="icon"
                                 disabled={(q.settings?.quadrant_points?.length ?? 0) <= 1}
                                 onClick={() => removeQuadrantPoint(blockIdx, pointIdx)}
-                                className="h-8 w-8 text-zinc-500 hover:text-red-400 shrink-0">
+                                className="h-8 w-8 text-muted-foreground hover:text-red-500 shrink-0">
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
@@ -2298,11 +2298,11 @@ export function QuestionsTab({
                         </div>
                         <Button type="button" variant="outline" size="sm"
                           onClick={() => addQuadrantPoint(blockIdx)}
-                          className="border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-800 text-xs">
+                          className="border-dashed border-border bg-muted/30 text-muted-foreground hover:bg-accent text-xs">
                           <Plus className="h-3.5 w-3.5 mr-1 text-indigo-400" />
                           Adicionar Ponto
                         </Button>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-muted-foreground">
                           Posições vão de 0 a 100 nos dois eixos. Marque a caixa para destacar o ponto que representa o usuário atual.
                         </p>
                       </div>
@@ -2312,21 +2312,21 @@ export function QuestionsTab({
                     {q.type === 'audio' && (
                       <div className="space-y-3 pt-1">
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-400 text-xs">URL do Áudio (mp3)</Label>
+                          <Label className="text-muted-foreground text-xs">URL do Áudio (mp3)</Label>
                           <Input
                             value={q.settings?.audio_url || ''}
                             onChange={(e) => updateSettings(blockIdx, 'audio_url', e.target.value)}
                             placeholder="https://..."
-                            className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9 font-mono"
+                            className="border-border bg-muted/50 text-foreground text-sm h-9 font-mono"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-zinc-400 text-xs">Texto de Apoio (opcional)</Label>
+                          <Label className="text-muted-foreground text-xs">Texto de Apoio (opcional)</Label>
                           <Textarea
                             value={q.settings?.body || ''}
                             onChange={(e) => updateSettings(blockIdx, 'body', e.target.value)}
                             placeholder="Ex: Ouça o recado da nossa especialista sobre o seu resultado."
-                            className="border-zinc-800 bg-zinc-950 text-zinc-200 text-sm resize-none h-16"
+                            className="border-border bg-muted/50 text-foreground text-sm resize-none h-16"
                           />
                         </div>
                       </div>

@@ -64,31 +64,31 @@ export function SettingsTab({ quiz }: { quiz: any }) {
   return (
     <form onSubmit={handleSave} className="space-y-6 max-w-4xl">
       {/* Public Link Bar */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-2xl border border-border bg-card/60 p-5 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-zinc-200">Link Público do Player:</span>
+            <span className="text-sm font-semibold text-foreground">Link Público do Player:</span>
             {isPublished ? (
-              <span className="text-xs font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="text-xs font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
                 Online & Pronto para Tráfego
               </span>
             ) : (
-              <span className="text-xs font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+              <span className="text-xs font-medium px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
                 Rascunho (Privado)
               </span>
             )}
           </div>
-          <p className="text-xs font-mono text-zinc-400 truncate max-w-md">{publicUrl}</p>
+          <p className="text-xs font-mono text-muted-foreground truncate max-w-md">{publicUrl}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button type="button" variant="outline" size="sm"
             onClick={handleCopyLink}
-            className="border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700 gap-1.5">
-            {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            className="border-border bg-muted text-foreground hover:bg-accent gap-1.5">
+            {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
             {copied ? 'Copiado!' : 'Copiar Link'}
           </Button>
           <a href={`/q/${quiz.id}`} target="_blank" rel="noopener noreferrer"
-            className={buttonVariants({ variant: 'outline', size: 'sm', className: 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700' })}>
+            className={buttonVariants({ variant: 'outline', size: 'sm', className: 'border-border bg-muted text-foreground hover:bg-accent' })}>
             <ExternalLink className="h-4 w-4" />
           </a>
         </div>
@@ -97,36 +97,36 @@ export function SettingsTab({ quiz }: { quiz: any }) {
       {/* Cards Grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Informações Gerais */}
-        <Card className="border-zinc-800 bg-zinc-900/40 backdrop-blur-xl">
+        <Card className="border-border bg-card backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="text-lg text-zinc-100">Informações Gerais</CardTitle>
-            <CardDescription className="text-zinc-400 text-xs">Título, descrição e visibilidade do quiz.</CardDescription>
+            <CardTitle className="text-lg text-foreground">Informações Gerais</CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">Título, descrição e visibilidade do quiz.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-zinc-300">Título do Quiz</Label>
+              <Label htmlFor="title" className="text-muted-foreground">Título do Quiz</Label>
               <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)}
-                className="border-zinc-700 bg-zinc-950 text-zinc-100" required />
+                className="border-border bg-muted/50 text-foreground" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="desc" className="text-zinc-300">Descrição</Label>
+              <Label htmlFor="desc" className="text-muted-foreground">Descrição</Label>
               <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)}
-                className="border-zinc-700 bg-zinc-950 text-zinc-100 resize-none h-20" />
+                className="border-border bg-muted/50 text-foreground resize-none h-20" />
             </div>
-            <Separator className="bg-zinc-800" />
+            <Separator className="bg-muted" />
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-zinc-200 font-medium">Publicar Quiz</Label>
-                <p className="text-xs text-zinc-500">Torna o link público acessível</p>
+                <Label className="text-foreground font-medium">Publicar Quiz</Label>
+                <p className="text-xs text-muted-foreground">Torna o link público acessível</p>
               </div>
               <Switch checked={isPublished} onCheckedChange={setIsPublished} />
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {showBranding ? <Eye className="h-4 w-4 text-zinc-500" /> : <EyeOff className="h-4 w-4 text-purple-400" />}
+                {showBranding ? <Eye className="h-4 w-4 text-muted-foreground" /> : <EyeOff className="h-4 w-4 text-purple-400" />}
                 <div>
-                  <Label className="text-zinc-200 font-medium">Exibir marca QuizFlow</Label>
-                  <p className="text-xs text-zinc-500">Desative para White-label completo</p>
+                  <Label className="text-foreground font-medium">Exibir marca QuizFlow</Label>
+                  <p className="text-xs text-muted-foreground">Desative para White-label completo</p>
                 </div>
               </div>
               <Switch
@@ -136,29 +136,29 @@ export function SettingsTab({ quiz }: { quiz: any }) {
             </div>
             {!showBranding && (
               <div className="rounded-lg bg-purple-500/10 border border-purple-500/20 p-3">
-                <p className="text-xs text-purple-300 font-medium flex items-center gap-1.5">
+                <p className="text-xs text-purple-700 font-medium flex items-center gap-1.5">
                   <GitBranch className="h-3.5 w-3.5" />
                   White-label ativo — rodapé do player sem branding da plataforma.
                 </p>
               </div>
             )}
 
-            <Separator className="bg-zinc-800" />
+            <Separator className="bg-muted" />
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Tipo de Identidade do Lead</Label>
+              <Label className="text-muted-foreground">Tipo de Identidade do Lead</Label>
               <Select value={identityField} onValueChange={setIdentityField}>
-                <SelectTrigger className="border-zinc-700 bg-zinc-950 text-zinc-100">
+                <SelectTrigger className="border-border bg-muted/50 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-200">
+                <SelectContent className="border-border bg-card text-foreground">
                   <SelectItem value="none">Nenhuma (cada envio é um lead novo)</SelectItem>
                   <SelectItem value="phone">Telefone</SelectItem>
                   <SelectItem value="email">E-mail</SelectItem>
                   <SelectItem value="name">Nome Completo</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-[11px] text-zinc-500">
+              <p className="text-[11px] text-muted-foreground">
                 Se a mesma pessoa responder de novo, a sessão existente é atualizada em vez de virar um lead duplicado — evita inflar as métricas de conversão.
               </p>
             </div>
@@ -166,64 +166,64 @@ export function SettingsTab({ quiz }: { quiz: any }) {
         </Card>
 
         {/* Rastreamento & Automação */}
-        <Card className="border-zinc-800 bg-zinc-900/40 backdrop-blur-xl">
+        <Card className="border-border bg-card backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="text-lg text-zinc-100">Rastreamento & Automação</CardTitle>
-            <CardDescription className="text-zinc-400 text-xs">Pixels, GA4 e Webhooks para suas campanhas.</CardDescription>
+            <CardTitle className="text-lg text-foreground">Rastreamento & Automação</CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">Pixels, GA4 e Webhooks para suas campanhas.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Meta Pixel */}
             <div className="space-y-2">
-              <Label htmlFor="metaPixel" className="text-zinc-300 flex items-center justify-between">
+              <Label htmlFor="metaPixel" className="text-muted-foreground flex items-center justify-between">
                 <span>Meta Pixel ID</span>
-                <span className="text-[11px] text-zinc-500">Ex: 123456789012345</span>
+                <span className="text-[11px] text-muted-foreground">Ex: 123456789012345</span>
               </Label>
               <Input id="metaPixel" value={metaPixelId} onChange={(e) => setMetaPixelId(e.target.value)}
                 placeholder="Cole o ID do Pixel do Meta Ads"
-                className="border-zinc-700 bg-zinc-950 text-zinc-100" />
-              <p className="text-[11px] text-zinc-500">
-                Dispara <code className="bg-zinc-800 px-1 rounded text-xs">PageView</code>,{' '}
-                <code className="bg-zinc-800 px-1 rounded text-xs">QuizStart</code> e{' '}
-                <code className="bg-zinc-800 px-1 rounded text-xs">Lead</code> automaticamente.
+                className="border-border bg-muted/50 text-foreground" />
+              <p className="text-[11px] text-muted-foreground">
+                Dispara <code className="bg-muted px-1 rounded text-xs">PageView</code>,{' '}
+                <code className="bg-muted px-1 rounded text-xs">QuizStart</code> e{' '}
+                <code className="bg-muted px-1 rounded text-xs">Lead</code> automaticamente.
               </p>
             </div>
 
-            <Separator className="bg-zinc-800" />
+            <Separator className="bg-muted" />
 
             {/* GA4 */}
             <div className="space-y-2">
-              <Label htmlFor="ga4" className="text-zinc-300 flex items-center justify-between">
+              <Label htmlFor="ga4" className="text-muted-foreground flex items-center justify-between">
                 <span>GA4 Measurement ID</span>
-                <span className="text-[11px] text-zinc-500">Ex: G-XXXXXXXXXX</span>
+                <span className="text-[11px] text-muted-foreground">Ex: G-XXXXXXXXXX</span>
               </Label>
               <Input id="ga4" value={ga4MeasurementId} onChange={(e) => setGa4MeasurementId(e.target.value)}
                 placeholder="G-XXXXXXXXXX"
-                className="border-zinc-700 bg-zinc-950 text-zinc-100 font-mono" />
-              <p className="text-[11px] text-zinc-500">
-                Dispara <code className="bg-zinc-800 px-1 rounded text-xs">page_view</code> e{' '}
-                <code className="bg-zinc-800 px-1 rounded text-xs">generate_lead</code> via gtag.js.
+                className="border-border bg-muted/50 text-foreground font-mono" />
+              <p className="text-[11px] text-muted-foreground">
+                Dispara <code className="bg-muted px-1 rounded text-xs">page_view</code> e{' '}
+                <code className="bg-muted px-1 rounded text-xs">generate_lead</code> via gtag.js.
               </p>
             </div>
 
-            <Separator className="bg-zinc-800" />
+            <Separator className="bg-muted" />
 
             {/* Webhook */}
             <div className="space-y-2">
-              <Label htmlFor="webhook" className="text-zinc-300 flex items-center justify-between">
+              <Label htmlFor="webhook" className="text-muted-foreground flex items-center justify-between">
                 <span>Webhook URL</span>
-                <span className="text-[11px] text-zinc-500">POST JSON</span>
+                <span className="text-[11px] text-muted-foreground">POST JSON</span>
               </Label>
               <Input id="webhook" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)}
                 placeholder="https://seu-n8n.com/webhook/..."
-                className="border-zinc-700 bg-zinc-950 text-zinc-100" />
+                className="border-border bg-muted/50 text-foreground" />
             </div>
 
             {/* Redirect */}
             <div className="space-y-2">
-              <Label htmlFor="redirect" className="text-zinc-300">URL de Redirecionamento</Label>
+              <Label htmlFor="redirect" className="text-muted-foreground">URL de Redirecionamento</Label>
               <Input id="redirect" value={redirectUrl} onChange={(e) => setRedirectUrl(e.target.value)}
                 placeholder="https://seusite.com/obrigado"
-                className="border-zinc-700 bg-zinc-950 text-zinc-100" />
+                className="border-border bg-muted/50 text-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -232,7 +232,7 @@ export function SettingsTab({ quiz }: { quiz: any }) {
       {/* Save Bar */}
       <div className="flex items-center justify-end gap-3 pt-2">
         {savedSuccess && (
-          <span className="text-xs text-emerald-400 flex items-center gap-1">
+          <span className="text-xs text-emerald-500 flex items-center gap-1">
             <Check className="h-4 w-4" /> Salvo com sucesso!
           </span>
         )}

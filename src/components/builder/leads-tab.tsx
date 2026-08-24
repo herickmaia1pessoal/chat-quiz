@@ -99,40 +99,40 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
     <div className="space-y-6">
       {/* Funnel Stats Row */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 backdrop-blur-xl">
-          <div className="flex items-center justify-between text-zinc-400 text-xs">
+        <div className="rounded-2xl border border-border bg-card p-4 backdrop-blur-xl">
+          <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span className="uppercase font-medium">Inícios de Quiz</span>
-            <Clock className="h-4 w-4 text-amber-400" />
+            <Clock className="h-4 w-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-white mt-2">{totalCount}</p>
+          <p className="text-2xl font-bold text-foreground mt-2">{totalCount}</p>
         </div>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 backdrop-blur-xl">
-          <div className="flex items-center justify-between text-zinc-400 text-xs">
+        <div className="rounded-2xl border border-border bg-card p-4 backdrop-blur-xl">
+          <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span className="uppercase font-medium">Leads Concluídos</span>
-            <Users className="h-4 w-4 text-zinc-500" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-2xl font-bold text-white mt-2">{completedCount}</p>
+          <p className="text-2xl font-bold text-foreground mt-2">{completedCount}</p>
         </div>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 backdrop-blur-xl">
-          <div className="flex items-center justify-between text-zinc-400 text-xs">
+        <div className="rounded-2xl border border-border bg-card p-4 backdrop-blur-xl">
+          <div className="flex items-center justify-between text-muted-foreground text-xs">
             <span className="uppercase font-medium">Taxa de Conclusão</span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </div>
-          <p className="text-2xl font-bold text-white mt-2">{conversionRate}%</p>
+          <p className="text-2xl font-bold text-foreground mt-2">{conversionRate}%</p>
         </div>
       </div>
 
       {/* Leads Table Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome, telefone ou UTM..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 border-zinc-800 bg-zinc-900/50 text-zinc-100 placeholder:text-zinc-500"
+            className="pl-9 border-border bg-card/50 text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
@@ -140,7 +140,7 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
           onClick={exportToCSV}
           disabled={leads.length === 0}
           variant="outline"
-          className="border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700 gap-2"
+          className="border-border bg-muted text-foreground hover:bg-accent gap-2"
         >
           <Download className="h-4 w-4" />
           Exportar Leads (CSV)
@@ -148,29 +148,29 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
       </div>
 
       {/* Leads Table */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden backdrop-blur-xl">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden backdrop-blur-xl">
         <Table>
-          <TableHeader className="bg-zinc-900/80 border-b border-zinc-800">
-            <TableRow className="border-zinc-800 hover:bg-transparent">
-              <TableHead className="text-zinc-400 font-medium text-xs">Data</TableHead>
-              <TableHead className="text-zinc-400 font-medium text-xs">Nome</TableHead>
-              <TableHead className="text-zinc-400 font-medium text-xs">WhatsApp / Telefone</TableHead>
-              <TableHead className="text-zinc-400 font-medium text-xs">Origem (UTM)</TableHead>
-              <TableHead className="text-zinc-400 font-medium text-xs">Tags</TableHead>
-              <TableHead className="text-zinc-400 font-medium text-xs">Status</TableHead>
+          <TableHeader className="bg-card/80 border-b border-border">
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground font-medium text-xs">Data</TableHead>
+              <TableHead className="text-muted-foreground font-medium text-xs">Nome</TableHead>
+              <TableHead className="text-muted-foreground font-medium text-xs">WhatsApp / Telefone</TableHead>
+              <TableHead className="text-muted-foreground font-medium text-xs">Origem (UTM)</TableHead>
+              <TableHead className="text-muted-foreground font-medium text-xs">Tags</TableHead>
+              <TableHead className="text-muted-foreground font-medium text-xs">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredLeads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-zinc-500 text-sm">
+                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-sm">
                   Nenhum lead capturado ainda. Divulgue o link do seu quiz para começar a receber respostas.
                 </TableCell>
               </TableRow>
             ) : (
               filteredLeads.map((lead) => (
-                <TableRow key={lead.id} className="border-zinc-800/60 hover:bg-zinc-800/30 transition">
-                  <TableCell className="text-xs text-zinc-400 font-mono">
+                <TableRow key={lead.id} className="border-border/60 hover:bg-accent/30 transition">
+                  <TableCell className="text-xs text-muted-foreground font-mono">
                     {new Date(lead.created_at).toLocaleDateString('pt-BR', {
                       day: '2-digit',
                       month: '2-digit',
@@ -178,10 +178,10 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
                       minute: '2-digit',
                     })}
                   </TableCell>
-                  <TableCell className="text-sm font-medium text-zinc-200">
-                    {lead.name || <span className="text-zinc-600 italic">Não informado</span>}
+                  <TableCell className="text-sm font-medium text-foreground">
+                    {lead.name || <span className="text-muted-foreground/60 italic">Não informado</span>}
                   </TableCell>
-                  <TableCell className="text-sm text-zinc-300 font-mono">
+                  <TableCell className="text-sm text-muted-foreground font-mono">
                     {lead.phone ? (
                       <a
                         href={`https://wa.me/${toWhatsAppNumber(lead.phone)}`}
@@ -193,37 +193,37 @@ export function LeadsTab({ leads, questions }: { leads: any[]; questions: any[] 
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : (
-                      <span className="text-zinc-600 italic">Não informado</span>
+                      <span className="text-muted-foreground/60 italic">Não informado</span>
                     )}
                   </TableCell>
                   <TableCell className="text-xs">
                     {lead.utm_source ? (
-                      <Badge variant="outline" className="border-zinc-700 bg-zinc-800 text-zinc-300 font-mono">
+                      <Badge variant="outline" className="border-border bg-muted text-muted-foreground font-mono">
                         {lead.utm_source} {lead.utm_campaign && `/ ${lead.utm_campaign}`}
                       </Badge>
                     ) : (
-                      <span className="text-zinc-600">Direto / Orgânico</span>
+                      <span className="text-muted-foreground/60">Direto / Orgânico</span>
                     )}
                   </TableCell>
                   <TableCell className="text-xs">
                     {lead.tags && lead.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-1 max-w-[160px]">
                         {lead.tags.map((tag: string) => (
-                          <Badge key={tag} variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-300">
+                          <Badge key={tag} variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-600">
                             {tag}
                           </Badge>
                         ))}
                       </div>
                     ) : (
-                      <span className="text-zinc-600">—</span>
+                      <span className="text-muted-foreground/60">—</span>
                     )}
                   </TableCell>
                   <TableCell>
                     <Badge
                       className={
                         lead.status === 'completed'
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                          : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                          : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
                       }
                     >
                       {lead.status === 'completed' ? 'Concluído' : 'Em andamento'}

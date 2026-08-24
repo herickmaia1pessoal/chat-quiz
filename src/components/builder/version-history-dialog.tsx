@@ -70,35 +70,35 @@ export function VersionHistoryDialog({ quizId }: { quizId: string }) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <Button type="button" variant="outline"
         onClick={() => handleOpenChange(true)}
-        className="border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 gap-2">
+        className="border-border bg-card text-foreground hover:bg-accent gap-2">
         <History className="h-4 w-4 text-indigo-400" />
         Histórico
       </Button>
-      <DialogContent className="!max-w-md bg-zinc-950 border border-zinc-800 text-zinc-100">
+      <DialogContent className="!max-w-md bg-muted/50 border border-border text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-white">Histórico de Versões</DialogTitle>
-          <DialogDescription className="text-zinc-400">
+          <DialogTitle className="text-foreground">Histórico de Versões</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Cada vez que você salva, uma versão é guardada. Restaurar aplica aquele estado imediatamente (e também vira uma nova versão).
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[50vh] overflow-y-auto space-y-1.5">
           {loading ? (
-            <div className="flex items-center justify-center py-8 text-zinc-500">
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : !versions || versions.length === 0 ? (
-            <p className="text-sm text-zinc-500 text-center py-8">
+            <p className="text-sm text-muted-foreground text-center py-8">
               Nenhuma versão salva ainda. Elas aparecem aqui depois do primeiro "Salvar Alterações".
             </p>
           ) : (
             versions.map((v, idx) => (
-              <div key={v.id} className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
+              <div key={v.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
                 <div>
-                  <p className="text-sm text-zinc-200">
+                  <p className="text-sm text-foreground">
                     {v.label || (idx === 0 ? 'Versão mais recente' : `Versão de ${formatDate(v.created_at)}`)}
                   </p>
-                  <p className="text-[11px] text-zinc-500 font-mono">{formatDate(v.created_at)}</p>
+                  <p className="text-[11px] text-muted-foreground font-mono">{formatDate(v.created_at)}</p>
                 </div>
 
                 {restoredId === v.id ? (
@@ -116,7 +116,7 @@ export function VersionHistoryDialog({ quizId }: { quizId: string }) {
                     </Button>
                     <Button type="button" variant="ghost" size="sm"
                       onClick={() => setConfirmingId(null)}
-                      className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800">
+                      className="text-muted-foreground hover:text-foreground hover:bg-accent">
                       Cancelar
                     </Button>
                   </div>
@@ -125,7 +125,7 @@ export function VersionHistoryDialog({ quizId }: { quizId: string }) {
                     disabled={idx === 0}
                     title={idx === 0 ? 'Esta já é a versão atual' : 'Restaurar esta versão'}
                     onClick={() => setConfirmingId(v.id)}
-                    className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 gap-1.5 shrink-0 disabled:opacity-40">
+                    className="border-border bg-card text-muted-foreground hover:bg-accent gap-1.5 shrink-0 disabled:opacity-40">
                     <RotateCcw className="h-3.5 w-3.5" />
                     Restaurar
                   </Button>

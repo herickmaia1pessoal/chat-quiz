@@ -156,29 +156,29 @@ export function MediaLibrary({ workspaceId, funnels, mode = 'browse', pickerFunn
   const visibleAssets = assets.filter((asset) => !normalizedQuery || displayName(asset.name).toLocaleLowerCase('pt-BR').includes(normalizedQuery))
 
   if (!workspaceId) {
-    return <div className="rounded-2xl border border-dashed border-white/[0.08] py-16 text-center text-sm text-zinc-500">Crie ou selecione um workspace para usar a biblioteca.</div>
+    return <div className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">Crie ou selecione um workspace para usar a biblioteca.</div>
   }
 
   if (!funnels.length) {
-    return <div className="rounded-2xl border border-dashed border-white/[0.08] py-16 text-center text-sm text-zinc-500">Crie um funil V2 antes de adicionar arquivos à biblioteca.</div>
+    return <div className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">Crie um funil V2 antes de adicionar arquivos à biblioteca.</div>
   }
 
   return (
     <div className={isPicker ? 'space-y-4' : 'space-y-5 pt-7'}>
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.065] bg-[#0c0d13]/80 p-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/80 p-4 sm:flex-row sm:items-end sm:justify-between">
         <div className={isPicker ? 'grid flex-1 gap-3' : 'grid flex-1 gap-3 sm:grid-cols-2'}>
           {!isPicker && (
-            <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
+            <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
               Funil
-              <select value={selectedFunnelId} onChange={(event) => { setLoading(true); setError(''); setFunnelId(event.target.value) }} className="mt-2 h-10 w-full rounded-xl border border-white/[0.08] bg-[#0b0c12] px-3 text-xs normal-case tracking-normal text-zinc-200 outline-none focus:border-violet-400/40">
+              <select value={selectedFunnelId} onChange={(event) => { setLoading(true); setError(''); setFunnelId(event.target.value) }} className="mt-2 h-10 w-full rounded-xl border border-border bg-muted/30 px-3 text-xs normal-case tracking-normal text-foreground outline-none focus:border-violet-400/40">
                 {funnels.map((funnel) => <option key={funnel.id} value={funnel.id}>{funnel.name}</option>)}
               </select>
             </label>
           )}
-          <label className="relative text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
+          <label className="relative text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
             Buscar
-            <Search className="pointer-events-none absolute bottom-3 left-3.5 size-4 text-zinc-700" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome do arquivo" className="mt-2 h-10 w-full rounded-xl border border-white/[0.08] bg-[#0b0c12] pl-10 pr-3 text-xs normal-case tracking-normal text-zinc-200 outline-none placeholder:text-zinc-700 focus:border-violet-400/40" />
+            <Search className="pointer-events-none absolute bottom-3 left-3.5 size-4 text-muted-foreground/50" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome do arquivo" className="mt-2 h-10 w-full rounded-xl border border-border bg-muted/30 pl-10 pr-3 text-xs normal-case tracking-normal text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-violet-400/40" />
           </label>
         </div>
         <div>
@@ -191,23 +191,23 @@ export function MediaLibrary({ workspaceId, funnels, mode = 'browse', pickerFunn
       </div>
 
       {!isPicker && (
-        <p className="text-[11px] text-zinc-600">Arquivos públicos do funil selecionado. Formatos permitidos: imagens, áudio, MP4/WebM e PDF, até 10 MB. A exclusão fica protegida para não quebrar versões publicadas, templates ou cópias.</p>
+        <p className="text-[11px] text-muted-foreground/60">Arquivos públicos do funil selecionado. Formatos permitidos: imagens, áudio, MP4/WebM e PDF, até 10 MB. A exclusão fica protegida para não quebrar versões publicadas, templates ou cópias.</p>
       )}
       {error && <p role="alert" className="rounded-xl border border-red-400/15 bg-red-400/[0.05] px-4 py-3 text-xs text-red-200/80">{error}</p>}
 
       {loading ? (
         <div className="grid min-h-48 place-items-center"><LoaderCircle className="size-6 animate-spin text-violet-300" /></div>
       ) : visibleAssets.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/[0.08] py-16 text-center">
-          <FileImage className="mx-auto size-7 text-zinc-700" />
-          <p className="mt-3 text-sm font-semibold text-zinc-400">{query ? 'Nenhum arquivo encontrado' : 'Biblioteca vazia'}</p>
-          <p className="mt-1 text-xs text-zinc-700">{query ? 'Tente buscar por outro nome.' : 'Envie o primeiro arquivo para reutilizá-lo no funil.'}</p>
+        <div className="rounded-2xl border border-dashed border-border py-16 text-center">
+          <FileImage className="mx-auto size-7 text-muted-foreground/50" />
+          <p className="mt-3 text-sm font-semibold text-muted-foreground">{query ? 'Nenhum arquivo encontrado' : 'Biblioteca vazia'}</p>
+          <p className="mt-1 text-xs text-muted-foreground/50">{query ? 'Tente buscar por outro nome.' : 'Envie o primeiro arquivo para reutilizá-lo no funil.'}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {visibleAssets.map((asset) => (
-            <article key={asset.path} className="group overflow-hidden rounded-2xl border border-white/[0.065] bg-[#0c0d13]/80">
-              <div className="relative grid aspect-[16/10] place-items-center overflow-hidden border-b border-white/[0.06] bg-black/25 text-zinc-600">
+            <article key={asset.path} className="group overflow-hidden rounded-2xl border border-border bg-card/80">
+              <div className="relative grid aspect-[16/10] place-items-center overflow-hidden border-b border-border bg-black/10 text-muted-foreground/60">
                 {asset.mimeType.startsWith('image/') ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={asset.url} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
@@ -215,20 +215,20 @@ export function MediaLibrary({ workspaceId, funnels, mode = 'browse', pickerFunn
                 <span className="absolute left-2.5 top-2.5 rounded-lg border border-white/10 bg-black/60 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-300 backdrop-blur">{asset.mimeType.split('/')[0] || 'arquivo'}</span>
               </div>
               <div className="p-3.5">
-                <p className="truncate text-xs font-semibold text-zinc-200" title={displayName(asset.name)}>{displayName(asset.name)}</p>
-                <p className="mt-1 text-[10px] text-zinc-700">{formatBytes(asset.size)}{asset.createdAt ? ` · ${new Date(asset.createdAt).toLocaleDateString('pt-BR')}` : ''}</p>
-                <div className="mt-3 flex items-center gap-1 border-t border-white/[0.05] pt-3">
+                <p className="truncate text-xs font-semibold text-foreground" title={displayName(asset.name)}>{displayName(asset.name)}</p>
+                <p className="mt-1 text-[10px] text-muted-foreground/50">{formatBytes(asset.size)}{asset.createdAt ? ` · ${new Date(asset.createdAt).toLocaleDateString('pt-BR')}` : ''}</p>
+                <div className="mt-3 flex items-center gap-1 border-t border-border pt-3">
                   {isPicker ? (
                     <button type="button" onClick={() => onSelect?.(asset.url)} className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-violet-600 text-[10px] font-bold text-white hover:bg-violet-500">
                       Usar este arquivo
                     </button>
                   ) : (
-                    <button type="button" onClick={() => void copyUrl(asset)} className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg text-[10px] font-semibold text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200">
-                      {copiedPath === asset.path ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                    <button type="button" onClick={() => void copyUrl(asset)} className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg text-[10px] font-semibold text-muted-foreground hover:bg-accent hover:text-foreground">
+                      {copiedPath === asset.path ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
                       {copiedPath === asset.path ? 'Copiado' : 'Copiar URL'}
                     </button>
                   )}
-                  <a href={asset.url} target="_blank" rel="noreferrer" className="grid size-8 place-items-center rounded-lg text-zinc-600 hover:bg-white/[0.05] hover:text-zinc-200" aria-label={`Abrir ${displayName(asset.name)}`}><ExternalLink className="size-3.5" /></a>
+                  <a href={asset.url} target="_blank" rel="noreferrer" className="grid size-8 place-items-center rounded-lg text-muted-foreground/60 hover:bg-accent hover:text-foreground" aria-label={`Abrir ${displayName(asset.name)}`}><ExternalLink className="size-3.5" /></a>
                 </div>
               </div>
             </article>

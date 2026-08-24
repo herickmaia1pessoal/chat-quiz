@@ -145,27 +145,27 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
 
   return (
     <>
-      <section className="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0b0c12]/90 shadow-[0_24px_80px_-48px_rgba(0,0,0,0.9)]">
-        <div className="flex flex-col gap-3 border-b border-white/[0.06] p-4 lg:flex-row lg:items-center">
+      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-border p-4 lg:flex-row lg:items-center">
           <label className="relative min-w-0 flex-1">
             <span className="sr-only">Buscar leads</span>
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-zinc-600" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/50" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar por nome, contato, resultado ou resposta..."
-              className="h-11 w-full rounded-xl border border-white/[0.07] bg-white/[0.025] pl-10 pr-4 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-700 focus:border-violet-400/45 focus:ring-2 focus:ring-violet-500/10"
+              className="h-11 w-full rounded-xl border border-border bg-muted/30 pl-10 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/50 focus:border-violet-400/45 focus:ring-2 focus:ring-violet-500/10"
             />
           </label>
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <label className="relative">
               <span className="sr-only">Filtrar por resultado</span>
-              <SlidersHorizontal className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-600" />
+              <SlidersHorizontal className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
               <select
                 value={resultFilter}
                 onChange={(event) => setResultFilter(event.target.value)}
-                className="h-11 min-w-40 appearance-none rounded-xl border border-white/[0.07] bg-[#101118] pl-9 pr-8 text-xs font-semibold text-zinc-300 outline-none focus:border-violet-400/45"
+                className="h-11 min-w-40 appearance-none rounded-xl border border-border bg-muted/30 pl-9 pr-8 text-xs font-semibold text-muted-foreground outline-none focus:border-violet-400/45"
               >
                 <option value="all">Todos os resultados</option>
                 {resultOptions.map((result) => (
@@ -177,11 +177,11 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
             {tagOptions.length > 0 && (
               <label className="relative">
                 <span className="sr-only">Filtrar por tag</span>
-                <SlidersHorizontal className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-600" />
+                <SlidersHorizontal className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
                 <select
                   value={tagFilter}
                   onChange={(event) => setTagFilter(event.target.value)}
-                  className="h-11 min-w-36 appearance-none rounded-xl border border-white/[0.07] bg-[#101118] pl-9 pr-8 text-xs font-semibold text-zinc-300 outline-none focus:border-violet-400/45"
+                  className="h-11 min-w-36 appearance-none rounded-xl border border-border bg-muted/30 pl-9 pr-8 text-xs font-semibold text-muted-foreground outline-none focus:border-violet-400/45"
                 >
                   <option value="all">Todas as tags</option>
                   {tagOptions.map((tag) => (
@@ -193,11 +193,11 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
 
             <label className="relative">
               <span className="sr-only">Filtrar por período</span>
-              <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-zinc-600" />
+              <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/50" />
               <select
                 value={period}
                 onChange={(event) => setPeriod(event.target.value)}
-                className="h-11 min-w-36 appearance-none rounded-xl border border-white/[0.07] bg-[#101118] pl-9 pr-8 text-xs font-semibold text-zinc-300 outline-none focus:border-violet-400/45"
+                className="h-11 min-w-36 appearance-none rounded-xl border border-border bg-muted/30 pl-9 pr-8 text-xs font-semibold text-muted-foreground outline-none focus:border-violet-400/45"
               >
                 <option value="all">Todo o período</option>
                 <option value="7">Últimos 7 dias</option>
@@ -218,7 +218,7 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-b border-white/[0.05] px-5 py-3 text-[11px] text-zinc-600">
+        <div className="flex items-center justify-between border-b border-border px-5 py-3 text-[11px] text-muted-foreground/50">
           <span>{filtered.length} de {submissions.length} leads</span>
           {truncated && <span>Exibindo os 500 envios mais recentes</span>}
         </div>
@@ -226,13 +226,13 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
         {filtered.length === 0 ? (
           <div className="grid min-h-80 place-items-center px-6 py-16 text-center">
             <div>
-              <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-zinc-600">
+              <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-border bg-muted/40 text-muted-foreground/50">
                 <Inbox className="size-5" />
               </span>
-              <h2 className="mt-4 text-sm font-bold text-zinc-300">
+              <h2 className="mt-4 text-sm font-bold text-muted-foreground">
                 {submissions.length === 0 ? 'Nenhum lead recebido ainda' : 'Nenhum lead corresponde aos filtros'}
               </h2>
-              <p className="mt-2 text-xs leading-5 text-zinc-600">
+              <p className="mt-2 text-xs leading-5 text-muted-foreground/50">
                 {submissions.length === 0
                   ? 'Os envios concluídos aparecerão aqui com todas as respostas.'
                   : 'Ajuste a busca ou remova algum filtro para ampliar os resultados.'}
@@ -242,7 +242,7 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
         ) : (
           <>
             {/* Mobile: card list, one lead per row of info instead of a dense table. */}
-            <div className="divide-y divide-white/[0.045] sm:hidden">
+            <div className="divide-y divide-border sm:hidden">
               {filtered.map((submission) => (
                 <button
                   type="button"
@@ -255,26 +255,26 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-zinc-200">{submission.name || 'Lead sem nome'}</p>
-                      <ChevronRight className="size-4 shrink-0 text-zinc-600" />
+                      <p className="truncate text-sm font-semibold text-foreground">{submission.name || 'Lead sem nome'}</p>
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground/50" />
                     </div>
-                    <p className="mt-0.5 truncate text-xs text-zinc-500">{submission.email || submission.phone || 'Sem contato'}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{submission.email || submission.phone || 'Sem contato'}</p>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       {submission.resultKey && (
-                        <span className="rounded-lg border border-cyan-400/10 bg-cyan-400/[0.07] px-2 py-0.5 text-[10px] font-semibold text-cyan-300">
+                        <span className="rounded-lg border border-cyan-400/10 bg-cyan-400/[0.07] px-2 py-0.5 text-[10px] font-semibold text-cyan-600">
                           {submission.resultKey}
                         </span>
                       )}
                       {submission.score !== null && (
-                        <span className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-zinc-400">
+                        <span className="rounded-lg border border-border bg-muted/40 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
                           Score {submission.score}
                         </span>
                       )}
                       {submission.tags.map((tag) => (
-                        <span key={tag} className="rounded-full border border-violet-400/15 bg-violet-500/[0.08] px-2 py-0.5 text-[10px] font-semibold text-violet-300">{tag}</span>
+                        <span key={tag} className="rounded-full border border-violet-300/40 bg-violet-500/[0.08] px-2 py-0.5 text-[10px] font-semibold text-violet-600">{tag}</span>
                       ))}
                     </div>
-                    <p className="mt-2 text-[10px] text-zinc-700">{formatDate(submission.submittedAt)} · {submission.values.length} respostas</p>
+                    <p className="mt-2 text-[10px] text-muted-foreground/60">{formatDate(submission.submittedAt)} · {submission.values.length} respostas</p>
                   </div>
                 </button>
               ))}
@@ -284,7 +284,7 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[880px] text-left">
                 <thead>
-                  <tr className="border-b border-white/[0.06] bg-white/[0.015] text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-600">
+                  <tr className="border-b border-border bg-muted/30 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground/50">
                     <th className="px-5 py-3.5">Lead</th>
                     <th className="px-4 py-3.5">Contato</th>
                     <th className="px-4 py-3.5">Resultado</th>
@@ -299,7 +299,7 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
                     <tr
                       key={submission.id}
                       onClick={() => setSelected(submission)}
-                      className="cursor-pointer border-b border-white/[0.045] text-sm transition last:border-0 hover:bg-violet-500/[0.045]"
+                      className="cursor-pointer border-b border-border text-sm transition last:border-0 hover:bg-accent"
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
@@ -307,33 +307,33 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
                             {(submission.name || submission.email || '?').slice(0, 1).toUpperCase()}
                           </span>
                           <div className="min-w-0">
-                            <p className="max-w-52 truncate font-semibold text-zinc-200">{submission.name || 'Lead sem nome'}</p>
-                            <p className="mt-0.5 text-[11px] text-zinc-600">{submission.values.length} respostas</p>
+                            <p className="max-w-52 truncate font-semibold text-foreground">{submission.name || 'Lead sem nome'}</p>
+                            <p className="mt-0.5 text-[11px] text-muted-foreground/50">{submission.values.length} respostas</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <p className="max-w-56 truncate text-xs text-zinc-400">{submission.email || '—'}</p>
-                        <p className="mt-1 text-[11px] text-zinc-600">{submission.phone || 'Sem telefone'}</p>
+                        <p className="max-w-56 truncate text-xs text-muted-foreground">{submission.email || '—'}</p>
+                        <p className="mt-1 text-[11px] text-muted-foreground/50">{submission.phone || 'Sem telefone'}</p>
                       </td>
                       <td className="px-4 py-4">
                         {submission.resultKey ? (
-                          <span className="rounded-lg border border-cyan-400/10 bg-cyan-400/[0.07] px-2.5 py-1 text-[11px] font-semibold text-cyan-300">
+                          <span className="rounded-lg border border-cyan-400/10 bg-cyan-400/[0.07] px-2.5 py-1 text-[11px] font-semibold text-cyan-600">
                             {submission.resultKey}
                           </span>
-                        ) : <span className="text-zinc-700">—</span>}
+                        ) : <span className="text-muted-foreground/60">—</span>}
                       </td>
                       <td className="px-4 py-4">
                         {submission.tags.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {submission.tags.map((tag) => (
-                              <span key={tag} className="rounded-full border border-violet-400/15 bg-violet-500/[0.08] px-2 py-0.5 text-[10px] font-semibold text-violet-300">{tag}</span>
+                              <span key={tag} className="rounded-full border border-violet-300/40 bg-violet-500/[0.08] px-2 py-0.5 text-[10px] font-semibold text-violet-600">{tag}</span>
                             ))}
                           </div>
-                        ) : <span className="text-zinc-700">—</span>}
+                        ) : <span className="text-muted-foreground/60">—</span>}
                       </td>
-                      <td className="px-4 py-4 font-mono text-xs text-zinc-400">{submission.score ?? '—'}</td>
-                      <td className="px-4 py-4 text-xs text-zinc-500">{formatDate(submission.submittedAt)}</td>
+                      <td className="px-4 py-4 font-mono text-xs text-muted-foreground">{submission.score ?? '—'}</td>
+                      <td className="px-4 py-4 text-xs text-muted-foreground">{formatDate(submission.submittedAt)}</td>
                       <td className="px-5 py-4 text-right">
                         <button
                           type="button"
@@ -341,7 +341,7 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
                             event.stopPropagation()
                             setSelected(submission)
                           }}
-                          className="inline-flex size-8 items-center justify-center rounded-lg text-zinc-600 transition hover:bg-white/[0.06] hover:text-white"
+                          className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground/50 transition hover:bg-accent hover:text-foreground"
                           aria-label={`Ver respostas de ${submission.name || 'lead'}`}
                         >
                           <ChevronRight className="size-4" />
@@ -357,19 +357,19 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
       </section>
 
       {selected && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/72 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Detalhes do lead">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Detalhes do lead">
           <button type="button" className="absolute inset-0 cursor-default" onClick={() => setSelected(null)} aria-label="Fechar detalhes" />
-          <aside className="relative h-full w-full max-w-xl overflow-y-auto border-l border-white/[0.08] bg-[#0b0c12] shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-start justify-between border-b border-white/[0.07] bg-[#0b0c12]/95 p-5 backdrop-blur-xl">
+          <aside className="relative h-full w-full max-w-xl overflow-y-auto border-l border-border bg-card shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-start justify-between border-b border-border bg-card/95 p-5 backdrop-blur-xl">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-400/75">Detalhes do lead</p>
-                <h2 className="mt-2 text-xl font-extrabold tracking-[-0.025em] text-white">{selected.name || 'Lead sem nome'}</h2>
-                <p className="mt-1 text-xs text-zinc-600">Recebido em {formatDate(selected.submittedAt)}</p>
+                <h2 className="mt-2 text-xl font-extrabold tracking-[-0.025em] text-foreground">{selected.name || 'Lead sem nome'}</h2>
+                <p className="mt-1 text-xs text-muted-foreground/50">Recebido em {formatDate(selected.submittedAt)}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelected(null)}
-                className="grid size-9 place-items-center rounded-xl border border-white/[0.07] text-zinc-500 transition hover:bg-white/[0.05] hover:text-white"
+                className="grid size-9 place-items-center rounded-xl border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground"
                 aria-label="Fechar"
               >
                 <X className="size-4" />
@@ -386,10 +386,10 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
 
               {selected.tags.length > 0 && (
                 <section>
-                  <h3 className="mb-3 text-sm font-bold text-zinc-200">Tags</h3>
+                  <h3 className="mb-3 text-sm font-bold text-foreground">Tags</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {selected.tags.map((tag) => (
-                      <span key={tag} className="rounded-full border border-violet-400/15 bg-violet-500/[0.08] px-2.5 py-1 text-[11px] font-semibold text-violet-300">{tag}</span>
+                      <span key={tag} className="rounded-full border border-violet-300/40 bg-violet-500/[0.08] px-2.5 py-1 text-[11px] font-semibold text-violet-600">{tag}</span>
                     ))}
                   </div>
                 </section>
@@ -397,39 +397,39 @@ export function LeadsClient({ funnelName, submissions, truncated }: LeadsClientP
 
               <section>
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-zinc-200">Respostas</h3>
-                  <span className="text-[11px] text-zinc-600">{selected.values.length} campos</span>
+                  <h3 className="text-sm font-bold text-foreground">Respostas</h3>
+                  <span className="text-[11px] text-muted-foreground/50">{selected.values.length} campos</span>
                 </div>
-                <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02]">
+                <div className="overflow-hidden rounded-2xl border border-border bg-muted/20">
                   {selected.values.length === 0 ? (
-                    <p className="p-5 text-sm text-zinc-600">Nenhuma resposta registrada.</p>
+                    <p className="p-5 text-sm text-muted-foreground/50">Nenhuma resposta registrada.</p>
                   ) : selected.values.map((answer) => {
                     const uploadPath = privateUploadPath(answer.value)
                     return (
-                      <div key={answer.id} className="border-b border-white/[0.055] p-4 last:border-0">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-zinc-600">{answer.fieldKey}</p>
+                      <div key={answer.id} className="border-b border-border p-4 last:border-0">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground/50">{answer.fieldKey}</p>
                         {uploadPath ? (
-                          <button type="button" onClick={() => void downloadUpload(uploadPath)} className="mt-2 inline-flex min-h-9 items-center gap-2 rounded-lg border border-violet-400/15 bg-violet-500/[0.07] px-3 text-xs font-semibold text-violet-200 hover:bg-violet-500/10">
+                          <button type="button" onClick={() => void downloadUpload(uploadPath)} className="mt-2 inline-flex min-h-9 items-center gap-2 rounded-lg border border-violet-300/40 bg-violet-500/[0.07] px-3 text-xs font-semibold text-violet-600 hover:bg-violet-500/10">
                             <Download className="size-3.5" /> Baixar arquivo enviado
                           </button>
                         ) : (
-                          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-zinc-300">{displayValue(answer.value)}</p>
+                          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-foreground">{displayValue(answer.value)}</p>
                         )}
                       </div>
                     )
                   })}
                 </div>
-                {downloadError && <p role="alert" className="mt-2 text-xs text-rose-300">{downloadError}</p>}
+                {downloadError && <p role="alert" className="mt-2 text-xs text-rose-700">{downloadError}</p>}
               </section>
 
               {Object.keys(selected.lead).length > 0 && (
                 <section>
-                  <h3 className="mb-3 text-sm font-bold text-zinc-200">Dados complementares</h3>
-                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+                  <h3 className="mb-3 text-sm font-bold text-foreground">Dados complementares</h3>
+                  <div className="rounded-2xl border border-border bg-muted/20 p-4">
                     {Object.entries(selected.lead).map(([key, value]) => (
-                      <div key={key} className="flex gap-4 border-b border-white/[0.05] py-2.5 first:pt-0 last:border-0 last:pb-0">
-                        <span className="w-32 shrink-0 text-xs text-zinc-600">{key}</span>
-                        <span className="min-w-0 break-words text-xs text-zinc-300">{displayValue(value)}</span>
+                      <div key={key} className="flex gap-4 border-b border-border py-2.5 first:pt-0 last:border-0 last:pb-0">
+                        <span className="w-32 shrink-0 text-xs text-muted-foreground/50">{key}</span>
+                        <span className="min-w-0 break-words text-xs text-foreground">{displayValue(value)}</span>
                       </div>
                     ))}
                   </div>
@@ -453,12 +453,12 @@ function DetailCard({
   value: string | null
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3.5">
-      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-600">
+    <div className="rounded-xl border border-border bg-muted/30 p-3.5">
+      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/50">
         <Icon className="size-3.5" />
         {label}
       </div>
-      <p className="mt-2 break-words text-xs font-medium text-zinc-300">{value || '—'}</p>
+      <p className="mt-2 break-words text-xs font-medium text-foreground">{value || '—'}</p>
     </div>
   )
 }

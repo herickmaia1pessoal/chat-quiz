@@ -52,26 +52,26 @@ export function NumericCalcStep({
     <div className="space-y-4 pt-2">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label className="text-zinc-300 text-xs">{fieldA.label}</Label>
+          <Label className="text-muted-foreground text-xs">{fieldA.label}</Label>
           <Input
             type="text"
             inputMode="decimal"
             value={valueA}
             onChange={(e) => setValueA(e.target.value)}
             placeholder={fieldA.placeholder}
-            className="h-12 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600"
+            className="h-12 border-border bg-background text-foreground placeholder:text-muted-foreground"
           />
         </div>
         {fieldB && (
           <div className="space-y-1.5">
-            <Label className="text-zinc-300 text-xs">{fieldB.label}</Label>
+            <Label className="text-muted-foreground text-xs">{fieldB.label}</Label>
             <Input
               type="text"
               inputMode="decimal"
               value={valueB}
               onChange={(e) => setValueB(e.target.value)}
               placeholder={fieldB.placeholder}
-              className="h-12 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600"
+              className="h-12 border-border bg-background text-foreground placeholder:text-muted-foreground"
             />
           </div>
         )}

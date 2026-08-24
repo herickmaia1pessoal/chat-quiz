@@ -122,16 +122,16 @@ export function ResultLevelsTab({
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white">Resultado Calculado</h2>
-          <p className="text-zinc-400 text-xs mt-0.5">
+          <h2 className="text-xl font-bold text-foreground">Resultado Calculado</h2>
+          <p className="text-muted-foreground text-xs mt-0.5">
             Dê pontos a cada opção de resposta na aba Perguntas, defina faixas de pontuação aqui, e o
             visitante recebe um nível personalizado ao final — como um diagnóstico, não só um &quot;obrigado&quot;.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {saveError && <span className="text-xs text-red-400">{saveError}</span>}
+          {saveError && <span className="text-xs text-red-500">{saveError}</span>}
           {savedSuccess && (
-            <span className="text-xs text-emerald-400 flex items-center gap-1">
+            <span className="text-xs text-emerald-500 flex items-center gap-1">
               <Check className="h-4 w-4" /> Salvo!
             </span>
           )}
@@ -143,14 +143,14 @@ export function ResultLevelsTab({
       </div>
 
       {/* Enable toggle */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 backdrop-blur-xl flex items-center justify-between">
+      <div className="rounded-2xl border border-border bg-card p-5 backdrop-blur-xl flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
             <Sparkles className="h-4 w-4" />
           </div>
           <div>
-            <Label className="text-zinc-200 font-medium">Ativar Resultado Calculado</Label>
-            <p className="text-xs text-zinc-500">
+            <Label className="text-foreground font-medium">Ativar Resultado Calculado</Label>
+            <p className="text-xs text-muted-foreground">
               Depois de capturar o lead, mostra uma tela de &quot;processando&quot; seguida do nível atingido.
             </p>
           </div>
@@ -161,33 +161,33 @@ export function ResultLevelsTab({
       {enabled && (
         <>
           {/* Levels */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 backdrop-blur-xl space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-5 backdrop-blur-xl space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">
                 Níveis do Resultado (a régua)
               </Label>
             </div>
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[11px] text-muted-foreground">
               As faixas de pontuação devem cobrir do menor ao maior score possível, sem sobreposição — a
               soma dos pontos das respostas de cada visitante cai em uma dessas faixas.
             </p>
 
             <div className="space-y-3">
               {levels.map((level, index) => (
-                <div key={index} className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 space-y-3">
+                <div key={index} className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={level.color}
                       onChange={(e) => updateLevel(index, 'color', e.target.value)}
-                      className="h-9 w-9 rounded-md border border-zinc-700 bg-zinc-950 shrink-0 cursor-pointer"
+                      className="h-9 w-9 rounded-md border border-border bg-muted/50 shrink-0 cursor-pointer"
                       title="Cor do nível"
                     />
                     <Input
                       value={level.name}
                       onChange={(e) => updateLevel(index, 'name', e.target.value)}
                       placeholder="Nome do nível, ex: Iniciante"
-                      className="border-zinc-700 bg-zinc-950 text-zinc-100 text-sm h-9 flex-1"
+                      className="border-border bg-muted/50 text-foreground text-sm h-9 flex-1"
                     />
                     <Button
                       type="button"
@@ -195,28 +195,28 @@ export function ResultLevelsTab({
                       size="icon"
                       disabled={levels.length <= 1}
                       onClick={() => removeLevel(index)}
-                      className="h-9 w-9 text-zinc-500 hover:text-red-400 shrink-0"
+                      className="h-9 w-9 text-muted-foreground hover:text-red-500 shrink-0"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <Label className="text-zinc-500 text-[11px]">Pontuação mínima</Label>
+                      <Label className="text-muted-foreground text-[11px]">Pontuação mínima</Label>
                       <Input
                         type="number"
                         value={level.min_score}
                         onChange={(e) => updateLevel(index, 'min_score', Number(e.target.value))}
-                        className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                        className="border-border bg-muted/50 text-foreground text-sm h-9"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-zinc-500 text-[11px]">Pontuação máxima</Label>
+                      <Label className="text-muted-foreground text-[11px]">Pontuação máxima</Label>
                       <Input
                         type="number"
                         value={level.max_score}
                         onChange={(e) => updateLevel(index, 'max_score', Number(e.target.value))}
-                        className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                        className="border-border bg-muted/50 text-foreground text-sm h-9"
                       />
                     </div>
                   </div>
@@ -224,7 +224,7 @@ export function ResultLevelsTab({
                     value={level.description || ''}
                     onChange={(e) => updateLevel(index, 'description', e.target.value)}
                     placeholder="Texto explicando o que esse nível significa para o visitante..."
-                    className="border-zinc-800 bg-zinc-950 text-zinc-300 text-xs resize-none h-16"
+                    className="border-border bg-muted/50 text-muted-foreground text-xs resize-none h-16"
                   />
                 </div>
               ))}
@@ -235,7 +235,7 @@ export function ResultLevelsTab({
               variant="outline"
               size="sm"
               onClick={addLevel}
-              className="border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-800 text-xs"
+              className="border-dashed border-border bg-muted/30 text-muted-foreground hover:bg-accent text-xs"
             >
               <Plus className="h-3.5 w-3.5 mr-1 text-indigo-400" />
               Adicionar Nível
@@ -243,23 +243,23 @@ export function ResultLevelsTab({
           </div>
 
           {/* Loading messages */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 backdrop-blur-xl space-y-4">
-            <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">
+          <div className="rounded-2xl border border-border bg-card p-5 backdrop-blur-xl space-y-4">
+            <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">
               Mensagens da Tela de Processamento
             </Label>
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[11px] text-muted-foreground">
               Aparecem em sequência, uma de cada vez, entre o envio do formulário e a revelação do
               resultado — reforça a sensação de que a resposta foi calculada, não só exibida.
             </p>
             <div className="space-y-2">
               {loadingMessages.map((msg, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500 font-mono w-4">{index + 1}</span>
+                  <span className="text-xs text-muted-foreground font-mono w-4">{index + 1}</span>
                   <Input
                     value={msg}
                     onChange={(e) => updateLoadingMessage(index, e.target.value)}
                     placeholder="Ex: Cruzando suas respostas..."
-                    className="border-zinc-800 bg-zinc-950 text-zinc-100 text-sm h-9"
+                    className="border-border bg-muted/50 text-foreground text-sm h-9"
                   />
                   <Button
                     type="button"
@@ -267,7 +267,7 @@ export function ResultLevelsTab({
                     size="icon"
                     disabled={loadingMessages.length <= 1}
                     onClick={() => removeLoadingMessage(index)}
-                    className="h-8 w-8 text-zinc-500 hover:text-red-400"
+                    className="h-8 w-8 text-muted-foreground hover:text-red-500"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -279,7 +279,7 @@ export function ResultLevelsTab({
               variant="outline"
               size="sm"
               onClick={addLoadingMessage}
-              className="border-dashed border-zinc-700 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-800 text-xs"
+              className="border-dashed border-border bg-muted/30 text-muted-foreground hover:bg-accent text-xs"
             >
               <Plus className="h-3.5 w-3.5 mr-1 text-indigo-400" />
               Adicionar Mensagem
@@ -289,10 +289,10 @@ export function ResultLevelsTab({
           {/* Live preview */}
           {previewLevel && levels.every((l) => l.name.trim()) && (
             <div className="space-y-2">
-              <Label className="text-zinc-300 text-xs uppercase tracking-wider font-semibold">
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">
                 Pré-visualização
               </Label>
-              <div className="bg-zinc-950 rounded-2xl p-6">
+              <div className="bg-muted/50 rounded-2xl p-6">
                 <ScoredResultScreen
                   result={{
                     score: previewScore,

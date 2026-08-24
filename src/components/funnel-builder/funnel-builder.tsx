@@ -334,7 +334,7 @@ function DropZone({
       data-page-id={pageId}
       className={`relative z-20 -my-0.5 h-1.5 w-full shrink-0 transition-all ${active ? 'my-2 h-10 rounded-xl border border-dashed border-violet-400 bg-violet-500/10' : ''}`}
     >
-      {active && <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-violet-200">Soltar aqui</span>}
+      {active && <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-violet-700">Soltar aqui</span>}
     </div>
   )
 }
@@ -375,7 +375,7 @@ function CanvasNode({
       ))}
       <DropZone parent={element} pageId={element.pageId} index={children.length} onAdd={onAdd} onMove={onMove} />
       {!children.length && (
-        <div className="flex min-h-20 w-full items-center justify-center rounded-xl border border-dashed border-white/10 text-[10px] font-medium text-zinc-700">Arraste elementos para este {definition.label.toLowerCase()}</div>
+        <div className="flex min-h-20 w-full items-center justify-center rounded-xl border border-dashed border-border text-[10px] font-medium text-muted-foreground/50">Arraste elementos para este {definition.label.toLowerCase()}</div>
       )}
     </>
   ) : undefined
@@ -393,7 +393,7 @@ function CanvasNode({
       className={`group/element relative min-w-0 rounded-[inherit] outline outline-1 outline-offset-2 transition ${selected ? 'z-10 outline-violet-400' : 'outline-transparent hover:outline-violet-400/35'}`}
     >
       {selected && (
-        <div className="absolute -top-7 left-0 z-40 flex h-6 items-center overflow-hidden rounded-md border border-violet-400/30 bg-violet-500 text-[9px] font-bold text-white shadow-xl shadow-black/30">
+        <div className="absolute -top-7 left-0 z-40 flex h-6 items-center overflow-hidden rounded-md border border-violet-400/30 bg-violet-500 text-[9px] font-bold text-white shadow-lg shadow-black/20">
           <span className="px-2">{definition.label}</span>
           <button type="button" onClick={(event) => { event.stopPropagation(); onDuplicate(element.id) }} className="flex h-full items-center border-l border-white/20 px-1.5 hover:bg-white/15" title="Duplicar"><Copy className="size-3" /></button>
           <button type="button" onClick={(event) => { event.stopPropagation(); onDelete(element.id) }} className="flex h-full items-center border-l border-white/20 px-1.5 hover:bg-red-500" title="Excluir"><Trash2 className="size-3" /></button>
@@ -843,17 +843,17 @@ export function FunnelBuilder({
 
   if (isMobileViewport) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col bg-[#050507] font-sans text-zinc-100">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-white/[0.08] bg-[#09090d] px-3">
-          <Link href="/dashboard" className="flex size-8 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/5 hover:text-white" aria-label="Voltar ao dashboard"><ArrowLeft className="size-4" /></Link>
-          <p className="min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-tight text-zinc-100">{document.title}</p>
+      <div className="fixed inset-0 z-50 flex flex-col bg-background font-sans text-foreground">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-card px-3">
+          <Link href="/dashboard" className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground" aria-label="Voltar ao dashboard"><ArrowLeft className="size-4" /></Link>
+          <p className="min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-tight text-foreground">{document.title}</p>
         </header>
 
         {previewOpen ? (
           <>
-            <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/10 bg-[#0a0a0e] px-3">
-              <span className="flex items-center gap-2 text-xs font-semibold text-zinc-300"><Eye className="size-3.5 text-violet-400" /> Preview</span>
-              <button type="button" onClick={() => setPreviewOpen(false)} className="flex h-7 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-[10px] text-zinc-300 hover:bg-white/5"><X className="size-3.5" /> Fechar</button>
+            <div className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-card px-3">
+              <span className="flex items-center gap-2 text-xs font-semibold text-foreground"><Eye className="size-3.5 text-violet-500" /> Preview</span>
+              <button type="button" onClick={() => setPreviewOpen(false)} className="flex h-7 items-center gap-1.5 rounded-lg border border-border px-2.5 text-[10px] text-foreground hover:bg-accent"><X className="size-3.5" /> Fechar</button>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
               <FunnelPlayer key={`${document.funnelId}:mobile-preview`} document={document} preview forcedBreakpoint="mobile" initialPageId={activePage?.id} />
@@ -861,10 +861,10 @@ export function FunnelBuilder({
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
-            <span className="flex size-14 items-center justify-center rounded-2xl border border-violet-400/15 bg-violet-500/10 text-violet-300"><Monitor className="size-6" /></span>
+            <span className="flex size-14 items-center justify-center rounded-2xl border border-violet-200/40 bg-violet-500/10 text-violet-600"><Monitor className="size-6" /></span>
             <div className="space-y-1.5">
-              <p className="text-sm font-bold text-zinc-100">Edição disponível no computador</p>
-              <p className="max-w-xs text-xs leading-relaxed text-zinc-500">
+              <p className="text-sm font-bold text-foreground">Edição disponível no computador</p>
+              <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
                 O editor de funis usa arrastar-e-soltar e vários painéis lado a lado — funciona melhor numa tela maior. Aqui no celular você pode visualizar como o funil está.
               </p>
             </div>
@@ -872,8 +872,8 @@ export function FunnelBuilder({
               <Eye className="size-4" /> Visualizar funil
             </button>
             <div className="flex flex-col gap-2 pt-2 text-xs">
-              <Link href={`/dashboard/funnels/${document.funnelId}/leads`} className="text-zinc-500 underline underline-offset-4 hover:text-zinc-300">Ver leads</Link>
-              <Link href={`/dashboard/funnels/${document.funnelId}/analytics`} className="text-zinc-500 underline underline-offset-4 hover:text-zinc-300">Ver analytics</Link>
+              <Link href={`/dashboard/funnels/${document.funnelId}/leads`} className="text-muted-foreground underline underline-offset-4 hover:text-foreground">Ver leads</Link>
+              <Link href={`/dashboard/funnels/${document.funnelId}/analytics`} className="text-muted-foreground underline underline-offset-4 hover:text-foreground">Ver analytics</Link>
             </div>
           </div>
         )}
@@ -882,59 +882,59 @@ export function FunnelBuilder({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex min-h-[600px] flex-col overflow-hidden bg-[#050507] font-sans text-zinc-100">
-      <header className="flex h-12 shrink-0 items-center border-b border-white/[0.08] bg-[#09090d] px-2 shadow-xl shadow-black/20">
-        <div className="flex min-w-0 items-center gap-1 border-r border-white/[0.07] pr-2 lg:w-[280px]">
-          <Link href="/dashboard" className="flex size-8 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/5 hover:text-white" aria-label="Voltar ao dashboard"><ArrowLeft className="size-4" /></Link>
+    <div className="fixed inset-0 z-50 flex min-h-[600px] flex-col overflow-hidden bg-background font-sans text-foreground">
+      <header className="flex h-12 shrink-0 items-center border-b border-border bg-card px-2 shadow-sm shadow-black/10">
+        <div className="flex min-w-0 items-center gap-1 border-r border-border pr-2 lg:w-[280px]">
+          <Link href="/dashboard" className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground" aria-label="Voltar ao dashboard"><ArrowLeft className="size-4" /></Link>
           <div className="hidden size-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-cyan-400 shadow-lg shadow-violet-500/20 sm:flex"><Sparkles className="size-3.5 text-white" /></div>
-          <div className="min-w-0 px-1"><p className="truncate text-xs font-bold uppercase tracking-tight text-zinc-100">{document.title}</p></div>
-          <span className={`ml-auto hidden items-center gap-1 rounded-full border px-2 py-1 text-[9px] font-semibold sm:flex ${dirty ? 'border-amber-400/15 bg-amber-400/[0.06] text-amber-400' : 'border-emerald-400/15 bg-emerald-400/[0.06] text-emerald-400'}`}><span className={`size-1.5 rounded-full ${dirty ? 'bg-amber-400' : 'bg-emerald-400'}`} />{dirty ? 'Não salvo' : published ? 'Publicado' : 'Salvo'}</span>
+          <div className="min-w-0 px-1"><p className="truncate text-xs font-bold uppercase tracking-tight text-foreground">{document.title}</p></div>
+          <span className={`ml-auto hidden items-center gap-1 rounded-full border px-2 py-1 text-[9px] font-semibold sm:flex ${dirty ? 'border-amber-400/15 bg-amber-400/[0.06] text-amber-600' : 'border-emerald-400/15 bg-emerald-400/[0.06] text-emerald-500'}`}><span className={`size-1.5 rounded-full ${dirty ? 'bg-amber-400' : 'bg-emerald-400'}`} />{dirty ? 'Não salvo' : published ? 'Publicado' : 'Salvo'}</span>
         </div>
 
         <div className="flex items-center gap-0.5 px-2">
-          <button type="button" disabled={!canUndo} onClick={() => { undo(); changeSequence.current += 1; setDirty(true); setPublished(false) }} className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white disabled:opacity-25" title="Desfazer (Ctrl+Z)"><Undo2 className="size-3.5" /></button>
-          <button type="button" disabled={!canRedo} onClick={() => { redo(); changeSequence.current += 1; setDirty(true); setPublished(false) }} className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white disabled:opacity-25" title="Refazer"><Redo2 className="size-3.5" /></button>
-          <button type="button" disabled={!selectedId} onClick={() => selectedId && duplicate(selectedId)} className="hidden rounded-md p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white disabled:opacity-25 md:block" title="Duplicar"><Copy className="size-3.5" /></button>
-          <button type="button" disabled={!selectedId} onClick={() => selectedId && remove(selectedId)} className="hidden rounded-md p-1.5 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-400 disabled:opacity-25 md:block" title="Excluir"><Trash2 className="size-3.5" /></button>
+          <button type="button" disabled={!canUndo} onClick={() => { undo(); changeSequence.current += 1; setDirty(true); setPublished(false) }} className="rounded-md p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-25" title="Desfazer (Ctrl+Z)"><Undo2 className="size-3.5" /></button>
+          <button type="button" disabled={!canRedo} onClick={() => { redo(); changeSequence.current += 1; setDirty(true); setPublished(false) }} className="rounded-md p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-25" title="Refazer"><Redo2 className="size-3.5" /></button>
+          <button type="button" disabled={!selectedId} onClick={() => selectedId && duplicate(selectedId)} className="hidden rounded-md p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-25 md:block" title="Duplicar"><Copy className="size-3.5" /></button>
+          <button type="button" disabled={!selectedId} onClick={() => selectedId && remove(selectedId)} className="hidden rounded-md p-1.5 text-muted-foreground transition hover:bg-red-500/10 hover:text-red-500 disabled:opacity-25 md:block" title="Excluir"><Trash2 className="size-3.5" /></button>
         </div>
 
         <div className="mx-auto hidden items-center gap-2 xl:flex">
-          <div className="flex items-center rounded-lg border border-white/[0.08] bg-black/20 p-0.5">
+          <div className="flex items-center rounded-lg border border-border bg-muted/30 p-0.5">
             {([{ id: 'desktop', icon: Monitor }, { id: 'tablet', icon: Tablet }, { id: 'mobile', icon: Smartphone }] as const).map(({ id, icon: Icon }) => (
-              <button type="button" key={id} onClick={() => setBreakpoint(id)} className={`flex size-7 items-center justify-center rounded-md transition ${breakpoint === id ? 'bg-violet-500/15 text-violet-300' : 'text-zinc-600 hover:text-zinc-300'}`} title={id}><Icon className="size-3.5" /></button>
+              <button type="button" key={id} onClick={() => setBreakpoint(id)} className={`flex size-7 items-center justify-center rounded-md transition ${breakpoint === id ? 'bg-violet-500/15 text-violet-600' : 'text-muted-foreground/60 hover:text-foreground'}`} title={id}><Icon className="size-3.5" /></button>
             ))}
           </div>
-          <div className="flex h-8 items-center rounded-lg border border-white/[0.08] bg-black/20">
-            <button type="button" onClick={() => setZoom((value) => Math.max(.5, value - .1))} className="px-2 text-zinc-600 hover:text-white"><ZoomOut className="size-3.5" /></button>
-            <span className="w-10 text-center font-mono text-[10px] text-zinc-500">{Math.round(zoom * 100)}%</span>
-            <button type="button" onClick={() => setZoom((value) => Math.min(1.2, value + .1))} className="px-2 text-zinc-600 hover:text-white"><ZoomIn className="size-3.5" /></button>
+          <div className="flex h-8 items-center rounded-lg border border-border bg-muted/30">
+            <button type="button" onClick={() => setZoom((value) => Math.max(.5, value - .1))} className="px-2 text-muted-foreground/60 hover:text-foreground"><ZoomOut className="size-3.5" /></button>
+            <span className="w-10 text-center font-mono text-[10px] text-muted-foreground">{Math.round(zoom * 100)}%</span>
+            <button type="button" onClick={() => setZoom((value) => Math.min(1.2, value + .1))} className="px-2 text-muted-foreground/60 hover:text-foreground"><ZoomIn className="size-3.5" /></button>
           </div>
         </div>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <div className="hidden items-center rounded-lg border border-white/[0.08] bg-black/20 p-0.5 lg:flex">
-            <button type="button" onClick={() => setMode('design')} className={`flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-semibold transition ${mode === 'design' ? 'bg-violet-500/15 text-violet-300' : 'text-zinc-600 hover:text-zinc-300'}`}><Grid3X3 className="size-3" /> Design</button>
-            <button type="button" onClick={() => setMode('flow')} className={`flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-semibold transition ${mode === 'flow' ? 'bg-violet-500/15 text-violet-300' : 'text-zinc-600 hover:text-zinc-300'}`}><GitBranch className="size-3" /> Fluxo</button>
+          <div className="hidden items-center rounded-lg border border-border bg-muted/30 p-0.5 lg:flex">
+            <button type="button" onClick={() => setMode('design')} className={`flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-semibold transition ${mode === 'design' ? 'bg-violet-500/15 text-violet-600' : 'text-muted-foreground/60 hover:text-foreground'}`}><Grid3X3 className="size-3" /> Design</button>
+            <button type="button" onClick={() => setMode('flow')} className={`flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-semibold transition ${mode === 'flow' ? 'bg-violet-500/15 text-violet-600' : 'text-muted-foreground/60 hover:text-foreground'}`}><GitBranch className="size-3" /> Fluxo</button>
           </div>
           <div className="hidden items-center gap-0.5 xl:flex">
-            <Link href={`/dashboard/funnels/${document.funnelId}/leads`} title="Leads" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-zinc-500 transition hover:bg-white/5 hover:text-white"><UsersRound className="size-3.5" /><span className="hidden 2xl:inline">Leads</span></Link>
-            <Link href={`/dashboard/funnels/${document.funnelId}/analytics`} title="Analytics" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-zinc-500 transition hover:bg-white/5 hover:text-white"><BarChart3 className="size-3.5" /><span className="hidden 2xl:inline">Analytics</span></Link>
-            <Link href={`/dashboard/funnels/${document.funnelId}/settings`} title="Configuracoes" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-zinc-500 transition hover:bg-white/5 hover:text-white"><Settings2 className="size-3.5" /><span className="hidden 2xl:inline">Config.</span></Link>
+            <Link href={`/dashboard/funnels/${document.funnelId}/leads`} title="Leads" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"><UsersRound className="size-3.5" /><span className="hidden 2xl:inline">Leads</span></Link>
+            <Link href={`/dashboard/funnels/${document.funnelId}/analytics`} title="Analytics" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"><BarChart3 className="size-3.5" /><span className="hidden 2xl:inline">Analytics</span></Link>
+            <Link href={`/dashboard/funnels/${document.funnelId}/settings`} title="Configuracoes" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"><Settings2 className="size-3.5" /><span className="hidden 2xl:inline">Config.</span></Link>
           </div>
-          <button type="button" onClick={() => setPreviewOpen(true)} className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-zinc-400 transition hover:bg-white/5 hover:text-white"><Eye className="size-3.5" /><span className="hidden sm:inline">Preview</span></button>
-          <button type="button" disabled={saving} onClick={() => void saveDraft()} className="flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 text-[10px] font-semibold text-zinc-300 transition hover:bg-white/[0.08] disabled:opacity-50">{saving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}<span className="hidden sm:inline">Salvar</span></button>
+          <button type="button" onClick={() => setPreviewOpen(true)} className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground"><Eye className="size-3.5" /><span className="hidden sm:inline">Preview</span></button>
+          <button type="button" disabled={saving} onClick={() => void saveDraft()} className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-2.5 text-[10px] font-semibold text-foreground transition hover:bg-accent disabled:opacity-50">{saving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}<span className="hidden sm:inline">Salvar</span></button>
           <button type="button" disabled={saving} onClick={() => void publish()} title={flowValidation.valid ? 'Publicar funil' : flowValidation.issues[0]?.message} className={`flex h-8 items-center gap-1.5 rounded-lg px-3 text-[10px] font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50 ${flowValidation.valid ? 'bg-gradient-to-r from-violet-500 to-indigo-500 shadow-violet-500/15' : 'bg-amber-600 shadow-amber-900/20'}`}><Rocket className="size-3.5" /> Publicar</button>
         </div>
       </header>
 
       {notice && (
-        <button type="button" onClick={() => setNotice(null)} className="absolute right-4 top-16 z-[80] flex max-w-[min(420px,calc(100vw-2rem))] items-start gap-2 rounded-xl border border-white/10 bg-[#17171d] px-4 py-3 text-left text-xs text-zinc-200 shadow-2xl shadow-black/60"><Check className="mt-0.5 size-3.5 shrink-0 text-emerald-400" /><span className="min-w-0">{notice}</span><X className="ml-2 size-3 shrink-0 text-zinc-600" /></button>
+        <button type="button" onClick={() => setNotice(null)} className="absolute right-4 top-16 z-[80] flex max-w-[min(420px,calc(100vw-2rem))] items-start gap-2 rounded-xl border border-border bg-card px-4 py-3 text-left text-xs text-foreground shadow-lg shadow-black/20"><Check className="mt-0.5 size-3.5 shrink-0 text-emerald-500" /><span className="min-w-0">{notice}</span><X className="ml-2 size-3 shrink-0 text-muted-foreground/60" /></button>
       )}
 
       <div className="flex min-h-0 flex-1">
-        <nav className="flex w-10 shrink-0 flex-col items-center gap-1 border-r border-white/[0.07] bg-[#08080c] py-2">
-          {railItems.map(({ id, label, icon: Icon }) => <button type="button" key={id} onClick={() => setLeftPanel(id)} className={`flex size-8 items-center justify-center rounded-lg transition ${leftPanel === id ? 'bg-violet-500/15 text-violet-300' : 'text-zinc-600 hover:bg-white/5 hover:text-zinc-300'}`} title={label}><Icon className="size-4" /></button>)}
-          <div className="mt-auto"><button type="button" onClick={() => setMode(mode === 'design' ? 'flow' : 'design')} className="flex size-8 items-center justify-center rounded-lg text-zinc-600 hover:bg-white/5 hover:text-zinc-300" title="Alternar Design/Fluxo">{mode === 'design' ? <GitBranch className="size-4" /> : <Grid3X3 className="size-4" />}</button></div>
+        <nav className="flex w-10 shrink-0 flex-col items-center gap-1 border-r border-border bg-muted/20 py-2">
+          {railItems.map(({ id, label, icon: Icon }) => <button type="button" key={id} onClick={() => setLeftPanel(id)} className={`flex size-8 items-center justify-center rounded-lg transition ${leftPanel === id ? 'bg-violet-500/15 text-violet-600' : 'text-muted-foreground/60 hover:bg-accent hover:text-foreground'}`} title={label}><Icon className="size-4" /></button>)}
+          <div className="mt-auto"><button type="button" onClick={() => setMode(mode === 'design' ? 'flow' : 'design')} className="flex size-8 items-center justify-center rounded-lg text-muted-foreground/60 hover:bg-accent hover:text-foreground" title="Alternar Design/Fluxo">{mode === 'design' ? <GitBranch className="size-4" /> : <Grid3X3 className="size-4" />}</button></div>
         </nav>
 
         <div className="hidden lg:flex">
@@ -959,18 +959,18 @@ export function FunnelBuilder({
           />
         </div>
 
-        <main className="relative min-w-0 flex-1 overflow-auto bg-[#07070a] [scrollbar-color:#3f3f46_transparent] [scrollbar-width:thin]" onClick={() => setSelectedId(null)}>
-          <div className="pointer-events-none sticky left-0 top-0 z-30 flex h-8 items-center justify-between border-b border-white/[0.055] bg-[#09090d]/90 px-4 backdrop-blur">
-            <span className="text-[9px] font-semibold text-zinc-600">{activePage?.name ?? 'Página'}</span>
-            <span className="font-mono text-[9px] text-zinc-700">{breakpoint} · {width}px</span>
+        <main className="relative min-w-0 flex-1 overflow-auto bg-background [scrollbar-color:#3f3f46_transparent] [scrollbar-width:thin]" onClick={() => setSelectedId(null)}>
+          <div className="pointer-events-none sticky left-0 top-0 z-30 flex h-8 items-center justify-between border-b border-border bg-card/90 px-4 backdrop-blur">
+            <span className="text-[9px] font-semibold text-muted-foreground/60">{activePage?.name ?? 'Página'}</span>
+            <span className="font-mono text-[9px] text-muted-foreground/50">{breakpoint} · {width}px</span>
           </div>
-          <div className={`min-h-[calc(100%-2rem)] bg-[linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] bg-[size:36px_36px] px-14 py-12 ${mode === 'flow' ? 'min-w-0' : 'min-w-max'}`}>
+          <div className={`min-h-[calc(100%-2rem)] bg-[linear-gradient(rgba(0,0,0,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.035)_1px,transparent_1px)] bg-[size:36px_36px] px-14 py-12 ${mode === 'flow' ? 'min-w-0' : 'min-w-max'}`}>
             {mode === 'flow' ? (
               <FlowView document={document} activePageId={activePage?.id ?? ''} onSelectPage={(id) => { setActivePageId(id); setSelectedId(null) }} onChange={mutate} />
             ) : (
               <div className="mx-auto" style={{ width: width * zoom }}>
                 <div
-                  className="relative min-h-[720px] overflow-visible rounded-2xl border border-white/[0.09] bg-[#09090b] shadow-[0_30px_100px_rgba(0,0,0,.55)] transition-[width,transform] duration-300"
+                  className="relative min-h-[720px] overflow-visible rounded-2xl border border-border bg-card shadow-[0_30px_100px_rgba(0,0,0,.12)] transition-[width,transform] duration-300"
                   style={{ width, transform: `scale(${zoom})`, transformOrigin: 'top left' }}
                   onClick={(event) => event.stopPropagation()}
                 >
@@ -982,7 +982,7 @@ export function FunnelBuilder({
                     </div>
                   ))}
                   <DropZone parent={null} pageId={activePage?.id ?? ''} index={roots.length} onAdd={addAt} onMove={move} />
-                  {!roots.length && <div className="absolute inset-8 flex items-center justify-center rounded-2xl border border-dashed border-white/10 text-sm text-zinc-700">Arraste uma Seção para começar</div>}
+                  {!roots.length && <div className="absolute inset-8 flex items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted-foreground/50">Arraste uma Seção para começar</div>}
                 </div>
               </div>
             )}
@@ -996,11 +996,11 @@ export function FunnelBuilder({
         <div
           role="dialog"
           aria-label={`Ajustar ${ELEMENT_REGISTRY[selectedElement.type].label}`}
-          className="fixed bottom-7 right-2 top-[52px] z-[70] flex w-[min(292px,calc(100vw-16px))] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0e] shadow-2xl shadow-black/70 xl:hidden"
+          className="fixed bottom-7 right-2 top-[52px] z-[70] flex w-[min(292px,calc(100vw-16px))] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-lg shadow-black/30 xl:hidden"
         >
-          <div className="flex h-10 shrink-0 items-center justify-center gap-1 border-b border-white/[0.07]">
+          <div className="flex h-10 shrink-0 items-center justify-center gap-1 border-b border-border">
             {([{ id: 'desktop', icon: Monitor, label: 'Desktop' }, { id: 'tablet', icon: Tablet, label: 'Tablet' }, { id: 'mobile', icon: Smartphone, label: 'Celular' }] as const).map(({ id, icon: Icon, label }) => (
-              <button key={id} type="button" title={label} aria-label={`Editar ${label}`} aria-pressed={breakpoint === id} onClick={() => setBreakpoint(id)} className={`grid size-8 place-items-center rounded-lg ${breakpoint === id ? 'bg-violet-500/15 text-violet-300' : 'text-zinc-600 hover:bg-white/5 hover:text-zinc-300'}`}><Icon className="size-4" /></button>
+              <button key={id} type="button" title={label} aria-label={`Editar ${label}`} aria-pressed={breakpoint === id} onClick={() => setBreakpoint(id)} className={`grid size-8 place-items-center rounded-lg ${breakpoint === id ? 'bg-violet-500/15 text-violet-600' : 'text-muted-foreground/60 hover:bg-accent hover:text-foreground'}`}><Icon className="size-4" /></button>
             ))}
           </div>
           <div className="min-h-0 flex-1">
@@ -1017,22 +1017,22 @@ export function FunnelBuilder({
         </div>
       )}
 
-      <footer className="flex h-6 shrink-0 items-center justify-between border-t border-white/[0.07] bg-[#09090d] px-3 text-[8px] text-zinc-600">
+      <footer className="flex h-6 shrink-0 items-center justify-between border-t border-border bg-card px-3 text-[8px] text-muted-foreground/60">
         <span>{document.pages.length} páginas · {document.elements.length} elementos · revisão {revision}</span>
         <span className="hidden sm:inline">Ctrl+S salvar · Ctrl+D duplicar · Del excluir</span>
       </footer>
 
       {previewOpen && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-[#050507]">
-          <div className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 bg-[#0a0a0e] px-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-300"><Eye className="size-4 text-violet-400" /> Preview · {activePage?.name}</div>
+        <div className="fixed inset-0 z-[100] flex flex-col bg-background">
+          <div className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card px-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-foreground"><Eye className="size-4 text-violet-500" /> Preview · {activePage?.name}</div>
             <div className="flex items-center gap-1">
-              {([{ id: 'desktop', icon: Monitor }, { id: 'tablet', icon: Tablet }, { id: 'mobile', icon: Smartphone }] as const).map(({ id, icon: Icon }) => <button type="button" key={id} onClick={() => setBreakpoint(id)} className={`flex size-8 items-center justify-center rounded-lg ${breakpoint === id ? 'bg-violet-500/15 text-violet-300' : 'text-zinc-600'}`}><Icon className="size-4" /></button>)}
-              <button type="button" onClick={() => setPreviewOpen(false)} className="ml-3 flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-xs text-zinc-300 hover:bg-white/5"><X className="size-3.5" /> Fechar</button>
+              {([{ id: 'desktop', icon: Monitor }, { id: 'tablet', icon: Tablet }, { id: 'mobile', icon: Smartphone }] as const).map(({ id, icon: Icon }) => <button type="button" key={id} onClick={() => setBreakpoint(id)} className={`flex size-8 items-center justify-center rounded-lg ${breakpoint === id ? 'bg-violet-500/15 text-violet-600' : 'text-muted-foreground/60'}`}><Icon className="size-4" /></button>)}
+              <button type="button" onClick={() => setPreviewOpen(false)} className="ml-3 flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs text-foreground hover:bg-accent"><X className="size-3.5" /> Fechar</button>
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-auto p-6">
-            <div className="mx-auto min-h-full overflow-hidden rounded-xl border border-white/10 bg-[#09090b] shadow-2xl shadow-black" style={{ width: Math.min(width, typeof window !== 'undefined' ? window.innerWidth - 48 : width) }}>
+            <div className="mx-auto min-h-full overflow-hidden rounded-xl border border-border bg-card shadow-lg shadow-black/20" style={{ width: Math.min(width, typeof window !== 'undefined' ? window.innerWidth - 48 : width) }}>
               <FunnelPlayer key={`${document.funnelId}:${activePage?.id ?? flowValidation.entryPageId ?? 'default'}`} document={document} preview forcedBreakpoint={breakpoint} initialPageId={activePage?.id} />
             </div>
           </div>

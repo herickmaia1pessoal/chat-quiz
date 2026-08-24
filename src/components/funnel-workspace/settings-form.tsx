@@ -55,7 +55,7 @@ function safeExternalScriptUrl(value: string) {
 }
 
 function fieldClassName() {
-  return 'mt-2 h-11 w-full rounded-xl border border-white/[0.08] bg-[#0b0c12] px-3.5 text-sm text-zinc-200 outline-none transition placeholder:text-zinc-700 focus:border-violet-400/45 focus:ring-2 focus:ring-violet-500/10 disabled:opacity-50'
+  return 'mt-2 h-11 w-full rounded-xl border border-border bg-muted/30 px-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/50 focus:border-violet-400/45 focus:ring-2 focus:ring-violet-500/10 disabled:opacity-50'
 }
 
 export function FunnelSettingsForm({
@@ -182,7 +182,7 @@ export function FunnelSettingsForm({
           description="Defina como o funil aparece no workspace e em seu link público."
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-muted-foreground">
               Nome do funil
               <input
                 value={document.title}
@@ -193,13 +193,13 @@ export function FunnelSettingsForm({
                 className={fieldClassName()}
                 placeholder="Meu funil"
               />
-              <span className="mt-1.5 block text-[10px] font-normal text-zinc-700">{document.title.length}/160 caracteres</span>
+              <span className="mt-1.5 block text-[10px] font-normal text-muted-foreground/60">{document.title.length}/160 caracteres</span>
             </label>
 
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-muted-foreground">
               Slug público
               <div className="relative">
-                <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-zinc-700">/f/</span>
+                <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/60">/f/</span>
                 <input
                   value={document.slug}
                   maxLength={120}
@@ -211,7 +211,7 @@ export function FunnelSettingsForm({
                   aria-invalid={!slugValid}
                 />
               </div>
-              <span className={`mt-1.5 block text-[10px] font-normal ${document.slug && !slugValid ? 'text-red-400/80' : 'text-zinc-700'}`}>
+              <span className={`mt-1.5 block text-[10px] font-normal ${document.slug && !slugValid ? 'text-red-500' : 'text-muted-foreground/60'}`}>
                 Use letras minúsculas, números e hífens.
               </span>
             </label>
@@ -224,7 +224,7 @@ export function FunnelSettingsForm({
           description="Personalize o título e a descrição exibidos em buscadores e redes sociais."
         >
           <div className="space-y-4">
-            <label className="block text-xs font-semibold text-zinc-400">
+            <label className="block text-xs font-semibold text-muted-foreground">
               Título SEO
               <input
                 value={typeof settings.seoTitle === 'string' ? settings.seoTitle : ''}
@@ -233,22 +233,22 @@ export function FunnelSettingsForm({
                 className={fieldClassName()}
                 placeholder={document.title}
               />
-              <span className="mt-1.5 block text-[10px] font-normal text-zinc-700">Recomendado: até 60 caracteres.</span>
+              <span className="mt-1.5 block text-[10px] font-normal text-muted-foreground/60">Recomendado: até 60 caracteres.</span>
             </label>
 
-            <label className="block text-xs font-semibold text-zinc-400">
+            <label className="block text-xs font-semibold text-muted-foreground">
               Descrição SEO
               <textarea
                 value={typeof settings.seoDescription === 'string' ? settings.seoDescription : ''}
                 maxLength={180}
                 rows={4}
                 onChange={(event) => updateSetting('seoDescription', event.target.value)}
-                className="mt-2 w-full resize-y rounded-xl border border-white/[0.08] bg-[#0b0c12] px-3.5 py-3 text-sm leading-6 text-zinc-200 outline-none transition placeholder:text-zinc-700 focus:border-violet-400/45 focus:ring-2 focus:ring-violet-500/10"
+                className="mt-2 w-full resize-y rounded-xl border border-border bg-muted/30 px-3.5 py-3 text-sm leading-6 text-foreground outline-none transition placeholder:text-muted-foreground/50 focus:border-violet-400/45 focus:ring-2 focus:ring-violet-500/10"
                 placeholder="Uma descrição curta e clara sobre esta experiência."
               />
             </label>
 
-            <label className="block text-xs font-semibold text-zinc-400">
+            <label className="block text-xs font-semibold text-muted-foreground">
               Imagem social (URL)
               <input
                 value={typeof settings.socialImage === 'string' ? settings.socialImage : ''}
@@ -261,7 +261,7 @@ export function FunnelSettingsForm({
               />
             </label>
 
-            <label className="block text-xs font-semibold text-zinc-400">
+            <label className="block text-xs font-semibold text-muted-foreground">
               Favicon (URL)
               <input
                 value={typeof settings.faviconUrl === 'string' ? settings.faviconUrl : ''}
@@ -274,7 +274,7 @@ export function FunnelSettingsForm({
               />
             </label>
 
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-4">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-muted/30 p-4">
               <input
                 type="checkbox"
                 checked={settings.noIndex === true}
@@ -282,8 +282,8 @@ export function FunnelSettingsForm({
                 className="mt-0.5 size-4 accent-violet-500"
               />
               <span>
-                <span className="block text-xs font-semibold text-zinc-300">Ocultar dos buscadores</span>
-                <span className="mt-1 block text-[11px] font-normal leading-5 text-zinc-600">Publica as diretivas noindex e nofollow para este funil.</span>
+                <span className="block text-xs font-semibold text-muted-foreground">Ocultar dos buscadores</span>
+                <span className="mt-1 block text-[11px] font-normal leading-5 text-muted-foreground/50">Publica as diretivas noindex e nofollow para este funil.</span>
               </span>
             </label>
           </div>
@@ -295,16 +295,16 @@ export function FunnelSettingsForm({
           description="A cor base é herdada pelas páginas que não possuem um fundo específico."
         >
           <div className="grid gap-4 sm:grid-cols-[160px_1fr] sm:items-end">
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-muted-foreground">
               Cor de fundo
               <input
                 type="color"
                 value={typeof settings.backgroundColor === 'string' ? settings.backgroundColor : '#050507'}
                 onChange={(event) => updateSetting('backgroundColor', event.target.value)}
-                className="mt-2 h-11 w-full cursor-pointer rounded-xl border border-white/[0.08] bg-[#0b0c12] p-1.5"
+                className="mt-2 h-11 w-full cursor-pointer rounded-xl border border-border bg-muted/30 p-1.5"
               />
             </label>
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-muted-foreground">
               Valor hexadecimal
               <input
                 value={typeof settings.backgroundColor === 'string' ? settings.backgroundColor : '#050507'}
@@ -322,7 +322,7 @@ export function FunnelSettingsForm({
           description="IDs validados são carregados somente na versão publicada; o preview do editor não dispara eventos."
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-muted-foreground">
               Meta Pixel ID
               <input
                 value={typeof settings.metaPixelId === 'string' ? settings.metaPixelId : ''}
@@ -333,10 +333,10 @@ export function FunnelSettingsForm({
                 placeholder="123456789012345"
                 aria-invalid={!metaPixelValid}
               />
-              {!metaPixelValid && <span className="mt-1.5 block text-[10px] font-normal text-red-400/80">Use apenas 5 a 20 números.</span>}
+              {!metaPixelValid && <span className="mt-1.5 block text-[10px] font-normal text-red-500">Use apenas 5 a 20 números.</span>}
             </label>
 
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-muted-foreground">
               Google Tag ID
               <input
                 value={typeof settings.googleTagId === 'string' ? settings.googleTagId : ''}
@@ -346,10 +346,10 @@ export function FunnelSettingsForm({
                 placeholder="G-XXXXXXXXXX"
                 aria-invalid={!googleTagValid}
               />
-              {!googleTagValid && <span className="mt-1.5 block text-[10px] font-normal text-red-400/80">Use um ID G-, GT-, GTM- ou AW- válido.</span>}
+              {!googleTagValid && <span className="mt-1.5 block text-[10px] font-normal text-red-500">Use um ID G-, GT-, GTM- ou AW- válido.</span>}
             </label>
           </div>
-          <label className="mt-4 block text-xs font-semibold text-zinc-400">
+          <label className="mt-4 block text-xs font-semibold text-muted-foreground">
             Scripts externos isolados
             <textarea
               value={customScriptUrls.join('\n')}
@@ -359,11 +359,11 @@ export function FunnelSettingsForm({
                 'customScriptUrls',
                 event.target.value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean),
               )}
-              className={`mt-2 w-full resize-y rounded-xl border bg-[#0b0c12] px-3.5 py-3 font-mono text-xs leading-6 text-zinc-200 outline-none transition placeholder:text-zinc-700 focus:ring-2 focus:ring-violet-500/10 ${customScriptsValid ? 'border-white/[0.08] focus:border-violet-400/45' : 'border-red-400/40 focus:border-red-400/60'}`}
+              className={`mt-2 w-full resize-y rounded-xl border bg-muted/30 px-3.5 py-3 font-mono text-xs leading-6 text-foreground outline-none transition placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-violet-500/10 ${customScriptsValid ? 'border-border focus:border-violet-400/45' : 'border-red-400/40 focus:border-red-400/60'}`}
               placeholder={'https://cdn.seudominio.com/tracking.js\nhttps://scripts.parceiro.com/widget.js'}
               aria-invalid={!customScriptsValid}
             />
-            <span className={`mt-1.5 block text-[10px] font-normal ${customScriptsValid ? 'text-zinc-700' : 'text-red-400/80'}`}>
+            <span className={`mt-1.5 block text-[10px] font-normal ${customScriptsValid ? 'text-muted-foreground/60' : 'text-red-500'}`}>
               Um URL HTTPS por linha, no máximo 5. Cada script roda em iframe sandbox, sem acesso ao formulário, cookies ou DOM principal.
             </span>
           </label>
@@ -378,36 +378,36 @@ export function FunnelSettingsForm({
       </div>
 
       <aside className="space-y-5">
-        <section className="sticky top-28 overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0b0c12]/95">
-          <div className="border-b border-white/[0.06] p-5">
-            <p className="text-sm font-bold text-zinc-200">Prévia do compartilhamento</p>
-            <p className="mt-1 text-xs text-zinc-600">Exemplo de como o link pode aparecer.</p>
+        <section className="sticky top-28 overflow-hidden rounded-2xl border border-border bg-card/95">
+          <div className="border-b border-border p-5">
+            <p className="text-sm font-bold text-foreground">Prévia do compartilhamento</p>
+            <p className="mt-1 text-xs text-muted-foreground/50">Exemplo de como o link pode aparecer.</p>
           </div>
           <div className="p-5">
-            <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#101118]">
+            <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
               <div
-                className="h-32 border-b border-white/[0.06] bg-[radial-gradient(circle_at_50%_20%,rgba(124,58,237,0.23),transparent_55%)]"
+                className="h-32 border-b border-border bg-[radial-gradient(circle_at_50%_20%,rgba(124,58,237,0.23),transparent_55%)]"
                 style={{ backgroundColor: typeof settings.backgroundColor === 'string' ? settings.backgroundColor : '#050507' }}
               />
               <div className="p-4">
-                <p className="line-clamp-1 text-sm font-bold text-zinc-200">
+                <p className="line-clamp-1 text-sm font-bold text-foreground">
                   {(typeof settings.seoTitle === 'string' && settings.seoTitle) || document.title || 'Título do funil'}
                 </p>
-                <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-zinc-600">
+                <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground/50">
                   {(typeof settings.seoDescription === 'string' && settings.seoDescription) || 'Adicione uma descrição para melhorar o compartilhamento.'}
                 </p>
-                <p className="mt-3 truncate text-[10px] text-violet-400/70">URL do rascunho: {draftPublicUrl}</p>
+                <p className="mt-3 truncate text-[10px] text-violet-500/80">URL do rascunho: {draftPublicUrl}</p>
                 {initialState.publishedSlug && (
-                  <p className="mt-1 truncate text-[10px] text-emerald-400/65">
+                  <p className="mt-1 truncate text-[10px] text-emerald-600/80">
                     Publicado agora: /f/{initialState.publishedSlug}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="mt-5 flex items-start gap-3 rounded-xl border border-emerald-400/10 bg-emerald-400/[0.05] p-3.5">
-              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-400" />
-              <p className="text-[11px] leading-5 text-emerald-100/55">
+            <div className="mt-5 flex items-start gap-3 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.06] p-3.5">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-500" />
+              <p className="text-[11px] leading-5 text-emerald-700/80">
                 Salvar cria uma nova revisão do rascunho. A versão pública não muda até uma nova publicação.
               </p>
             </div>
@@ -417,8 +417,8 @@ export function FunnelSettingsForm({
                 role="status"
                 className={`mt-4 flex items-start gap-2 rounded-xl border px-3.5 py-3 text-xs leading-5 ${
                   feedback.type === 'success'
-                    ? 'border-emerald-400/15 bg-emerald-400/[0.06] text-emerald-200/80'
-                    : 'border-red-400/15 bg-red-400/[0.06] text-red-200/80'
+                    ? 'border-emerald-400/15 bg-emerald-400/[0.06] text-emerald-700/80'
+                    : 'border-red-400/15 bg-red-400/[0.06] text-red-700/80'
                 }`}
               >
                 {feedback.type === 'success' && <Check className="mt-0.5 size-3.5 shrink-0" />}
@@ -551,10 +551,10 @@ function WebhookSettings({
       description="Envia cada conclusão em JSON com assinatura HMAC SHA-256, registro do resultado e até três tentativas."
     >
       <div className="space-y-4">
-        <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-white/[0.07] bg-white/[0.025] p-4">
+        <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-muted/30 p-4">
           <span>
-            <span className="block text-xs font-semibold text-zinc-300">Ativar webhook</span>
-            <span className="mt-1 block text-[11px] leading-5 text-zinc-600">O envio acontece depois que a submissão foi persistida.</span>
+            <span className="block text-xs font-semibold text-muted-foreground">Ativar webhook</span>
+            <span className="mt-1 block text-[11px] leading-5 text-muted-foreground/50">O envio acontece depois que a submissão foi persistida.</span>
           </span>
           <input
             type="checkbox"
@@ -564,7 +564,7 @@ function WebhookSettings({
           />
         </label>
 
-        <label className="block text-xs font-semibold text-zinc-400">
+        <label className="block text-xs font-semibold text-muted-foreground">
           Endpoint HTTPS
           <input
             type="url"
@@ -575,15 +575,15 @@ function WebhookSettings({
             placeholder="https://api.seudominio.com/webhooks/funnel"
             aria-invalid={!urlValid}
           />
-          <span className={`mt-1.5 block text-[10px] font-normal ${urlValid ? 'text-zinc-700' : 'text-red-400/80'}`}>
+          <span className={`mt-1.5 block text-[10px] font-normal ${urlValid ? 'text-muted-foreground/60' : 'text-red-500'}`}>
             Apenas destinos HTTPS públicos e aprovados pelo administrador da plataforma são aceitos.
           </span>
         </label>
 
-        <label className="block text-xs font-semibold text-zinc-400">
+        <label className="block text-xs font-semibold text-muted-foreground">
           Segredo da assinatura
           <div className="relative">
-            <KeyRound className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-zinc-700" />
+            <KeyRound className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/60" />
             <input
               type="password"
               autoComplete="new-password"
@@ -596,19 +596,19 @@ function WebhookSettings({
               aria-invalid={!secretValid}
             />
           </div>
-          <span className="mt-1.5 block text-[10px] font-normal text-zinc-700">
+          <span className="mt-1.5 block text-[10px] font-normal text-muted-foreground/60">
             {integration.hasWebhookSecret ? `Segredo atual: ${integration.secretPreview}` : 'Ao ativar sem preencher, um segredo forte será gerado.'}
           </span>
         </label>
 
         {newSecret && (
           <div className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] p-4">
-            <p className="text-xs font-semibold text-amber-200">Copie o novo segredo agora</p>
-            <code className="mt-2 block break-all rounded-lg bg-black/25 p-3 text-[11px] leading-5 text-amber-100/80">{newSecret}</code>
+            <p className="text-xs font-semibold text-amber-700">Copie o novo segredo agora</p>
+            <code className="mt-2 block break-all rounded-lg bg-black/10 p-3 text-[11px] leading-5 text-amber-800/80">{newSecret}</code>
             <button
               type="button"
               onClick={() => void navigator.clipboard.writeText(newSecret)}
-              className="mt-3 inline-flex h-8 items-center gap-2 rounded-lg border border-amber-300/15 px-3 text-[10px] font-bold text-amber-100/75 hover:bg-amber-300/10"
+              className="mt-3 inline-flex h-8 items-center gap-2 rounded-lg border border-amber-300/40 px-3 text-[10px] font-bold text-amber-700 hover:bg-amber-300/10"
             >
               <Copy className="size-3.5" /> Copiar segredo
             </button>
@@ -616,7 +616,7 @@ function WebhookSettings({
         )}
 
         {feedback && (
-          <p role="status" className={`rounded-xl border px-3.5 py-3 text-xs ${feedback.type === 'success' ? 'border-emerald-400/15 bg-emerald-400/[0.05] text-emerald-200/80' : 'border-red-400/15 bg-red-400/[0.05] text-red-200/80'}`}>
+          <p role="status" className={`rounded-xl border px-3.5 py-3 text-xs ${feedback.type === 'success' ? 'border-emerald-400/15 bg-emerald-400/[0.05] text-emerald-700/80' : 'border-red-400/15 bg-red-400/[0.05] text-red-700/80'}`}>
             {feedback.message}
           </p>
         )}
@@ -636,7 +636,7 @@ function WebhookSettings({
               type="button"
               disabled={saving || !urlValid || !url}
               onClick={() => persist(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/[0.08] px-4 text-xs font-semibold text-zinc-400 transition hover:bg-white/[0.04] hover:text-white disabled:opacity-40"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-border px-4 text-xs font-semibold text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-40"
             >
               <RotateCw className="size-4" /> Girar segredo
             </button>
@@ -646,7 +646,7 @@ function WebhookSettings({
               type="button"
               disabled={testing}
               onClick={runTest}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-violet-400/20 px-4 text-xs font-semibold text-violet-300 transition hover:bg-violet-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-violet-200/40 px-4 text-xs font-semibold text-violet-600 transition hover:bg-violet-500/10 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {testing ? <LoaderCircle className="size-4 animate-spin" /> : <Send className="size-4" />}
               Enviar teste
@@ -655,36 +655,36 @@ function WebhookSettings({
         </div>
 
         {testResult && (
-          <p role="status" className={`rounded-xl border px-3.5 py-3 text-xs ${testResult.type === 'success' ? 'border-emerald-400/15 bg-emerald-400/[0.05] text-emerald-200/80' : testResult.type === 'error' ? 'border-red-400/15 bg-red-400/[0.05] text-red-200/80' : 'border-amber-400/15 bg-amber-400/[0.05] text-amber-200/80'}`}>
+          <p role="status" className={`rounded-xl border px-3.5 py-3 text-xs ${testResult.type === 'success' ? 'border-emerald-400/15 bg-emerald-400/[0.05] text-emerald-700/80' : testResult.type === 'error' ? 'border-red-400/15 bg-red-400/[0.05] text-red-700/80' : 'border-amber-400/15 bg-amber-400/[0.05] text-amber-700/80'}`}>
             {testResult.message}
           </p>
         )}
 
-        <div className="border-t border-white/[0.06] pt-5">
+        <div className="border-t border-border pt-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold text-zinc-300">Entregas recentes</p>
-              <p className="mt-1 text-[10px] text-zinc-700">Status HTTP e número de tentativas.</p>
+              <p className="text-xs font-semibold text-muted-foreground">Entregas recentes</p>
+              <p className="mt-1 text-[10px] text-muted-foreground/60">Status HTTP e número de tentativas.</p>
             </div>
-            <Activity className="size-4 text-zinc-700" />
+            <Activity className="size-4 text-muted-foreground/60" />
           </div>
           {initialDeliveries.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/[0.07] py-7 text-center text-xs text-zinc-700">Nenhuma entrega registrada.</div>
+            <div className="rounded-xl border border-dashed border-border py-7 text-center text-xs text-muted-foreground/60">Nenhuma entrega registrada.</div>
           ) : (
             <div className="space-y-2">
               {initialDeliveries.map((delivery) => {
                 const tone = delivery.status === 'succeeded'
-                  ? 'text-emerald-300 bg-emerald-400/[0.06] border-emerald-400/10'
+                  ? 'text-emerald-600 bg-emerald-400/[0.06] border-emerald-400/10'
                   : delivery.status === 'failed'
-                    ? 'text-red-300 bg-red-400/[0.06] border-red-400/10'
-                    : 'text-amber-300 bg-amber-400/[0.06] border-amber-400/10'
+                    ? 'text-red-600 bg-red-400/[0.06] border-red-400/10'
+                    : 'text-amber-600 bg-amber-400/[0.06] border-amber-400/10'
                 return (
-                  <div key={delivery.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.06] bg-black/15 px-3.5 py-3 text-[11px]">
+                  <div key={delivery.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-muted/20 px-3.5 py-3 text-[11px]">
                     <span className={`rounded-full border px-2 py-0.5 font-bold uppercase tracking-wider ${tone}`}>{delivery.status}</span>
-                    <span className="text-zinc-500">{delivery.statusCode ? `HTTP ${delivery.statusCode}` : 'Sem resposta'}</span>
-                    <span className="text-zinc-600">{delivery.attemptCount}/3 tentativas</span>
-                    <time className="ml-auto text-zinc-700" dateTime={delivery.createdAt}>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(delivery.createdAt))}</time>
-                    {delivery.lastError && <p className="w-full truncate text-red-300/60" title={delivery.lastError}>{delivery.lastError}</p>}
+                    <span className="text-muted-foreground">{delivery.statusCode ? `HTTP ${delivery.statusCode}` : 'Sem resposta'}</span>
+                    <span className="text-muted-foreground/50">{delivery.attemptCount}/3 tentativas</span>
+                    <time className="ml-auto text-muted-foreground/60" dateTime={delivery.createdAt}>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(delivery.createdAt))}</time>
+                    {delivery.lastError && <p className="w-full truncate text-red-600/70" title={delivery.lastError}>{delivery.lastError}</p>}
                   </div>
                 )
               })}
@@ -708,14 +708,14 @@ function SettingsSection({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-2xl border border-white/[0.07] bg-[#0b0c12]/90 p-5 sm:p-6">
+    <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
       <div className="mb-6 flex items-start gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-violet-400/10 bg-violet-500/[0.08] text-violet-300">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-violet-400/10 bg-violet-500/[0.08] text-violet-600">
           <Icon className="size-4" />
         </span>
         <div>
-          <h2 className="text-sm font-bold text-zinc-200">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-zinc-600">{description}</p>
+          <h2 className="text-sm font-bold text-foreground">{title}</h2>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground/50">{description}</p>
         </div>
       </div>
       {children}

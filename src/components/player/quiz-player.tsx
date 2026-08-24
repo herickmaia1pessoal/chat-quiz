@@ -442,7 +442,7 @@ export function QuizPlayer({
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between relative selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between relative selection:bg-indigo-500 selection:text-white">
       {/* Meta Pixel Script */}
       {quiz.meta_pixel_id && (
         <Script id="meta-pixel" strategy="afterInteractive">
@@ -487,22 +487,22 @@ export function QuizPlayer({
           since "back" and "% through the questions" no longer apply */}
       {!showProcessing && !showScoredResult && (
         <header className="w-full max-w-xl mx-auto px-6 pt-6 z-10">
-          <div className="flex items-center justify-between text-xs text-zinc-400 mb-2.5 font-medium">
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2.5 font-medium">
             <div className="flex items-center gap-2">
               {history.length > 1 && !isCompleted && (
                 <button
                   type="button"
                   onClick={goBack}
-                  className="text-zinc-500 hover:text-zinc-200 transition"
+                  className="text-muted-foreground hover:text-foreground transition"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
               )}
               <span className="truncate max-w-[200px]">{quiz.title}</span>
             </div>
-            <span className="font-mono text-indigo-400">{progressPercentage}%</span>
+            <span className="font-mono text-indigo-500">{progressPercentage}%</span>
           </div>
-          <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden border border-border">
             <div
               className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500 rounded-full"
               style={{ width: `${progressPercentage}%` }}
@@ -536,26 +536,26 @@ export function QuizPlayer({
         ) : isCompleted ? (
           /* COMPLETED SCREEN */
           <div className="w-full text-center space-y-6 animate-in fade-in zoom-in-95 duration-500 py-10">
-            <div className="h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/10">
+            <div className="h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/10">
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
                 Avaliação Concluída!
               </h2>
-              <p className="text-zinc-400 text-sm max-w-sm mx-auto">
-                Obrigado, <span className="text-zinc-200 font-semibold">{leadName}</span>! Suas respostas foram computadas.
+              <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                Obrigado, <span className="text-foreground font-semibold">{leadName}</span>! Suas respostas foram computadas.
               </p>
             </div>
             {redirectingUrl ? (
-              <div className="flex items-center justify-center gap-2 text-xs text-indigo-400 pt-4 animate-pulse">
+              <div className="flex items-center justify-center gap-2 text-xs text-indigo-500 pt-4 animate-pulse">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Redirecionando para o seu resultado...
               </div>
             ) : (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl max-w-md mx-auto text-left space-y-2">
-                <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Próximo Passo:</p>
-                <p className="text-sm text-zinc-300">
+              <div className="rounded-2xl border border-border bg-card p-6 backdrop-blur-xl max-w-md mx-auto text-left space-y-2">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Próximo Passo:</p>
+                <p className="text-sm text-foreground">
                   Nossa equipe entrará em contato pelo WhatsApp informado ({leadPhone}).
                 </p>
               </div>
@@ -563,33 +563,33 @@ export function QuizPlayer({
           </div>
         ) : isLeadCaptureStep ? (
           /* LEAD CAPTURE GATE */
-          <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="space-y-2 text-center">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 text-xs font-semibold">
                 <Lock className="h-3.5 w-3.5" /> Quase pronto!
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                 Onde devemos enviar seu resultado personalizado?
               </h2>
-              <p className="text-zinc-400 text-xs sm:text-sm">
+              <p className="text-muted-foreground text-xs sm:text-sm">
                 Informe seus dados para liberar a sua avaliação imediatamente.
               </p>
             </div>
 
             <form onSubmit={handleSubmitLead} className="space-y-4 pt-2">
               <div className="space-y-1.5">
-                <Label htmlFor="leadName" className="text-zinc-300 text-xs">Seu Nome Completo</Label>
+                <Label htmlFor="leadName" className="text-muted-foreground text-xs">Seu Nome Completo</Label>
                 <Input
                   id="leadName"
                   value={leadName}
                   onChange={(e) => setLeadName(e.target.value)}
                   placeholder="Ex: João da Silva"
-                  className="h-11 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500"
+                  className="h-11 border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-indigo-500"
                   required
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="leadPhone" className="text-zinc-300 text-xs">WhatsApp com DDD</Label>
+                <Label htmlFor="leadPhone" className="text-muted-foreground text-xs">WhatsApp com DDD</Label>
                 <Input
                   id="leadPhone"
                   value={leadPhone}
@@ -598,19 +598,19 @@ export function QuizPlayer({
                   maxLength={15}
                   minLength={14}
                   title="Informe um telefone válido com DDD"
-                  className="h-11 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500 font-mono"
+                  className="h-11 border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-indigo-500 font-mono"
                   required
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="leadEmail" className="text-zinc-300 text-xs">E-mail (opcional)</Label>
+                <Label htmlFor="leadEmail" className="text-muted-foreground text-xs">E-mail (opcional)</Label>
                 <Input
                   id="leadEmail"
                   type="email"
                   value={leadEmail}
                   onChange={(e) => setLeadEmail(e.target.value)}
                   placeholder="joao@gmail.com"
-                  className="h-11 border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500"
+                  className="h-11 border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-indigo-500"
                 />
               </div>
               <div className="pt-2">
@@ -626,8 +626,8 @@ export function QuizPlayer({
                   )}
                 </Button>
               </div>
-              <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 pt-1">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+              <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground pt-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
                 <span>Seus dados estão protegidos. Não enviamos spam.</span>
               </div>
             </form>
@@ -768,21 +768,21 @@ export function QuizPlayer({
                 ) : (
                   /* QUESTION BLOCK — multiple_choice, image_choice, likert,
                      text, scale, numeric_calc */
-                  <div className="w-full rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6">
+                  <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6">
                     <div className="space-y-2">
                       {!isContentBlock(block.type) && (
                         <span
                           style={accentColor ? { color: accentColor } : undefined}
-                          className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20"
+                          className="text-[11px] font-semibold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20"
                         >
                           Pergunta {allBlocks.filter((b) => !isContentBlock(b.type)).indexOf(block) + 1} de {answerableQuestions.length}
                         </span>
                       )}
-                      <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                      <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
                         {interpolate(block.title)}
                       </h2>
                       {block.description && (
-                        <p className="text-zinc-400 text-xs sm:text-sm">{interpolate(block.description)}</p>
+                        <p className="text-muted-foreground text-xs sm:text-sm">{interpolate(block.description)}</p>
                       )}
                     </div>
 
@@ -799,8 +799,8 @@ export function QuizPlayer({
                               style={isSelected && accentColor ? { borderColor: accentColor } : undefined}
                               className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${
                                 isSelected
-                                  ? 'border-indigo-500 bg-indigo-600/15 text-white shadow-md shadow-indigo-500/10'
-                                  : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/80'
+                                  ? 'border-indigo-500 bg-indigo-600/15 text-foreground shadow-md shadow-indigo-500/10'
+                                  : 'border-border bg-muted/30 text-muted-foreground hover:border-border hover:bg-accent'
                               }`}
                             >
                               <div className="flex items-center gap-3">
@@ -809,13 +809,13 @@ export function QuizPlayer({
                                   className={`h-7 w-7 rounded-lg text-xs font-semibold flex items-center justify-center transition ${
                                     isSelected
                                       ? 'bg-indigo-600 text-white'
-                                      : 'bg-zinc-800 text-zinc-400 group-hover:bg-zinc-700 group-hover:text-zinc-200'
+                                      : 'bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground'
                                   }`}>
                                   {String.fromCharCode(65 + optIdx)}
                                 </span>
                                 <span className="text-sm font-medium">{opt.text}</span>
                               </div>
-                              <ChevronRight className={`h-4 w-4 transition ${isSelected ? 'text-indigo-400 translate-x-1' : 'text-zinc-600 group-hover:text-zinc-400'}`} />
+                              <ChevronRight className={`h-4 w-4 transition ${isSelected ? 'text-indigo-500 translate-x-1' : 'text-muted-foreground group-hover:text-foreground'}`} />
                             </button>
                           )
                         })}
@@ -851,7 +851,7 @@ export function QuizPlayer({
                           value={answers[block.id]?.textValue || ''}
                           onChange={(e) => handleTextAnswer(block, e.target.value)}
                           placeholder="Digite sua resposta aqui..."
-                          className="h-12 border-zinc-700 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-600"
+                          className="h-12 border-border bg-background text-foreground text-sm placeholder:text-muted-foreground"
                         />
                         <Button
                           onClick={handleNext}
@@ -882,7 +882,7 @@ export function QuizPlayer({
                                 className={`h-14 rounded-xl border font-bold text-lg transition flex items-center justify-center ${
                                   isSelected
                                     ? 'border-indigo-500 bg-indigo-600 text-white'
-                                    : 'border-zinc-800 bg-zinc-950/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800'
+                                    : 'border-border bg-muted/30 text-muted-foreground hover:border-border hover:bg-accent'
                                 }`}
                               >
                                 {num}
@@ -890,7 +890,7 @@ export function QuizPlayer({
                             )
                           })}
                         </div>
-                        <div className="flex justify-between text-[11px] text-zinc-500 px-1 font-medium">
+                        <div className="flex justify-between text-[11px] text-muted-foreground px-1 font-medium">
                           <span>1 (Muito Baixo)</span>
                           <span>5 (Muito Alto)</span>
                         </div>
@@ -940,8 +940,8 @@ export function QuizPlayer({
 
       {/* Footer — White-label aware */}
       {quiz.show_branding !== false && (
-        <footer className="w-full py-4 text-center text-zinc-600 text-[11px] z-10">
-          Criado com <span className="text-zinc-400 font-semibold">QuizFlow</span>
+        <footer className="w-full py-4 text-center text-muted-foreground/60 text-[11px] z-10">
+          Criado com <span className="text-muted-foreground font-semibold">QuizFlow</span>
         </footer>
       )}
     </div>

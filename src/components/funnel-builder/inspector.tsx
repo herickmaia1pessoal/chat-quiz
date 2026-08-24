@@ -19,8 +19,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 type InspectorTab = 'content' | 'style' | 'logic'
 
-const fieldClass = 'h-9 w-full rounded-lg border border-white/10 bg-[#111116] px-3 text-xs text-zinc-200 outline-none transition placeholder:text-zinc-600 focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/10'
-const labelClass = 'mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500'
+const fieldClass = 'h-9 w-full rounded-lg border border-border bg-card px-3 text-xs text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/10'
+const labelClass = 'mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground'
 
 // Fields where a URL points at a media file, so the "Escolher da Biblioteca"
 // picker button is worth showing next to the manual input. Keyed by
@@ -88,14 +88,14 @@ function ContentField({
         <fieldset className="space-y-2.5">
           <legend className={labelClass}>{field.label}</legend>
           {items.map((item, index) => (
-            <div key={index} className="rounded-xl border border-white/8 bg-white/[0.025] p-3">
+            <div key={index} className="rounded-xl border border-border bg-muted/30 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-600">Item {index + 1}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/60">Item {index + 1}</span>
                 <button
                   type="button"
                   onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}
                   aria-label={`Excluir item ${index + 1}`}
-                  className="rounded-md p-1 text-zinc-600 transition hover:bg-rose-500/10 hover:text-rose-400"
+                  className="rounded-md p-1 text-muted-foreground/60 transition hover:bg-rose-500/10 hover:text-rose-500"
                 >
                   <Trash2 className="size-3.5" />
                 </button>
@@ -124,7 +124,7 @@ function ContentField({
           <button
             type="button"
             onClick={() => onChange([...items, { title: 'Novo item', text: 'Escreva o conteúdo aqui.' }])}
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/10 text-[11px] font-semibold text-zinc-500 transition hover:border-violet-400/35 hover:text-violet-300"
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-[11px] font-semibold text-muted-foreground transition hover:border-violet-300/40 hover:text-violet-600"
           >
             <Plus className="size-3.5" /> Adicionar item
           </button>
@@ -141,14 +141,14 @@ function ContentField({
         <fieldset className="space-y-2.5">
           <legend className={labelClass}>{field.label}</legend>
           {options.map((option, index) => (
-            <div key={index} className="rounded-xl border border-white/8 bg-white/[0.025] p-3">
+            <div key={index} className="rounded-xl border border-border bg-muted/30 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-600">Opção {index + 1}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/60">Opção {index + 1}</span>
                 <button
                   type="button"
                   onClick={() => onChange(options.filter((_, optionIndex) => optionIndex !== index))}
                   aria-label={`Excluir opção ${index + 1}`}
-                  className="rounded-md p-1 text-zinc-600 transition hover:bg-rose-500/10 hover:text-rose-400"
+                  className="rounded-md p-1 text-muted-foreground/60 transition hover:bg-rose-500/10 hover:text-rose-500"
                 >
                   <Trash2 className="size-3.5" />
                 </button>
@@ -163,7 +163,7 @@ function ContentField({
                 />
               </label>
               <label className="mt-2 flex items-center gap-2">
-                <Tag className="size-3.5 shrink-0 text-zinc-600" />
+                <Tag className="size-3.5 shrink-0 text-muted-foreground/60" />
                 <span className="sr-only">Tag de qualificação da opção {index + 1}</span>
                 <input
                   value={option.tag ?? ''}
@@ -177,11 +177,11 @@ function ContentField({
           <button
             type="button"
             onClick={() => onChange([...options, { label: `Opção ${options.length + 1}`, value: `Opção ${options.length + 1}` }])}
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/10 text-[11px] font-semibold text-zinc-500 transition hover:border-violet-400/35 hover:text-violet-300"
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-[11px] font-semibold text-muted-foreground transition hover:border-violet-300/40 hover:text-violet-600"
           >
             <Plus className="size-3.5" /> Adicionar opção
           </button>
-          <p className="px-1 text-[10px] leading-relaxed text-zinc-600">
+          <p className="px-1 text-[10px] leading-relaxed text-muted-foreground/60">
             A tag é aplicada ao lead quando esta opção é escolhida — use para qualificar respostas (ex: &quot;pronto-para-comprar&quot;).
           </p>
         </fieldset>
@@ -204,14 +204,14 @@ function ContentField({
   }
   if (field.control === 'toggle') {
     return (
-      <label className="flex items-center justify-between gap-3 rounded-lg border border-white/8 bg-white/[0.025] px-3 py-2.5 text-xs text-zinc-300">
+      <label className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-xs text-foreground">
         {field.label}
         <button
           type="button"
           role="switch"
           aria-checked={Boolean(value)}
           onClick={() => onChange(!value)}
-          className={`relative h-5 w-9 rounded-full transition ${value ? 'bg-violet-500' : 'bg-zinc-700'}`}
+          className={`relative h-5 w-9 rounded-full transition ${value ? 'bg-violet-500' : 'bg-muted'}`}
         >
           <span className={`absolute top-0.5 size-4 rounded-full bg-white transition ${value ? 'left-[18px]' : 'left-0.5'}`} />
         </button>
@@ -253,7 +253,7 @@ function ContentField({
           value={toInputValue(value)}
           onChange={(event) => onChange(field.control === 'number' ? Number(event.target.value) : event.target.value)}
           placeholder={field.placeholder}
-          className={field.control === 'color' ? 'h-9 w-full cursor-pointer rounded-lg border border-white/10 bg-[#111116] p-1' : fieldClass}
+          className={field.control === 'color' ? 'h-9 w-full cursor-pointer rounded-lg border border-border bg-card p-1' : fieldClass}
         />
         {isMediaUrlField && workspaceId && funnelId && (
           <button
@@ -261,7 +261,7 @@ function ContentField({
             onClick={() => setPickerOpen(true)}
             title="Escolher da Biblioteca"
             aria-label="Escolher da Biblioteca de mídia"
-            className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-[#111116] px-2.5 text-zinc-400 transition hover:border-violet-500/40 hover:text-violet-300"
+            className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-muted-foreground transition hover:border-violet-500/40 hover:text-violet-600"
           >
             <FolderOpen className="size-3.5" />
           </button>
@@ -269,9 +269,9 @@ function ContentField({
       </div>
       {isMediaUrlField && workspaceId && funnelId && (
         <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-          <DialogContent className="max-w-3xl border border-white/[0.08] bg-[#0a0a0e] p-0 text-zinc-200 sm:max-w-3xl">
-            <DialogHeader className="border-b border-white/[0.07] px-5 py-4">
-              <DialogTitle className="text-sm font-semibold text-zinc-100">Biblioteca de mídia</DialogTitle>
+          <DialogContent className="max-w-3xl border border-border bg-card p-0 text-foreground sm:max-w-3xl">
+            <DialogHeader className="border-b border-border px-5 py-4">
+              <DialogTitle className="text-sm font-semibold text-foreground">Biblioteca de mídia</DialogTitle>
             </DialogHeader>
             <div className="max-h-[70vh] overflow-y-auto px-5 pb-5">
               <MediaLibrary
@@ -316,7 +316,7 @@ function StyleField({
       <span className="mb-1.5 flex items-center justify-between gap-2">
         <span className={labelClass.replace('mb-1.5 ', '')}>{label}</span>
         {overridden && (
-          <button type="button" onClick={onClear} title="Voltar a herdar do desktop" className="text-violet-400 transition hover:text-violet-300">
+          <button type="button" onClick={onClear} title="Voltar a herdar do desktop" className="text-violet-500 transition hover:text-violet-600">
             <RotateCcw className="size-3" />
           </button>
         )}
@@ -330,7 +330,7 @@ function StyleField({
           type={type}
           value={toInputValue(value)}
           onChange={(event) => onChange(type === 'number' ? Number(event.target.value) : event.target.value)}
-          className={type === 'color' ? 'h-9 w-full cursor-pointer rounded-lg border border-white/10 bg-[#111116] p-1' : fieldClass}
+          className={type === 'color' ? 'h-9 w-full cursor-pointer rounded-lg border border-border bg-card p-1' : fieldClass}
         />
       )}
     </label>
@@ -368,11 +368,11 @@ function ScoringEditor({
   if (element.type === 'quiz_choice') {
     const choices = normalizeFunnelOptions(element.content.options)
     return (
-      <fieldset className="space-y-2 rounded-xl border border-white/8 bg-white/[0.025] p-3">
-        <legend className="px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">Pontos por resposta</legend>
+      <fieldset className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
+        <legend className="px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Pontos por resposta</legend>
         {choices.map((choice) => (
           <label key={choice.value} className="flex items-center gap-3">
-            <span className="min-w-0 flex-1 truncate text-xs text-zinc-400">{choice.label}</span>
+            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{choice.label}</span>
             <input
               type="number"
               value={rules.find((rule) => String(rule.value) === choice.value)?.points ?? 0}
@@ -387,8 +387,8 @@ function ScoringEditor({
   }
 
   return (
-    <fieldset className="space-y-2 rounded-xl border border-white/8 bg-white/[0.025] p-3">
-      <legend className="px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">Pontos por valor</legend>
+    <fieldset className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
+      <legend className="px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Pontos por valor</legend>
       {rules.map((rule, index) => (
         <div key={rule.id} className="flex items-end gap-2">
           <label className="min-w-0 flex-1">
@@ -414,7 +414,7 @@ function ScoringEditor({
             <span className={labelClass}>Pontos</span>
             <input type="number" value={rule.points} onChange={(event) => updateRule(rule.value as string | number, Number(event.target.value))} className={fieldClass} />
           </label>
-          <button type="button" onClick={() => removeRule(rule.id)} aria-label={`Excluir regra ${index + 1}`} className="mb-0.5 rounded-lg p-2.5 text-zinc-600 transition hover:bg-rose-500/10 hover:text-rose-400"><Trash2 className="size-3.5" /></button>
+          <button type="button" onClick={() => removeRule(rule.id)} aria-label={`Excluir regra ${index + 1}`} className="mb-0.5 rounded-lg p-2.5 text-muted-foreground/60 transition hover:bg-rose-500/10 hover:text-rose-500"><Trash2 className="size-3.5" /></button>
         </div>
       ))}
       <button
@@ -430,7 +430,7 @@ function ScoringEditor({
             }],
           },
         }))}
-        className="flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-white/10 text-[10px] font-semibold text-zinc-500 transition hover:border-violet-400/35 hover:text-violet-300"
+        className="flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-[10px] font-semibold text-muted-foreground transition hover:border-violet-300/40 hover:text-violet-600"
       >
         <Plus className="size-3" /> Adicionar regra
       </button>
@@ -459,16 +459,16 @@ export function Inspector({
 
   if (!element) {
     return (
-      <aside className="flex h-full w-[292px] shrink-0 flex-col border-l border-white/[0.07] bg-[#0a0a0e]">
-        <div className="flex h-12 items-center border-b border-white/[0.07] px-4 text-xs font-semibold text-zinc-300">
-          <SlidersHorizontal className="mr-2 size-3.5 text-violet-400" /> Inspector
+      <aside className="flex h-full w-[292px] shrink-0 flex-col border-l border-border bg-card">
+        <div className="flex h-12 items-center border-b border-border px-4 text-xs font-semibold text-foreground">
+          <SlidersHorizontal className="mr-2 size-3.5 text-violet-500" /> Inspector
         </div>
         <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
-          <div className="mb-4 flex size-12 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03] text-zinc-600">
+          <div className="mb-4 flex size-12 items-center justify-center rounded-2xl border border-border bg-muted/30 text-muted-foreground/60">
             <SlidersHorizontal className="size-5" />
           </div>
-          <p className="text-sm font-semibold text-zinc-300">Nenhum elemento selecionado</p>
-          <p className="mt-2 text-xs leading-relaxed text-zinc-600">Selecione um item no canvas ou nas Camadas para editar conteúdo, estilo e lógica.</p>
+          <p className="text-sm font-semibold text-foreground">Nenhum elemento selecionado</p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground/60">Selecione um item no canvas ou nas Camadas para editar conteúdo, estilo e lógica.</p>
         </div>
       </aside>
     )
@@ -521,25 +521,25 @@ export function Inspector({
   const overridden = (property: keyof StyleProperties) => breakpoint !== 'desktop' && hasBreakpointOverride(element, breakpoint, property)
 
   return (
-    <aside className="flex h-full w-[292px] shrink-0 flex-col border-l border-white/[0.07] bg-[#0a0a0e]">
-      <div className="flex min-h-14 items-center gap-3 border-b border-white/[0.07] px-4">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-violet-500/10 text-xs font-bold text-violet-300">
+    <aside className="flex h-full w-[292px] shrink-0 flex-col border-l border-border bg-card">
+      <div className="flex min-h-14 items-center gap-3 border-b border-border px-4">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-violet-500/10 text-xs font-bold text-violet-600">
           {definition.label.slice(0, 1)}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-semibold text-zinc-200">{definition.label}</p>
-          <p className="text-[10px] text-zinc-600">Breakpoint: {breakpoint}</p>
+          <p className="truncate text-xs font-semibold text-foreground">{definition.label}</p>
+          <p className="text-[10px] text-muted-foreground/60">Breakpoint: {breakpoint}</p>
         </div>
-        <button type="button" onClick={onClose} className="rounded-md p-1 text-zinc-600 hover:bg-white/5 hover:text-zinc-300"><X className="size-3.5" /></button>
+        <button type="button" onClick={onClose} className="rounded-md p-1 text-muted-foreground/60 hover:bg-accent hover:text-foreground"><X className="size-3.5" /></button>
       </div>
 
-      <div className="grid grid-cols-3 border-b border-white/[0.07] px-2 pt-1">
+      <div className="grid grid-cols-3 border-b border-border px-2 pt-1">
         {(['content', 'style', 'logic'] as InspectorTab[]).map((item) => (
           <button
             type="button"
             key={item}
             onClick={() => setTab(item)}
-            className={`border-b-2 px-2 py-2.5 text-[11px] font-semibold capitalize transition ${tab === item ? 'border-violet-500 text-white' : 'border-transparent text-zinc-600 hover:text-zinc-300'}`}
+            className={`border-b-2 px-2 py-2.5 text-[11px] font-semibold capitalize transition ${tab === item ? 'border-violet-500 text-foreground' : 'border-transparent text-muted-foreground/60 hover:text-foreground'}`}
           >
             {item === 'content' ? 'Conteúdo' : item === 'style' ? 'Estilo' : 'Lógica'}
           </button>
@@ -550,7 +550,7 @@ export function Inspector({
         {tab === 'content' && (
           <div className="space-y-4">
             {contentFields.length === 0 && (
-              <div className="rounded-xl border border-white/8 bg-white/[0.025] p-3 text-xs leading-relaxed text-zinc-500">
+              <div className="rounded-xl border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">
                 Este elemento não possui conteúdo textual. Ajuste sua estrutura na aba Estilo.
               </div>
             )}
@@ -578,7 +578,7 @@ export function Inspector({
         {tab === 'style' && (
           <div className="space-y-5">
             {breakpoint !== 'desktop' && (
-              <div className="rounded-xl border border-violet-400/15 bg-violet-500/[0.06] p-3 text-[11px] leading-relaxed text-violet-200/70">
+              <div className="rounded-xl border border-violet-200/40 bg-violet-500/[0.06] p-3 text-[11px] leading-relaxed text-violet-700/80">
                 Você está criando sobrescritas para {breakpoint}. Use <RotateCcw className="mx-0.5 inline size-3" /> para herdar do desktop.
               </div>
             )}
@@ -627,7 +627,7 @@ export function Inspector({
 
         {tab === 'logic' && (
           <div className="space-y-4">
-            <label className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.025] px-3 py-3 text-xs text-zinc-300">
+            <label className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-3 py-3 text-xs text-foreground">
               Exibição condicional
               <button
                 type="button"
@@ -643,20 +643,20 @@ export function Inspector({
                     },
                   },
                 }))}
-                className={`relative h-5 w-9 rounded-full transition ${element.logic.visibility ? 'bg-violet-500' : 'bg-zinc-700'}`}
+                className={`relative h-5 w-9 rounded-full transition ${element.logic.visibility ? 'bg-violet-500' : 'bg-muted'}`}
               >
                 <span className={`absolute top-0.5 size-4 rounded-full bg-white transition ${element.logic.visibility ? 'left-[18px]' : 'left-0.5'}`} />
               </button>
             </label>
             {element.logic.visibility && (
-              <div className="space-y-3 rounded-xl border border-violet-400/15 bg-violet-500/[0.04] p-3">
+              <div className="space-y-3 rounded-xl border border-violet-200/40 bg-violet-500/[0.04] p-3">
                 <label className="block"><span className={labelClass}>Variável</span><input value={element.logic.visibility.conditions[0]?.variable ?? ''} onChange={(event) => onChange((current) => ({ ...current, logic: { ...current.logic, visibility: { operator: current.logic.visibility?.operator ?? 'and', conditions: [{ ...(current.logic.visibility?.conditions[0] ?? { id: crypto.randomUUID(), operator: 'equals' }), variable: event.target.value }] } } }))} placeholder="answer.campo" className={fieldClass} /></label>
                 <label className="block"><span className={labelClass}>Operador</span><select value={element.logic.visibility.conditions[0]?.operator ?? 'equals'} onChange={(event) => onChange((current) => ({ ...current, logic: { ...current.logic, visibility: { operator: current.logic.visibility?.operator ?? 'and', conditions: [{ ...(current.logic.visibility?.conditions[0] ?? { id: crypto.randomUUID(), variable: '' }), operator: event.target.value as 'equals' }] } } }))} className={fieldClass}><option value="equals">É igual a</option><option value="not_equals">É diferente de</option><option value="contains">Contém</option><option value="is_empty">Está vazio</option><option value="is_not_empty">Não está vazio</option></select></label>
                 <label className="block"><span className={labelClass}>Valor</span><input value={toInputValue(element.logic.visibility.conditions[0]?.value)} onChange={(event) => onChange((current) => ({ ...current, logic: { ...current.logic, visibility: { operator: current.logic.visibility?.operator ?? 'and', conditions: [{ ...(current.logic.visibility?.conditions[0] ?? { id: crypto.randomUUID(), variable: '', operator: 'equals' }), value: event.target.value }] } } }))} className={fieldClass} /></label>
               </div>
             )}
             <ScoringEditor element={element} onChange={onChange} />
-            <div className="rounded-xl border border-white/8 bg-white/[0.025] p-3 text-xs leading-relaxed text-zinc-500">
+            <div className="rounded-xl border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">
               A condição usa chaves estáveis de resposta e variáveis. As ramificações entre páginas são configuradas no modo Fluxo.
             </div>
           </div>
