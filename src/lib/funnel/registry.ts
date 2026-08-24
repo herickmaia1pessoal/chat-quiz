@@ -115,8 +115,8 @@ function definition(
 }
 
 export const ELEMENT_DEFINITIONS: ElementDefinition[] = [
-  definition('section', 'layout', 'Seção', 'Bloco de largura total', 'PanelsTopLeft', {}, {
-    display: 'flex', flexDirection: 'column', gap: 24, paddingX: 32, paddingY: 48,
+  definition('section', 'layout', 'Seção', 'Uma tela do funil', 'PanelsTopLeft', {}, {
+    display: 'flex', flexDirection: 'column', gap: 24, width: '100%', maxWidth: '640px', paddingX: 32, paddingY: 48,
     minHeight: 180, backgroundColor: '#09090b', borderRadius: 16,
   }, ROOT_ONLY),
   definition('container', 'layout', 'Container', 'Agrupa elementos', 'Columns3', {}, {
