@@ -181,13 +181,18 @@ function buildDiagnostic(): FunnelDocument {
     }),
   )
 
-  // Lead capture before revealing result
+  // Lead capture before revealing result. IMPORTANT: action must be
+  // 'next_page', not 'submit' — handleAction() in funnel-player.tsx only
+  // calls resolveFunnelDecision() (which evaluates flow.resultRanges) on
+  // the 'next_page' branch; 'submit' calls submit() directly and never
+  // consults resultRanges, so the visitor would always land on the
+  // generic "Tudo certo!" screen instead of a score-based result page.
   const sLead = section(elements, p5.id, 0, { paddingY: 56 })
   elements.push(
     el('heading', p5.id, sLead, 0, { text: 'Para onde enviamos seu resultado?' }),
     el('short_text', p5.id, sLead, 1, { label: 'Seu nome', fieldKey: 'nome', required: true }),
     el('email', p5.id, sLead, 2, { fieldKey: 'email', required: true }),
-    el('button', p5.id, sLead, 3, { text: 'Ver meu resultado', action: 'submit' }, { width: '100%' }),
+    el('button', p5.id, sLead, 3, { text: 'Ver meu resultado', action: 'next_page' }, { width: '100%' }),
   )
 
   // Result pages
