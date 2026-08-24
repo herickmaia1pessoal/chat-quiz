@@ -614,6 +614,22 @@ export function FunnelPlayer({
       return next
     })
     void emit({ type: 'interaction', pageId: currentPage?.id, elementId: fieldElements.get(key), payload: { fieldKey: key } })
+
+    // Single-choice fields (radio/quiz_choice/select) advance on their own
+    // click, same as the legacy player's multiple_choice/image_choice/
+    // likert — but only when they're the ONLY answerable field on the
+    // page. Stacking another field after it would otherwise be
+    // unreachable, since the click already navigates away. A short delay
+    // lets the visitor see their selection highlight before the page
+    // changes (mirrors quiz-player.tsx's own 200ms).
+    const respondedElement = pageElements.find((element) => element.id === fieldElements.get(key))
+    const isSingleChoice = respondedElement && ['radio', 'quiz_choice', 'select'].includes(respondedElement.type)
+    if (isSingleChoice) {
+      const answerableOnPage = pageElements.filter((element) => fieldTypes.has(element.type) && isEffectivelyVisible(element))
+      if (answerableOnPage.length === 1 && answerableOnPage[0].id === respondedElement.id) {
+        window.setTimeout(() => handleAction({ type: 'next_page' }), 200)
+      }
+    }
   }
 
   const uploadFile = async (key: string, file: File) => {
