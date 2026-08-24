@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Source_Sans_3, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Display face for headings/UI labels — geometric, available at weight 800,
 // matches the rounded-corner, badge-heavy visual language already in use.
@@ -39,10 +40,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
-      className={`dark ${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable} h-full antialiased`}
+      className={`${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-[#07080d]">{children}</body>
+      <body className="min-h-full flex flex-col bg-background" suppressHydrationWarning>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange={false}
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
+
