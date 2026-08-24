@@ -58,6 +58,7 @@ export type FlowValidationIssueCode =
   | 'overlapping_result_range'
   | 'unreachable_page'
   | 'cycle_without_exit'
+  | 'unreachable_result_range'
 
 export interface FlowValidationIssue {
   code: FlowValidationIssueCode
@@ -597,6 +598,29 @@ export function validateFunnelFlow(document: FunnelDocument): FlowValidationResu
         if (rangesOverlap(ranges[left], ranges[right])) {
           issues.push({ code: 'overlapping_result_range', severity: 'error', message: 'Faixas de resultado da mesma página não podem se sobrepor.', pageId: sourcePageId, resultRangeId: ranges[right].id })
         }
+      }
+    }
+  }
+
+  // Result ranges are only ever consulted from the 'next_page' branch of
+  // handleAction (funnel-player.tsx) — a page whose only visible button
+  // uses action:'submit' calls submit() directly and never reaches
+  // resolveFunnelDecision, so any resultRange declared on that page would
+  // silently never fire in production. This mirrors the same check already
+  // enforced for CLI-built templates in scripts/funnel-doc-validator.ts,
+  // now applied to every funnel published from the editor.
+  for (const [sourcePageId, ranges] of rangesBySource) {
+    const pageElements = document.elements.filter((element) => element.pageId === sourcePageId)
+    const hasUsableNextPageButton = pageElements.some((element) => (
+      isUnconditionallyVisible(document, element)
+        && (supportedContentAction(element) === 'next_page' || supportedLogicAction(element)?.type === 'next_page')
+    ))
+    const onlyHasSubmitButton = pageElements.some((element) => (
+      isUnconditionallyVisible(document, element) && hasSubmitAction(element)
+    )) && !hasUsableNextPageButton
+    if (onlyHasSubmitButton) {
+      for (const range of ranges) {
+        issues.push({ code: 'unreachable_result_range', severity: 'error', message: `A faixa de resultado "${range.label}" nunca seria alcançada: o botão dessa página usa "Enviar" em vez de "Próxima página", e faixas de resultado só são avaliadas ao avançar de página.`, pageId: sourcePageId, resultRangeId: range.id })
       }
     }
   }

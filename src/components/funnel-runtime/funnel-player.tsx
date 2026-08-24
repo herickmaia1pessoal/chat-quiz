@@ -629,7 +629,12 @@ export function FunnelPlayer({
     // lets the visitor see their selection highlight before the page
     // changes (mirrors quiz-player.tsx's own 200ms).
     const respondedElement = pageElements.find((element) => element.id === fieldElements.get(key))
-    const isSingleChoice = respondedElement && ['radio', 'quiz_choice', 'select'].includes(respondedElement.type)
+    // 'select' always renders a blank placeholder option ("" value) that a
+    // visitor can reopen and pick — unlike radio/quiz_choice, choosing it
+    // isn't a real answer, so it must not trigger the same auto-advance.
+    const isSingleChoice = respondedElement
+      && ['radio', 'quiz_choice', 'select'].includes(respondedElement.type)
+      && value !== ''
     if (isSingleChoice) {
       const answerableOnPage = pageElements.filter((element) => fieldTypes.has(element.type) && isEffectivelyVisible(element))
       if (answerableOnPage.length === 1 && answerableOnPage[0].id === respondedElement.id) {
@@ -870,6 +875,7 @@ export function FunnelPlayer({
           setValues((current) => valuesForPages(current, fieldPages, retainedPages))
           navigateTo(target)
         }
+        else setSubmitMessage('O fluxo aponta para uma página que não existe.')
         break
       }
       case 'submit':

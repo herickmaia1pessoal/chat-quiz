@@ -348,6 +348,42 @@ describe('flow validation', () => {
     ]))
   })
 
+  it('rejects a result range whose source page only has a submit button', () => {
+    // resultRanges are only consulted from the 'next_page' branch of
+    // handleAction at runtime (funnel-player.tsx) — a page whose only
+    // visible button uses action:'submit' would never actually route
+    // through this range in production. See scripts/funnel-doc-validator.ts
+    // for the equivalent check applied to CLI-built templates.
+    const document = makeDocument(['a', 'low'], {
+      resultRanges: [
+        { id: 'low-range', label: 'Low', sourcePageId: 'a', targetPageId: 'low', minScore: 0, maxScore: 10 },
+      ],
+    }, [
+      makeElement('submit', 'button', 'a', { action: 'submit' }),
+    ])
+
+    const result = validateFunnelFlow(document)
+    expect(result.valid).toBe(false)
+    expect(result.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'unreachable_result_range', pageId: 'a', resultRangeId: 'low-range' }),
+    ]))
+  })
+
+  it('accepts a result range whose source page has a next_page button alongside a submit button', () => {
+    const document = makeDocument(['a', 'low'], {
+      resultRanges: [
+        { id: 'low-range', label: 'Low', sourcePageId: 'a', targetPageId: 'low', minScore: 0, maxScore: 10 },
+      ],
+    }, [
+      makeElement('advance', 'button', 'a', { action: 'next_page' }),
+    ])
+
+    const result = validateFunnelFlow(document)
+    expect(result.issues).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'unreachable_result_range' }),
+    ]))
+  })
+
   it('rejects a go-to-page action without a destination', () => {
     const button = makeElement('button', 'button', 'a', {
       action: 'go_to_page',
